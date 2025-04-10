@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1032058997889",
+    "project_id": "five-stars-laundry",
+    "storage_bucket": "five-stars-laundry.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1032058997889:android:5da64f09cd5e4827ec5180",
+        "android_client_info": {
+          "package_name": "com.example.five_stars_laundromat_application"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA3H5d8tCmxMbNkHNR0aTbRjLS-KITTK_U"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

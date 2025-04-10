@@ -1,0 +1,44 @@
+plugins {
+    id "com.android.application"
+    // id "kotlin-android"
+    id 'com.google.gms.google-services'
+    id "dev.flutter.flutter-gradle-plugin"
+}
+
+android {
+    namespace = "com.example.five_stars_laundromat_application"
+    compileSdk = flutter.compileSdkVersion
+    ndkVersion = flutter.ndkVersion
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
+    }
+
+    defaultConfig {
+        applicationId = "com.example.five_stars_laundromat_application"
+        minSdkVersion 23
+        targetSdkVersion 33
+        versionCode 1
+        versionName "1.0.0"
+    }
+
+    buildTypes {
+        release {
+            signingConfig = signingConfigs.debug
+        }
+    }
+}
+
+dependencies {
+    implementation platform('com.google.firebase:firebase-bom:33.4.0')
+    implementation 'com.google.firebase:firebase-auth'   // For Firebase Authentication
+    implementation 'com.google.firebase:firebase-firestore'  // For Firestore (if you're using it)
+    implementation 'com.google.firebase:firebase-database'  // For Realtime Database (if you're using it)
+}
+
+flutter {
+    source = "../.."
+}
+
+apply plugin: 'com.google.gms.google-services'

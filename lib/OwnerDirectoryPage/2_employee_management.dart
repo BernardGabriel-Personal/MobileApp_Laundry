@@ -1,0 +1,240 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
+import 'dart:math';
+import 'package:mailer/mailer.dart';
+import 'package:mailer/smtp_server/gmail.dart';
+import 'package:intl/intl.dart';
+
+class EmployeeManagementPage extends StatelessWidget {
+  const EmployeeManagementPage({super.key});
+
+  // Random Password Generator
+  String generatePassword({required String employeeId}) {
+    // Ensures that the password starts with employeeId and adds 5 random uppercase letters
+    const String uppercaseChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    final Random random = Random.secure();
+
+    // Create a random 5-character uppercase string
+    String randomUppercase = List.generate(5, (index) => uppercaseChars[random.nextInt(uppercaseChars.length)]).join();
+
+    // Concatenate employeeId with the random uppercase letters
+    String password = '$employeeId$randomUppercase';
+
+    return password;
+  }
+
+
+  // Email Sending Function
+  Future<void> sendEmail(
+      String recipientEmail, String employeeId, String password) async {
+    String username = 'bernardgabriel151@gmail.com';
+    String passwordApp = 'gafumrtlknkdahww'; // gafu mrtl knkd ahww
+
+    final smtpServer = gmail(username, passwordApp);
+
+    final message = Message()
+      ..from = Address(username, 'Five-Stars Laundry')
+      ..recipients.add(recipientEmail)
+      ..subject = 'Five-Stars Laundry Employee Account Approval'
+      ..html = '''
+  <div style="background-color: #f4f4f4; padding: 20px; font-family: Arial, sans-serif;">
+    <div style="text-align: center;">
+      <img src="https://i.postimg.cc/25VgjX88/Five-Stars-Laundromat.png" alt="Five-Stars Laundry Logo" width="200">
+    </div>
+    <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);">
+      <p style="font-size: 18px; font-weight: bold;">Dear Fresh & Pressed Team Member,</p>
+      <p>Welcome to the <strong>Five-Stars Laundry</strong> family! Your employee account has been officially approved. We’re thrilled to have you on board as we keep things fresh, clean, and running smoothly.</p>
+      <p><strong>Here are your login details:</strong></p>
+      <ul>
+        <li><strong>Employee ID:</strong> $employeeId</li>
+        <li><strong>Temporary Password:</strong> $password</li>
+      </ul>
+      <p>Please use these credentials to log in and be sure to <strong>update your password</strong> for security.</p>
+      <p>We’re excited to have you in the spin cycle of success! If you have any questions, don’t hesitate to reach out.</p>
+      <p style="text-align: left;">Best regards,<br><strong>MYThic Team</strong></p>
+    </div>
+  </div>
+  ''';
+
+    try {
+      await send(message, smtpServer);
+      print('Email sent successfully to $recipientEmail');
+    } catch (e) {
+      print('Failed to send email: $e');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFF6E9D4), // Background color
+      body: Stack(
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Column(
+              children: [
+                const SizedBox(height: 70), // Top Padding
+                const Center(
+                  child: Text(
+                    'Pending Employee Approvals',
+                    style: TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF3B5D74),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 15),
+                Expanded(
+                  child: Scrollbar(
+                    thumbVisibility: true, // Always show scrollbar
+                    thickness: 3, // Scrollbar thickness
+                    radius:
+                        const Radius.circular(10), // Rounded scrollbar edges
+                    child: StreamBuilder(
+                      stream: FirebaseFirestore.instance
+                          .collection('admin')
+                          .orderBy('createdAt', descending: true)
+                          .snapshots(),
+                      builder:
+                          (context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return const Center(
+                              child: CircularProgressIndicator());
+                        }
+                        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                          return const Center(child: Text('No admins found.'));
+                        }
+
+                        return ListView.builder(
+                          physics:
+                              const BouncingScrollPhysics(), // Smooth scrolling
+                          itemCount: snapshot.data!.docs.length,
+                          itemBuilder: (context, index) {
+                            var admin = snapshot.data!.docs[index];
+                            return Card(
+                              elevation: 4,
+                              margin: const EdgeInsets.symmetric(vertical: 10),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(15),
+                              ),
+                              child: ListTile(
+                                contentPadding: const EdgeInsets.all(15),
+                                leading: const CircleAvatar(
+                                  backgroundColor: Color(0xFF04D26F),
+                                  child:
+                                      Icon(Icons.person, color: Colors.white),
+                                ),
+                                title: Text(
+                                  admin['fullName'] ?? 'No Name',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 18,
+                                    color: Color(0xFF3B5D74),
+                                  ),
+                                ),
+                                subtitle: Padding(
+                                  padding: const EdgeInsets.only(top: 5),
+                                  child: Text(
+                                    'Email: ${admin['email'] ?? 'N/A'}\n'
+                                    'Contact: ${admin['contact'] ?? 'N/A'}\n'
+                                    'Employee ID: ${admin['employeeId'] ?? 'N/A'}',
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      color: Colors.black54,
+                                    ),
+                                  ),
+                                ),
+                                trailing: ElevatedButton(
+                                  onPressed: () async {
+                                    // Ensure employeeId is treated as String
+                                    String employeeId = admin['employeeId'].toString();
+
+                                    // Generate password by passing the employeeId
+                                    String password = generatePassword(employeeId: employeeId);
+
+                                    // Send the email
+                                    await sendEmail(
+                                        admin['email'] ?? '',
+                                        employeeId, // Use the string version
+                                        password);
+
+                                    // Handle createdAt timestamp properly
+                                    var createdAt = admin['createdAt'];
+                                    String formattedDate =
+                                        createdAt is Timestamp
+                                            ? DateFormat('yyyy-MM-dd HH:mm:ss')
+                                                .format(createdAt.toDate())
+                                            : createdAt.toString();
+
+                                    // Store the string version of employeeId
+                                    await FirebaseFirestore.instance
+                                        .collection('approved_admin')
+                                        .add({
+                                      'branch': admin['branch'] ?? '',
+                                      'contact': admin['contact'] ?? '',
+                                      'createdAt': formattedDate,
+                                      'email': admin['email'] ?? '',
+                                      'employeeId':
+                                          employeeId, // Store as string
+                                      'fullName': admin['fullName'] ?? '',
+                                      'password': password,
+                                    });
+
+                                    // Remove from the original collection
+                                    await FirebaseFirestore.instance
+                                        .collection('admin')
+                                        .doc(admin.id)
+                                        .delete();
+
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text(
+                                            'Employee approved and email sent!'),
+                                        backgroundColor: Colors.green,
+                                      ),
+                                    );
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(0xFF04D26F),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                  ),
+                                  child: const Text(
+                                    'Approve',
+                                    style: TextStyle(color: Colors.white),
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        );
+                      },
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+              ],
+            ),
+          ),
+
+          // Positioned Back Button (top-left corner)
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 15,
+            left: 15,
+            child: IconButton(
+              icon: const Icon(Icons.arrow_back_ios),
+              color: Colors.grey[600],
+              onPressed: () {
+                Navigator.pop(context);
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
