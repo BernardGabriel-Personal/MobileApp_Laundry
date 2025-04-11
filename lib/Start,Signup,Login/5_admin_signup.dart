@@ -28,7 +28,7 @@ class _AdminSignUpScreenState extends State<AdminSignUpScreen> {
     final int? employeeId = int.tryParse(employeeIdText); // Try to parse employee ID as integer
 
     if (fullName.isEmpty || email.isEmpty || contact.isEmpty || _selectedBranch == null || employeeId == null) {
-      _showErrorDialog('Please fill all fields.');
+      _showErrorDialog('Please fill in all fields.');
       setState(() {
         _isLoading = false; // Stop loading on error
       });
