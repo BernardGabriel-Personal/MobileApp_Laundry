@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:math';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '6_customer_signup.dart';
 import '../CustomerDirectoryPage/1_customer_homepage.dart';
 
@@ -15,6 +15,7 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   bool _isPasswordVisible = false;
+  bool _isLoading = false;
 
   Future<void> _loginCustomer() async {
     if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
@@ -22,30 +23,39 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
       return;
     }
 
+    setState(() {
+      _isLoading = true;
+    });
+
     try {
-      await FirebaseAuth.instance.signInWithEmailAndPassword(
-        email: _emailController.text.trim(),
-        password: _passwordController.text.trim(),
-      );
+      final querySnapshot = await FirebaseFirestore.instance
+          .collection('customers')
+          .where('email', isEqualTo: _emailController.text.trim())
+          .limit(1)
+          .get();
 
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const CustomerHomePage()),
-      );
-    } on FirebaseAuthException catch (e) {
-      String errorMessage = _getErrorMessage(e.code);
-      _showErrorDialog(errorMessage);
-    }
-  }
+      if (querySnapshot.docs.isEmpty) {
+        _showErrorDialog('Email address not found.');
+      } else {
+        final customerData = querySnapshot.docs.first.data();
+        final storedPassword = customerData['password'];
 
-  String _getErrorMessage(String code) {
-    switch (code) {
-      case 'user-not-found':
-        return 'No user found for that email.';
-      case 'wrong-password':
-        return 'Wrong password provided.';
-      default:
-        return 'Login failed. Please try again.';
+        if (storedPassword != _passwordController.text.trim()) {
+          _showErrorDialog('Invalid password.');
+        } else {
+          // Successful login
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const CustomerHomePage()),
+          );
+        }
+      }
+    } catch (e) {
+      _showErrorDialog('An error occurred during login. Please try again.');
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
@@ -54,14 +64,44 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Login Failed'),
-          content: Text(message),
+          backgroundColor: Colors.white,
+          title: Center(
+            child: Text(
+              'Login Failed',
+              style: const TextStyle(
+                color: Colors.green,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          content: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 10.0),
+            child: Text(
+              message,
+              style: const TextStyle(
+                fontSize: 16,
+                color: Colors.black,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ),
           actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text('OK'),
+            Center(
+              child: TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                style: TextButton.styleFrom(
+                  backgroundColor: const Color(0xFF04D26F),
+                  foregroundColor: Colors.white,
+                ),
+                child: const Text(
+                  'OK',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
             ),
           ],
         );
@@ -78,7 +118,7 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
           Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
-                colors: [Colors.greenAccent, Colors.white], // Updated to green
+                colors: [Colors.greenAccent, Colors.white],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
@@ -90,8 +130,6 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                 children: [
                   const SizedBox(height: 80),
                   const SizedBox(height: 115),
-
-                  // "Login as Customer" Text
                   const Text(
                     'Login as Customer',
                     style: TextStyle(
@@ -107,22 +145,15 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-
                   const SizedBox(height: 20),
-
-                  // Email Input
                   TextField(
                     controller: _emailController,
                     decoration: InputDecoration(
                       labelText: 'Email Address',
-                      labelStyle: TextStyle(
-                        color: Colors.grey[700],
-                        fontSize: 16,
-                      ),
-                      floatingLabelStyle: TextStyle(
-                        color: Colors.green, // Label color when floating
-                        fontSize: 16,
-                      ),
+                      labelStyle:
+                          TextStyle(color: Colors.grey[700], fontSize: 16),
+                      floatingLabelStyle:
+                          const TextStyle(color: Colors.green, fontSize: 16),
                       filled: true,
                       fillColor: const Color(0xFFBDC3C7),
                       border: OutlineInputBorder(
@@ -135,32 +166,24 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(20),
-                        borderSide: BorderSide(
-                          color: Colors.green, // Border color when focused
-                          width: 2.0,
-                        ),
+                        borderSide:
+                            const BorderSide(color: Colors.green, width: 2.0),
                       ),
                       floatingLabelBehavior: FloatingLabelBehavior.auto,
                     ),
                     keyboardType: TextInputType.emailAddress,
-                    cursorColor: Colors.green, // Change cursor color
+                    cursorColor: Colors.green,
                   ),
                   const SizedBox(height: 16),
-
-                  // Password Input
                   TextField(
                     controller: _passwordController,
                     obscureText: !_isPasswordVisible,
                     decoration: InputDecoration(
                       labelText: 'Password',
-                      labelStyle: TextStyle(
-                        color: Colors.grey[700],
-                        fontSize: 16,
-                      ),
-                      floatingLabelStyle: TextStyle(
-                        color: Colors.green, // Label color when floating
-                        fontSize: 16,
-                      ),
+                      labelStyle:
+                          TextStyle(color: Colors.grey[700], fontSize: 16),
+                      floatingLabelStyle:
+                          const TextStyle(color: Colors.green, fontSize: 16),
                       filled: true,
                       fillColor: const Color(0xFFBDC3C7),
                       border: OutlineInputBorder(
@@ -173,15 +196,15 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(20),
-                        borderSide: BorderSide(
-                          color: Colors.green, // Border color when focused
-                          width: 2.0,
-                        ),
+                        borderSide:
+                            const BorderSide(color: Colors.green, width: 2.0),
                       ),
                       floatingLabelBehavior: FloatingLabelBehavior.auto,
                       suffixIcon: IconButton(
                         icon: Icon(
-                          _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                          _isPasswordVisible
+                              ? Icons.visibility
+                              : Icons.visibility_off,
                           color: Colors.grey,
                         ),
                         onPressed: () {
@@ -191,55 +214,48 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                         },
                       ),
                     ),
-                    cursorColor: Colors.green, // Change cursor color
+                    cursorColor: Colors.green,
                   ),
-
                   const SizedBox(height: 35),
-
-                  // Login Button
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: _loginCustomer,
+                      onPressed: _isLoading ? null : _loginCustomer,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF04D26F),
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 32,
-                          vertical: 12,
-                        ),
+                            horizontal: 32, vertical: 12),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(20),
                         ),
                       ),
-                      child: const Text(
-                        'Login',
-                        style: TextStyle(
-                          fontSize: 24,
-                          color: Color(0xFFECF0F1),
-                          // Button text color ECF0F1
-                        ),
-                      ),
+                      child: _isLoading
+                          ? const CircularProgressIndicator(color: Colors.white)
+                          : const Text(
+                              'Login',
+                              style: TextStyle(
+                                  fontSize: 24, color: Color(0xFFECF0F1)),
+                            ),
                     ),
                   ),
                   const SizedBox(height: 5),
-
-                  // "Create an Account" TextButton
                   TextButton(
                     onPressed: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => const CustomerSignUpScreen()),
+                        MaterialPageRoute(
+                            builder: (context) => const CustomerSignUpScreen()),
                       );
                     },
                     child: Text(
                       'Create an Account',
                       style: TextStyle(
-                        color: Color(0xFF04D26F), // Change text color to green
+                        color: const Color(0xFF04D26F),
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
                         shadows: [
                           Shadow(
-                            offset: Offset(1.0, 4.0),
+                            offset: const Offset(1.0, 4.0),
                             blurRadius: 10.0,
                             color: Colors.grey.withOpacity(0.7),
                           ),
@@ -251,8 +267,6 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
               ),
             ),
           ),
-
-          // Positioned Logo Image
           Positioned(
             top: -20,
             left: 0,
@@ -264,20 +278,17 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
               ),
             ),
           ),
-
-          // Positioned Back Button (top-left corner)
           Positioned(
-            top: MediaQuery.of(context).padding.top + 15, // Add padding for safe area
+            top: MediaQuery.of(context).padding.top + 15,
             left: 15,
             child: IconButton(
               icon: const Icon(Icons.arrow_back_ios),
               color: Colors.grey[500],
               onPressed: () {
-                Navigator.pop(context); // Navigate back to the previous screen
+                Navigator.pop(context);
               },
             ),
           ),
-
           Align(
             alignment: Alignment.bottomCenter,
             child: Stack(
@@ -289,7 +300,7 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                     ignoring: true,
                     child: Transform(
                       alignment: Alignment.center,
-                      transform: Matrix4.rotationY(pi), // Mirror the image horizontally
+                      transform: Matrix4.rotationY(pi),
                       child: Image.asset(
                         'assets/ImageTwo.png',
                         height: 500,
