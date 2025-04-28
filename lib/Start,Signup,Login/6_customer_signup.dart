@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart'; // Import Firestore
 
 class CustomerSignUpScreen extends StatefulWidget {
   const CustomerSignUpScreen({super.key});
@@ -112,7 +113,7 @@ class _CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
 
   bool _isLoading = false;
 
-  void _signUp() async {
+  Future<void> _signUp() async {
     setState(() {
       _isLoading = true; // Start the loading spinner
     });
@@ -155,8 +156,28 @@ class _CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
       return;
     }
 
+    // Check if email already exists in Firestore
+    var emailCheck = await FirebaseFirestore.instance
+        .collection('customers')
+        .where('email', isEqualTo: email)
+        .get();
+
+    if (emailCheck.docs.isNotEmpty) {
+      setState(() {
+        _isLoading = false; // Stop the loading spinner
+      });
+      _showErrorDialog("An account with this email already exists.");
+      return;
+    }
+
     // Simulate a delay for signing up (this is where your firebase logic would go)
-    await Future.delayed(const Duration(seconds: 2));
+    await FirebaseFirestore.instance.collection('customers').add({
+      'fullName': fullName,
+      'email': email,
+      'contact': contact,
+      'address': address,
+      'password': password, // You should hash passwords in a real app for security
+    });
 
     setState(() {
       _isLoading = false; // Stop the loading spinner
