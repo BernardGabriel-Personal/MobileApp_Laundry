@@ -12,13 +12,18 @@ class OwnerLoginScreen extends StatefulWidget {
 class _OwnerLoginScreenState extends State<OwnerLoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  bool _isPasswordVisible = false; // Track password visibility
+  bool _isPasswordVisible = false;
+  bool _isLoading = false;
 
   Future<void> _loginOwner() async {
     if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
       _showErrorDialog('Please enter both email and password.');
       return;
     }
+
+    setState(() {
+      _isLoading = true;
+    });
 
     try {
       await FirebaseAuth.instance.signInWithEmailAndPassword(
@@ -32,9 +37,12 @@ class _OwnerLoginScreenState extends State<OwnerLoginScreen> {
         MaterialPageRoute(builder: (context) => const OwnerHomePage()),
       );
     } on FirebaseAuthException catch (e) {
-      // Show specific error messages based on the exception
       String errorMessage = _getErrorMessage(e.code);
       _showErrorDialog(errorMessage);
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
@@ -56,7 +64,8 @@ class _OwnerLoginScreenState extends State<OwnerLoginScreen> {
       builder: (context) {
         return AlertDialog(
           backgroundColor: Color(0xFFF6E9D4), // Background color of the dialog
-          title: Center( // Center the title
+          title: Center(
+            // Center the title
             child: Text(
               'Login Failed', // Title text
               style: const TextStyle(
@@ -77,14 +86,17 @@ class _OwnerLoginScreenState extends State<OwnerLoginScreen> {
             ),
           ),
           actions: [
-            Center( // Center the button
+            Center(
+              // Center the button
               child: TextButton(
                 onPressed: () {
                   Navigator.of(context).pop(); // Close the dialog
                 },
                 style: TextButton.styleFrom(
-                  backgroundColor: const Color(0xFF160EF5), // Green button color
-                  foregroundColor: Colors.white, // Text color on the button (white)
+                  backgroundColor:
+                      const Color(0xFF160EF5), // Green button color
+                  foregroundColor:
+                      Colors.white, // Text color on the button (white)
                 ),
                 child: const Text(
                   'OK', // Button text
@@ -117,12 +129,15 @@ class _OwnerLoginScreenState extends State<OwnerLoginScreen> {
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.start, // Align everything to the top
+                mainAxisAlignment:
+                    MainAxisAlignment.start, // Align everything to the top
                 children: [
                   const SizedBox(height: 80), // Move everything upwards
 
                   // Spacing placeholder for the logo image (no longer directly in the column)
-                  const SizedBox(height: 115), // Adjust this to match the size of the positioned image
+                  const SizedBox(
+                      height:
+                          115), // Adjust this to match the size of the positioned image
 
                   // "Login as Owner" Text
                   const Text(
@@ -157,23 +172,28 @@ class _OwnerLoginScreenState extends State<OwnerLoginScreen> {
                         fontSize: 16, // Make the label smaller when floating
                       ),
                       filled: true,
-                      fillColor: const Color(0xFFF6E9D4), // Background color BDC3C7
+                      fillColor:
+                          const Color(0xFFF6E9D4), // Background color BDC3C7
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(20), // Rounded corners
+                        borderRadius:
+                            BorderRadius.circular(20), // Rounded corners
                         borderSide: BorderSide.none, // No visible border
                       ),
                       enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(20), // Rounded corners when enabled
+                        borderRadius: BorderRadius.circular(
+                            20), // Rounded corners when enabled
                         borderSide: BorderSide.none, // No visible border
                       ),
                       focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(20), // Rounded corners when focused
+                        borderRadius: BorderRadius.circular(
+                            20), // Rounded corners when focused
                         borderSide: BorderSide(
                           color: Color(0xFF160EF5), // Border color when focused
                           width: 2.0,
                         ),
                       ),
-                      floatingLabelBehavior: FloatingLabelBehavior.auto, // Let it float automatically
+                      floatingLabelBehavior: FloatingLabelBehavior
+                          .auto, // Let it float automatically
                     ),
                     keyboardType: TextInputType.emailAddress,
                     cursorColor: Color(0xFF160EF5), // Change the cursor color
@@ -195,31 +215,40 @@ class _OwnerLoginScreenState extends State<OwnerLoginScreen> {
                         fontSize: 16, // Make the label smaller when floating
                       ),
                       filled: true,
-                      fillColor: const Color(0xFFF6E9D4), // Background color BDC3C7
+                      fillColor:
+                          const Color(0xFFF6E9D4), // Background color BDC3C7
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(20), // Rounded corners
+                        borderRadius:
+                            BorderRadius.circular(20), // Rounded corners
                         borderSide: BorderSide.none, // No visible border
                       ),
                       enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(20), // Rounded corners when enabled
+                        borderRadius: BorderRadius.circular(
+                            20), // Rounded corners when enabled
                         borderSide: BorderSide.none, // No visible border
                       ),
                       focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(20), // Rounded corners when focused
+                        borderRadius: BorderRadius.circular(
+                            20), // Rounded corners when focused
                         borderSide: BorderSide(
                           color: Color(0xFF160EF5), // Border color when focused
                           width: 2.0,
                         ),
                       ),
-                      floatingLabelBehavior: FloatingLabelBehavior.auto, // Let it float automatically
-                      suffixIcon: IconButton( // Eye icon for toggling visibility
+                      floatingLabelBehavior: FloatingLabelBehavior
+                          .auto, // Let it float automatically
+                      suffixIcon: IconButton(
+                        // Eye icon for toggling visibility
                         icon: Icon(
-                          _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                          _isPasswordVisible
+                              ? Icons.visibility
+                              : Icons.visibility_off,
                           color: Colors.grey,
                         ),
                         onPressed: () {
                           setState(() {
-                            _isPasswordVisible = !_isPasswordVisible; // Toggle password visibility
+                            _isPasswordVisible =
+                                !_isPasswordVisible; // Toggle password visibility
                           });
                         },
                       ),
@@ -231,11 +260,13 @@ class _OwnerLoginScreenState extends State<OwnerLoginScreen> {
 
                   // Login Button
                   SizedBox(
-                    width: double.infinity, // Set the button width to match the text fields
+                    width: double
+                        .infinity, // Set the button width to match the text fields
                     child: ElevatedButton(
-                      onPressed: _loginOwner,
+                      onPressed: _isLoading ? null : _loginOwner,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF160EF5), // Button color 04D26F
+                        backgroundColor:
+                            const Color(0xFF160EF5), // Button color 04D26F
                         padding: const EdgeInsets.symmetric(
                           horizontal: 32,
                           vertical: 12,
@@ -244,16 +275,27 @@ class _OwnerLoginScreenState extends State<OwnerLoginScreen> {
                           borderRadius: BorderRadius.circular(20),
                         ),
                       ),
-                      child: const Text(
-                        'Login',
-                        style: TextStyle(
-                          fontSize: 24,
-                          color: Color(0xFFECF0F1), // Button text color ECF0F1
-                        ),
-                      ),
+                      child: _isLoading
+                          ? const SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2.5,
+                              ),
+                            )
+                          : const Text(
+                              'Login',
+                              style: TextStyle(
+                                fontSize: 24,
+                                color: Color(0xFFECF0F1),
+                              ),
+                            ),
                     ),
                   ),
-                  const SizedBox(height: 5), // Adjusting to create space below the login button
+                  const SizedBox(
+                      height:
+                          5), // Adjusting to create space below the login button
                 ],
               ),
             ),
@@ -263,7 +305,8 @@ class _OwnerLoginScreenState extends State<OwnerLoginScreen> {
           Positioned(
             top: -20, // Adjust this to move the logo up or down
             left: 0,
-            right: 0, // Set both `left` and `right` to zero to center it horizontally
+            right:
+                0, // Set both `left` and `right` to zero to center it horizontally
             child: Center(
               child: Image.asset(
                 'assets/FiveStarsLaundromat.png',
@@ -274,7 +317,8 @@ class _OwnerLoginScreenState extends State<OwnerLoginScreen> {
 
           // Positioned Back Button (top-left corner)
           Positioned(
-            top: MediaQuery.of(context).padding.top + 15, // Add padding for safe area
+            top: MediaQuery.of(context).padding.top +
+                15, // Add padding for safe area
             left: 15,
             child: IconButton(
               icon: const Icon(Icons.arrow_back_ios),
@@ -293,7 +337,8 @@ class _OwnerLoginScreenState extends State<OwnerLoginScreen> {
                   right: -145,
                   bottom: -170,
                   child: IgnorePointer(
-                    ignoring: true, // This will make the image ignore touch events
+                    ignoring:
+                        true, // This will make the image ignore touch events
                     child: Image.asset(
                       'assets/ImageTwo.png',
                       height: 500,
