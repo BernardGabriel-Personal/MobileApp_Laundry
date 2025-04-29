@@ -39,7 +39,7 @@ class EmployeeManagementPage extends StatelessWidget {
       ..html = '''
   <div style="background-color: #f4f4f4; padding: 20px; font-family: Arial, sans-serif;">
     <div style="text-align: center;">
-      <img src="https://i.postimg.cc/25VgjX88/Five-Stars-Laundromat.png" alt="Five-Stars Laundry Logo" width="200">
+      <img src="https://media-hosting.imagekit.io/9b51a43beffc4f23/FiveStarsLaundromat.png?Expires=1840554596&Key-Pair-Id=K2ZIVPTIP2VGHC&Signature=cOlx1ZmmHBALGg0GLJsqmEYLxEzqIh2tZeOg6EUXGsqsCvdCeW6k4Nx0S7ggmRX19BDuODhziQ89kUozzc5~Pbzd8iEVC3jn7~a6RdE0OY-sA2A9rkhd4hERhAbG9yNsU18zYcCYTugVjsEsUR7Uu7U~SKWfOKiUBcwIbBB-td0vasLeFYNSWeZrrX-28UMmAnaOQOyin3DzI8Et0SnwFkh3H7GBpyEZM42Z0Miadn0vG22LwZJekCVD1wV~XTcU6pAKtYW8WOADo86TURiOp94yy67fijpzaqFiU0YfnO-dnQn08qNoaz3Kswu8yq4xp6elVwUzf25I8uv5CDaApg__" alt="Five-Stars Laundry Logo" width="200">
     </div>
     <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);">
       <p style="font-size: 18px; font-weight: bold;">Dear Fresh & Pressed Team Member,</p>
