@@ -3,6 +3,7 @@ import 'dart:math';
 import '3_admin_login.dart';
 import '4_customer_login.dart';
 import '7_owner_login.dart';
+import 'package:http/http.dart' as http;
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -14,6 +15,16 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
 
+  Future<bool> hasInternetConnection() async {
+    try {
+      final response = await http.get(Uri.parse('https://www.google.com'))
+          .timeout(const Duration(seconds: 3));
+      return response.statusCode == 200;
+    } catch (_) {
+      return false;
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -22,10 +33,20 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       duration: const Duration(seconds: 2),
     )..repeat();
 
-    Future.delayed(const Duration(seconds: 1), () {
-      _showWelcomeDialog();
-    });
+    _checkInternetAndShowDialog();
   }
+
+  void _checkInternetAndShowDialog() async {
+    bool hasInternet = await hasInternetConnection();
+    if (!hasInternet) {
+      _showNoInternetDialog();
+    } else {
+      Future.delayed(const Duration(seconds: 1), () {
+        _showWelcomeDialog();
+      });
+    }
+  }
+
 
   @override
   void dispose() {
@@ -42,6 +63,71 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       },
     );
   }
+
+  void _showNoInternetDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: const BorderSide(color: Colors.black, width: 1),
+        ),
+        elevation: 16.0,
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              const Text(
+                'No Internet Connection!',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 24.0,
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Please check your internet connection and try again.',
+                style: TextStyle(
+                  fontSize: 16.0,
+                  height: 1.5,
+                ),
+              ),
+              const SizedBox(height: 24),
+              Align(
+                alignment: Alignment.center,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    side: const BorderSide(color: Colors.green, width: 2),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
+                  ),
+                  onPressed: () async {
+                    Navigator.of(context).pop(); // Close the dialog
+                    _checkInternetAndShowDialog(); // Retry checking
+                  },
+                  child: const Text(
+                    'Retry',
+                    style: TextStyle(
+                      fontSize: 18,
+                      color: Colors.green,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
 
   @override
   Widget build(BuildContext context) {
