@@ -5,24 +5,27 @@ import 'package:mailer/mailer.dart';
 import 'package:mailer/smtp_server/gmail.dart';
 import 'package:intl/intl.dart';
 
-class EmployeeManagementPage extends StatelessWidget {
+class EmployeeManagementPage extends StatefulWidget {
   const EmployeeManagementPage({super.key});
+
+  @override
+  State<EmployeeManagementPage> createState() => _EmployeeManagementPageState();
+}
+
+class _EmployeeManagementPageState extends State<EmployeeManagementPage> {
+  Set<String> _loadingIds = {};
 
   // Random Password Generator
   String generatePassword({required String employeeId}) {
-    // Ensures that the password starts with employeeId and adds 5 random uppercase letters
     const String uppercaseChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
     final Random random = Random.secure();
+    String randomUppercase = List.generate(
+      5,
+      (index) => uppercaseChars[random.nextInt(uppercaseChars.length)],
+    ).join();
 
-    // Create a random 5-character uppercase string
-    String randomUppercase = List.generate(5, (index) => uppercaseChars[random.nextInt(uppercaseChars.length)]).join();
-
-    // Concatenate employeeId with the random uppercase letters
-    String password = '$employeeId$randomUppercase';
-
-    return password;
+    return '$employeeId$randomUppercase';
   }
-
 
   // Email Sending Function
   Future<void> sendEmail(
@@ -37,24 +40,23 @@ class EmployeeManagementPage extends StatelessWidget {
       ..recipients.add(recipientEmail)
       ..subject = 'Five-Stars Laundry Employee Account Approval'
       ..html = '''
-  <div style="background-color: #f4f4f4; padding: 20px; font-family: Arial, sans-serif;">
-    <div style="text-align: center;">
-      <img src="https://media-hosting.imagekit.io/9b51a43beffc4f23/FiveStarsLaundromat.png?Expires=1840554596&Key-Pair-Id=K2ZIVPTIP2VGHC&Signature=cOlx1ZmmHBALGg0GLJsqmEYLxEzqIh2tZeOg6EUXGsqsCvdCeW6k4Nx0S7ggmRX19BDuODhziQ89kUozzc5~Pbzd8iEVC3jn7~a6RdE0OY-sA2A9rkhd4hERhAbG9yNsU18zYcCYTugVjsEsUR7Uu7U~SKWfOKiUBcwIbBB-td0vasLeFYNSWeZrrX-28UMmAnaOQOyin3DzI8Et0SnwFkh3H7GBpyEZM42Z0Miadn0vG22LwZJekCVD1wV~XTcU6pAKtYW8WOADo86TURiOp94yy67fijpzaqFiU0YfnO-dnQn08qNoaz3Kswu8yq4xp6elVwUzf25I8uv5CDaApg__" alt="Five-Stars Laundry Logo" width="200">
-    </div>
-    <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);">
-      <p style="font-size: 18px; font-weight: bold;">Dear Fresh & Pressed Team Member,</p>
-      <p>Welcome to the <strong>Five-Stars Laundry</strong> family! Your employee account has been officially approved. We’re thrilled to have you on board as we keep things fresh, clean, and running smoothly.</p>
-      <p><strong>Here are your login details:</strong></p>
-      <ul>
-        <li><strong>Employee ID:</strong> $employeeId</li>
-        <li><strong>Temporary Password:</strong> $password</li>
-      </ul>
-      <p>Please use these credentials to log in and be sure to <strong>update your password</strong> for security.</p>
-      <p>We’re excited to have you in the spin cycle of success! If you have any questions, don’t hesitate to reach out.</p>
-      <p style="text-align: left;">Best regards,<br><strong>MYThic Team</strong></p>
-    </div>
-  </div>
-  ''';
+      <div style="background-color: #f4f4f4; padding: 20px; font-family: Arial, sans-serif;">
+        <div style="text-align: center;">
+        <img src="https://media-hosting.imagekit.io/9b51a43beffc4f23/FiveStarsLaundromat.png?Expires=1840554596&Key-Pair-Id=K2ZIVPTIP2VGHC&Signature=cOlx1ZmmHBALGg0GLJsqmEYLxEzqIh2tZeOg6EUXGsqsCvdCeW6k4Nx0S7ggmRX19BDuODhziQ89kUozzc5~Pbzd8iEVC3jn7~a6RdE0OY-sA2A9rkhd4hERhAbG9yNsU18zYcCYTugVjsEsUR7Uu7U~SKWfOKiUBcwIbBB-td0vasLeFYNSWeZrrX-28UMmAnaOQOyin3DzI8Et0SnwFkh3H7GBpyEZM42Z0Miadn0vG22LwZJekCVD1wV~XTcU6pAKtYW8WOADo86TURiOp94yy67fijpzaqFiU0YfnO-dnQn08qNoaz3Kswu8yq4xp6elVwUzf25I8uv5CDaApg__" alt="Five-Stars Laundry Logo" width="200">
+        </div>
+        <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);">
+          <p style="font-size: 18px; font-weight: bold;">Dear Fresh & Pressed Team Member,</p>
+          <p>Welcome to the <strong>Five-Stars Laundry</strong> family! Your employee account has been officially approved.</p>
+          <p><strong>Here are your login details:</strong></p>
+          <ul>
+            <li><strong>Employee ID:</strong> $employeeId</li>
+            <li><strong>Temporary Password:</strong> $password</li>
+          </ul>
+          <p>Please use these credentials to log in and be sure to <strong>update your password</strong> for security.</p>
+          <p style="text-align: left;">Best regards,<br><strong>MYThic Team</strong></p>
+        </div>
+      </div>
+      ''';
 
     try {
       await send(message, smtpServer);
@@ -67,14 +69,14 @@ class EmployeeManagementPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF6E9D4), // Background color
+      backgroundColor: const Color(0xFFF6E9D4),
       body: Stack(
         children: [
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Column(
               children: [
-                const SizedBox(height: 70), // Top Padding
+                const SizedBox(height: 70),
                 const Center(
                   child: Text(
                     'Pending Employee Approvals',
@@ -88,10 +90,9 @@ class EmployeeManagementPage extends StatelessWidget {
                 const SizedBox(height: 15),
                 Expanded(
                   child: Scrollbar(
-                    thumbVisibility: true, // Always show scrollbar
-                    thickness: 3, // Scrollbar thickness
-                    radius:
-                        const Radius.circular(10), // Rounded scrollbar edges
+                    thumbVisibility: true,
+                    thickness: 3,
+                    radius: const Radius.circular(10),
                     child: StreamBuilder(
                       stream: FirebaseFirestore.instance
                           .collection('admin')
@@ -109,11 +110,12 @@ class EmployeeManagementPage extends StatelessWidget {
                         }
 
                         return ListView.builder(
-                          physics:
-                              const BouncingScrollPhysics(), // Smooth scrolling
+                          physics: const BouncingScrollPhysics(),
                           itemCount: snapshot.data!.docs.length,
                           itemBuilder: (context, index) {
                             var admin = snapshot.data!.docs[index];
+                            String adminId = admin.id;
+
                             return Card(
                               elevation: 4,
                               margin: const EdgeInsets.symmetric(vertical: 10),
@@ -147,67 +149,123 @@ class EmployeeManagementPage extends StatelessWidget {
                                     ),
                                   ),
                                 ),
-                                trailing: ElevatedButton(
-                                  onPressed: () async {
-                                    // Ensure employeeId is treated as String
-                                    String employeeId = admin['employeeId'].toString();
+                                trailing: _loadingIds.contains(adminId)
+                                    ? const SizedBox(
+                                        width: 24,
+                                        height: 24,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          color: Color(0xFF04D26F),
+                                        ),
+                                      )
+                                    : ElevatedButton(
+                                        onPressed: _loadingIds.contains(adminId)
+                                            ? null
+                                            : () async {
+                                                setState(() {
+                                                  _loadingIds.add(adminId);
+                                                });
 
-                                    // Generate password by passing the employeeId
-                                    String password = generatePassword(employeeId: employeeId);
+                                                try {
+                                                  String employeeId =
+                                                      admin['employeeId']
+                                                          .toString();
+                                                  String password =
+                                                      generatePassword(
+                                                          employeeId:
+                                                              employeeId);
 
-                                    // Send the email
-                                    await sendEmail(
-                                        admin['email'] ?? '',
-                                        employeeId, // Use the string version
-                                        password);
+                                                  await sendEmail(
+                                                      admin['email'] ?? '',
+                                                      employeeId,
+                                                      password);
 
-                                    // Handle createdAt timestamp properly
-                                    var createdAt = admin['createdAt'];
-                                    String formattedDate =
-                                        createdAt is Timestamp
-                                            ? DateFormat('yyyy-MM-dd HH:mm:ss')
-                                                .format(createdAt.toDate())
-                                            : createdAt.toString();
+                                                  var createdAt =
+                                                      admin['createdAt'];
+                                                  String formattedDate = createdAt
+                                                          is Timestamp
+                                                      ? DateFormat(
+                                                              'yyyy-MM-dd HH:mm:ss')
+                                                          .format(createdAt
+                                                              .toDate())
+                                                      : createdAt.toString();
 
-                                    // Store the string version of employeeId
-                                    await FirebaseFirestore.instance
-                                        .collection('approved_admin')
-                                        .add({
-                                      'branch': admin['branch'] ?? '',
-                                      'contact': admin['contact'] ?? '',
-                                      'createdAt': formattedDate,
-                                      'email': admin['email'] ?? '',
-                                      'employeeId':
-                                          employeeId, // Store as string
-                                      'fullName': admin['fullName'] ?? '',
-                                      'password': password,
-                                    });
+                                                  await FirebaseFirestore
+                                                      .instance
+                                                      .collection(
+                                                          'approved_admin')
+                                                      .add({
+                                                    'branch':
+                                                        admin['branch'] ?? '',
+                                                    'contact':
+                                                        admin['contact'] ?? '',
+                                                    'createdAt': formattedDate,
+                                                    'email':
+                                                        admin['email'] ?? '',
+                                                    'employeeId': employeeId,
+                                                    'fullName':
+                                                        admin['fullName'] ?? '',
+                                                    'password': password,
+                                                  });
 
-                                    // Remove from the original collection
-                                    await FirebaseFirestore.instance
-                                        .collection('admin')
-                                        .doc(admin.id)
-                                        .delete();
+                                                  await FirebaseFirestore
+                                                      .instance
+                                                      .collection('admin')
+                                                      .doc(adminId)
+                                                      .delete();
 
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text(
-                                            'Employee approved and email sent!'),
-                                        backgroundColor: Colors.green,
+                                                  await ScaffoldMessenger.of(
+                                                          context)
+                                                      .showSnackBar(
+                                                        const SnackBar(
+                                                          content: Text(
+                                                              'Employee approved and email sent!'),
+                                                          backgroundColor:
+                                                              Colors.green,
+                                                          duration: Duration(
+                                                              seconds: 2),
+                                                        ),
+                                                      )
+                                                      .closed;
+
+                                                  if (!mounted) return;
+                                                  setState(() {
+                                                    _loadingIds.remove(adminId);
+                                                  });
+                                                } catch (e) {
+                                                  ScaffoldMessenger.of(context)
+                                                      .showSnackBar(
+                                                    SnackBar(
+                                                      content:
+                                                          Text('Error: $e'),
+                                                      backgroundColor:
+                                                          Colors.red,
+                                                    ),
+                                                  );
+
+                                                  await Future.delayed(
+                                                      const Duration(
+                                                          milliseconds: 300));
+
+                                                  if (!mounted) return;
+                                                  setState(() {
+                                                    _loadingIds.remove(adminId);
+                                                  });
+                                                }
+                                              },
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor:
+                                              const Color(0xFF04D26F),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(20),
+                                          ),
+                                        ),
+                                        child: const Text(
+                                          'Approve',
+                                          style: TextStyle(color: Colors.white),
+                                        ),
                                       ),
-                                    );
-                                  },
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: const Color(0xFF04D26F),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(20),
-                                    ),
-                                  ),
-                                  child: const Text(
-                                    'Approve',
-                                    style: TextStyle(color: Colors.white),
-                                  ),
-                                ),
                               ),
                             );
                           },
@@ -220,8 +278,6 @@ class EmployeeManagementPage extends StatelessWidget {
               ],
             ),
           ),
-
-          // Positioned Back Button (top-left corner)
           Positioned(
             top: MediaQuery.of(context).padding.top + 15,
             left: 15,
