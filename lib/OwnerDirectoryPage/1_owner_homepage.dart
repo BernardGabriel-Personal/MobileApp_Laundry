@@ -78,7 +78,7 @@ class _OwnerHomePageState extends State<OwnerHomePage> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Five-Stars Laundromat',
+                              'Five-Stars Laundry',
                               style: TextStyle(
                                   fontSize: 35,
                                   fontWeight: FontWeight.bold,
