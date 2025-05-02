@@ -4,7 +4,7 @@ import 'package:flutter/services.dart';
 
 import 'Start,Signup,Login/1_splash_screen.dart';
 import 'Start,Signup,Login/2_welcome_page.dart';
-import 'AdminDirectoryPage/1_admin_homepage.dart'; // Admin home page
+// import 'AdminDirectoryPage/1_admin_homepage.dart'; // Admin home page
 import 'Start,Signup,Login/3_admin_login.dart'; // Admin login screen
 import 'Start,Signup,Login/5_admin_signup.dart'; // Admin sign up screen
 import 'CustomerDirectoryPage/1_customer_homepage.dart'; // Customer home page
@@ -37,7 +37,7 @@ class MyApp extends StatelessWidget {
         '/': (context) => const SplashScreen(),
         '/home': (context) => const HomeScreen(),
         '/admin-login': (context) => const AdminLoginScreen(),
-        '/admin-home': (context) => const AdminHomePage(),  // Admin home after successful login
+        // '/admin-home': (context) => const AdminHomePage(),  // Admin home after successful login
         '/admin-signup': (context) => const AdminSignUpScreen(),  // Admin sign-up screen
         '/customer-login': (context) => const CustomerLoginScreen(), // Customer login
         '/customer-home': (context) => const CustomerHomePage(), // Customer home after successful login

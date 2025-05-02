@@ -41,10 +41,17 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
         String storedPassword = adminDoc['password'];
 
         if (storedPassword == password) {
-          Navigator.pushReplacement(
+          Navigator.pushReplacement(   // IMPORTANT TO DISPLAY USER NAME
             context,
-            MaterialPageRoute(builder: (context) => const AdminHomePage()),
+            MaterialPageRoute(
+              builder: (context) => AdminHomePage(
+                fullName: adminDoc['fullName'],
+                branch: adminDoc['branch'],
+              ),
+            ),
           );
+
+
         } else {
           _showErrorDialog('Invalid password.');
         }
