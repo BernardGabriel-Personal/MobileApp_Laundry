@@ -1,7 +1,71 @@
 import 'package:flutter/material.dart';
 
-class AdminHomePage extends StatelessWidget {
-  const AdminHomePage({super.key});
+class AdminHomePage extends StatefulWidget {
+  final String fullName;
+  final String branch;
+
+  const AdminHomePage({
+    Key? key,
+    required this.fullName,
+    required this.branch,
+  }) : super(key: key);
+
+  @override
+  _AdminHomePageState createState() => _AdminHomePageState();
+}
+
+class _AdminHomePageState extends State<AdminHomePage> {
+  Future<bool> _confirmLogout(BuildContext context) async {
+    final shouldLogout = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFFD9D9D9),
+        title: Row(
+          children: [
+            const Icon(
+              Icons.warning_amber_outlined,
+              color: Color(0xFFE57373),
+              size: 28,
+            ),
+            const SizedBox(width: 10),
+            const Text(
+              'Are you leaving?',
+              style: TextStyle(fontSize: 18),
+            ),
+          ],
+        ),
+        content: const Text(
+          'Are you sure you want to log out? You can always log back in at any time.',
+          style: TextStyle(fontSize: 14),
+        ),
+        actions: [
+          TextButton(
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.white,
+              backgroundColor: Colors.grey,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.white,
+              backgroundColor: Color(0xFFE57373),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Logout'),
+          ),
+        ],
+      ),
+    );
+    return shouldLogout == true;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -52,32 +116,39 @@ class AdminHomePage extends StatelessWidget {
                   ),
                   child: Container(
                     color: const Color(0xFF170CFE),
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 30),
+                    padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 30),
                     child: Center(
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
-                        children: const [
-                          CircleAvatar(
+                        children: [
+                          const CircleAvatar(
                             radius: 30,
-                            backgroundColor: const Color(0xFF04D26F),
+                            backgroundColor: Color(0xFF04D26F),
                             child: Icon(Icons.person,
                                 color: Colors.white, size: 40),
                           ),
-                          SizedBox(height: 12),
-                          Text(
+                          const SizedBox(height: 12),
+                          const Text(
                             "WELCOME!",
                             style: TextStyle(
                               color: Color(0xFF04D26F),
                               fontWeight: FontWeight.bold,
-                              fontSize: 18,
+                              fontSize: 22,
                             ),
                           ),
                           Text(
-                            "Five-Stars Laundry Employee",
-                            style: TextStyle(
+                            "${widget.fullName}",
+                            style: const TextStyle(
                               color: Colors.white,
                               fontSize: 20,
+                            ),
+                          ),
+                          Text(
+                            "${widget.branch} Branch",
+                            style: const TextStyle(
+                              color: Colors.white70,
+                              fontSize: 18,
                             ),
                           ),
                         ],
@@ -114,7 +185,7 @@ class AdminHomePage extends StatelessWidget {
                     child: Text(
                       'Activity Logs:',
                       style:
-                          TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                      TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                     ),
                   ),
                 ),
@@ -132,62 +203,6 @@ class AdminHomePage extends StatelessWidget {
     );
   }
 
-  Future<bool> _confirmLogout(BuildContext context) async {
-    final shouldLogout = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFFD9D9D9),
-        title: Row(
-          children: [
-            Icon(
-              Icons.warning_amber_outlined,
-              color: Color(0xFFE57373),
-              size: 28, // Adjust size as needed
-            ),
-            const SizedBox(width: 10),
-            const Text(
-              'Are you leaving?',
-              style: TextStyle(
-                fontSize: 18,
-              ),
-            ),
-          ],
-        ),
-        content: const Text(
-          'Are you sure you want to log out? You can always log back in at any time.',
-          style: TextStyle(
-            fontSize: 14,
-          ),
-        ),
-        actions: [
-          TextButton(
-            style: TextButton.styleFrom(
-              foregroundColor: Colors.white,
-              backgroundColor: Colors.grey,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            style: TextButton.styleFrom(
-              foregroundColor: Colors.white,
-              backgroundColor: Color(0xFFE57373),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Logout'),
-          ),
-        ],
-      ),
-    );
-    return shouldLogout == true;
-  }
-
   static Widget _buildDashboardTile(IconData icon, String label) {
     return Container(
       decoration: BoxDecoration(
@@ -203,7 +218,7 @@ class AdminHomePage extends StatelessWidget {
             label,
             textAlign: TextAlign.center,
             style: const TextStyle(
-              color: const Color(0xFF04D26F),
+              color: Color(0xFF04D26F),
               fontWeight: FontWeight.w600,
             ),
           ),
