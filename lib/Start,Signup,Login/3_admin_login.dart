@@ -41,7 +41,8 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
         String storedPassword = adminDoc['password'];
 
         if (storedPassword == password) {
-          Navigator.pushReplacement(   // IMPORTANT TO DISPLAY USER NAME
+          Navigator.pushReplacement(
+            // IMPORTANT TO DISPLAY USER NAME
             context,
             MaterialPageRoute(
               builder: (context) => AdminHomePage(
@@ -50,8 +51,6 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
               ),
             ),
           );
-
-
         } else {
           _showErrorDialog('Invalid password.');
         }
@@ -74,14 +73,24 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
       builder: (context) {
         return AlertDialog(
           backgroundColor: Colors.white,
-          title: Center(
-            child: Text(
-              'Login Failed',
-              style: const TextStyle(
-                color: Colors.green,
-                fontWeight: FontWeight.bold,
+          title: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.error_outline,
+                color: const Color(0xFFE57373),
+                size: 50,
               ),
-            ),
+              const SizedBox(height: 8),
+              Text(
+                'Login Failed',
+                style: const TextStyle(
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
           ),
           content: Padding(
             padding: const EdgeInsets.symmetric(vertical: 10.0),
