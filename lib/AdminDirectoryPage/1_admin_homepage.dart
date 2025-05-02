@@ -23,8 +23,8 @@ class _AdminHomePageState extends State<AdminHomePage> {
         title: Row(
           children: [
             const Icon(
-              Icons.warning_amber_outlined,
-              color: Color(0xFFE57373),
+              Icons.error_outline,
+              color: const Color(0xFFE57373),
               size: 28,
             ),
             const SizedBox(width: 10),
@@ -53,7 +53,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
           TextButton(
             style: TextButton.styleFrom(
               foregroundColor: Colors.white,
-              backgroundColor: Color(0xFFE57373),
+              backgroundColor: const Color(0xFFE57373),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
               ),
@@ -116,15 +116,15 @@ class _AdminHomePageState extends State<AdminHomePage> {
                   ),
                   child: Container(
                     color: const Color(0xFF170CFE),
-                    padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 30),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 30),
                     child: Center(
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           const CircleAvatar(
                             radius: 30,
-                            backgroundColor: Color(0xFF04D26F),
+                            backgroundColor: const Color(0xFF04D26F),
                             child: Icon(Icons.person,
                                 color: Colors.white, size: 40),
                           ),
@@ -132,7 +132,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
                           const Text(
                             "WELCOME!",
                             style: TextStyle(
-                              color: Color(0xFF04D26F),
+                              color: const Color(0xFF04D26F),
                               fontWeight: FontWeight.bold,
                               fontSize: 22,
                             ),
@@ -185,7 +185,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
                     child: Text(
                       'Activity Logs:',
                       style:
-                      TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                          TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                     ),
                   ),
                 ),
@@ -218,7 +218,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
             label,
             textAlign: TextAlign.center,
             style: const TextStyle(
-              color: Color(0xFF04D26F),
+              color: const Color(0xFF04D26F),
               fontWeight: FontWeight.w600,
             ),
           ),

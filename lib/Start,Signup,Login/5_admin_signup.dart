@@ -12,7 +12,8 @@ class _AdminSignUpScreenState extends State<AdminSignUpScreen> {
   final TextEditingController _fullNameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _contactController = TextEditingController();
-  final TextEditingController _employeeIdController = TextEditingController(); // Employee ID Controller
+  final TextEditingController _employeeIdController =
+      TextEditingController(); // Employee ID Controller
   String? _selectedBranch;
   bool _isLoading = false; // Track loading state
 
@@ -25,9 +26,14 @@ class _AdminSignUpScreenState extends State<AdminSignUpScreen> {
     final String email = _emailController.text.trim();
     final String contact = _contactController.text.trim();
     final String employeeIdText = _employeeIdController.text.trim();
-    final int? employeeId = int.tryParse(employeeIdText); // Try to parse employee ID as integer
+    final int? employeeId =
+        int.tryParse(employeeIdText); // Try to parse employee ID as integer
 
-    if (fullName.isEmpty || email.isEmpty || contact.isEmpty || _selectedBranch == null || employeeId == null) {
+    if (fullName.isEmpty ||
+        email.isEmpty ||
+        contact.isEmpty ||
+        _selectedBranch == null ||
+        employeeId == null) {
       _showErrorDialog('Please fill in all fields.');
       setState(() {
         _isLoading = false; // Stop loading on error
@@ -105,7 +111,8 @@ class _AdminSignUpScreenState extends State<AdminSignUpScreen> {
       });
 
       // After sign-up, show a success message
-      _showSuccessDialog('Sign-up successful!');
+      _showSuccessDialog(
+          'Your account is being verified. Expect an email for further confirmation. Thanks for your patience.');
       // Clear the text fields after success
       _clearTextFields();
       setState(() {
@@ -132,8 +139,8 @@ class _AdminSignUpScreenState extends State<AdminSignUpScreen> {
 
   // Helper function to validate email format
   bool _isValidEmail(String email) {
-    final RegExp emailRegExp = RegExp(
-        r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$");
+    final RegExp emailRegExp =
+        RegExp(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$");
     return emailRegExp.hasMatch(email);
   }
 
@@ -150,41 +157,51 @@ class _AdminSignUpScreenState extends State<AdminSignUpScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          backgroundColor: Colors.white, // Background color of the dialog
-          title: Center( // Center the title
-            child: Text(
-              'ERROR', // Title text
-              style: const TextStyle(
-                color: Colors.green, // Title text color
-                fontWeight: FontWeight.bold,
+          backgroundColor: Colors.white,
+          title: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.error_outline, // Exclamation icon
+                color: const Color(0xFFE57373),
+                size: 50,
               ),
-            ),
+              const SizedBox(height: 8),
+              Text(
+                'ERROR',
+                style: const TextStyle(
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
           ),
           content: Padding(
             padding: const EdgeInsets.symmetric(vertical: 10.0),
             child: Text(
-              message, // The error message content
+              message,
               style: const TextStyle(
                 fontSize: 16,
-                color: Colors.black, // Content text color
+                color: Colors.black,
               ),
-              textAlign: TextAlign.center, // Content centered
+              textAlign: TextAlign.center,
             ),
           ),
           actions: [
-            Center( // Center the button
+            Center(
               child: TextButton(
                 onPressed: () {
-                  Navigator.of(context).pop(); // Close the dialog
+                  Navigator.of(context).pop();
                 },
                 style: TextButton.styleFrom(
-                  backgroundColor: const Color(0xFF04D26F), // Green button color
-                  foregroundColor: Colors.white, // Text color on the button (white)
+                  backgroundColor: const Color(0xFF04D26F),
+                  foregroundColor: Colors.white,
                 ),
                 child: const Text(
-                  'OK', // Button text
+                  'OK',
                   style: TextStyle(
-                    fontWeight: FontWeight.bold, // Button text style
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
@@ -202,41 +219,51 @@ class _AdminSignUpScreenState extends State<AdminSignUpScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          backgroundColor: Colors.white, // Background color of the dialog
-          title: Center( // Center the title
-            child: Text(
-              'SUCCESS', // Title text
-              style: const TextStyle(
-                color: Colors.green, // Title text color
-                fontWeight: FontWeight.bold,
+          backgroundColor: Colors.white,
+          title: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.check_circle,
+                color: const Color(0xFF04D26F),
+                size: 50,
               ),
-            ),
+              const SizedBox(height: 8),
+              Text(
+                'Sign-up successful',
+                style: const TextStyle(
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
           ),
           content: Padding(
             padding: const EdgeInsets.symmetric(vertical: 10.0),
             child: Text(
-              message, // The error message content
+              message,
               style: const TextStyle(
                 fontSize: 16,
-                color: Colors.black, // Content text color
+                color: Colors.black,
               ),
-              textAlign: TextAlign.center, // Content centered
+              textAlign: TextAlign.center,
             ),
           ),
           actions: [
-            Center( // Center the button
+            Center(
               child: TextButton(
                 onPressed: () {
-                  Navigator.of(context).pop(); // Close the dialog
+                  Navigator.of(context).pop();
                 },
                 style: TextButton.styleFrom(
-                  backgroundColor: const Color(0xFF04D26F), // Green button color
-                  foregroundColor: Colors.white, // Text color on the button (white)
+                  backgroundColor: const Color(0xFF04D26F),
+                  foregroundColor: Colors.white,
                 ),
                 child: const Text(
-                  'OK', // Button text
+                  'OK',
                   style: TextStyle(
-                    fontWeight: FontWeight.bold, // Button text style
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
@@ -250,9 +277,12 @@ class _AdminSignUpScreenState extends State<AdminSignUpScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      resizeToAvoidBottomInset: true, // Allow the screen to resize when keyboard shows up
-      body: Scrollbar( // Wrap the SingleChildScrollView with Scrollbar
-        child: SingleChildScrollView( // Wrap the entire body in SingleChildScrollView
+      resizeToAvoidBottomInset:
+          true, // Allow the screen to resize when keyboard shows up
+      body: Scrollbar(
+        // Wrap the SingleChildScrollView with Scrollbar
+        child: SingleChildScrollView(
+          // Wrap the entire body in SingleChildScrollView
           child: Stack(
             children: [
               Container(
@@ -297,7 +327,8 @@ class _AdminSignUpScreenState extends State<AdminSignUpScreen> {
                           ),
                           floatingLabelStyle: TextStyle(
                             color: Colors.green, // Label color when floating
-                            fontSize: 16, // Make the label smaller when floating
+                            fontSize:
+                                16, // Make the label smaller when floating
                           ),
                           filled: true,
                           fillColor: const Color(0xFFBDC3C7),
@@ -317,7 +348,8 @@ class _AdminSignUpScreenState extends State<AdminSignUpScreen> {
                             ),
                           ),
                         ),
-                        cursorColor: Colors.green, // Set the cursor color to green
+                        cursorColor:
+                            Colors.green, // Set the cursor color to green
                       ),
                       const SizedBox(height: 16),
 
@@ -331,7 +363,8 @@ class _AdminSignUpScreenState extends State<AdminSignUpScreen> {
                           ),
                           floatingLabelStyle: TextStyle(
                             color: Colors.green, // Label color when floating
-                            fontSize: 16, // Make the label smaller when floating
+                            fontSize:
+                                16, // Make the label smaller when floating
                           ),
                           filled: true,
                           fillColor: const Color(0xFFBDC3C7),
@@ -351,8 +384,10 @@ class _AdminSignUpScreenState extends State<AdminSignUpScreen> {
                             ),
                           ),
                         ),
-                        keyboardType: TextInputType.number, // Set to number keyboard
-                        cursorColor: Colors.green, // Set the cursor color to green
+                        keyboardType:
+                            TextInputType.number, // Set to number keyboard
+                        cursorColor:
+                            Colors.green, // Set the cursor color to green
                       ),
                       const SizedBox(height: 16),
 
@@ -366,7 +401,8 @@ class _AdminSignUpScreenState extends State<AdminSignUpScreen> {
                           ),
                           floatingLabelStyle: TextStyle(
                             color: Colors.green, // Label color when floating
-                            fontSize: 16, // Make the label smaller when floating
+                            fontSize:
+                                16, // Make the label smaller when floating
                           ),
                           filled: true,
                           fillColor: const Color(0xFFBDC3C7),
@@ -387,7 +423,8 @@ class _AdminSignUpScreenState extends State<AdminSignUpScreen> {
                           ),
                         ),
                         keyboardType: TextInputType.emailAddress,
-                        cursorColor: Colors.green, // Set the cursor color to green
+                        cursorColor:
+                            Colors.green, // Set the cursor color to green
                       ),
                       const SizedBox(height: 16),
 
@@ -401,7 +438,8 @@ class _AdminSignUpScreenState extends State<AdminSignUpScreen> {
                           ),
                           floatingLabelStyle: TextStyle(
                             color: Colors.green, // Label color when floating
-                            fontSize: 16, // Make the label smaller when floating
+                            fontSize:
+                                16, // Make the label smaller when floating
                           ),
                           filled: true,
                           fillColor: const Color(0xFFBDC3C7),
@@ -422,7 +460,8 @@ class _AdminSignUpScreenState extends State<AdminSignUpScreen> {
                           ),
                         ),
                         keyboardType: TextInputType.phone,
-                        cursorColor: Colors.green, // Set the cursor color to green
+                        cursorColor:
+                            Colors.green, // Set the cursor color to green
                       ),
                       const SizedBox(height: 16),
 
@@ -452,9 +491,14 @@ class _AdminSignUpScreenState extends State<AdminSignUpScreen> {
                             ),
                           ),
                         ),
-                        items: <String>['Area C', 'Santa Fe', 'Area E', 'Santa Cristina']
-                            .map((String value) {
-                          return DropdownMenuItem<String>(value: value, child: Text(value));
+                        items: <String>[
+                          'Area C',
+                          'Santa Fe',
+                          'Area E',
+                          'Santa Cristina'
+                        ].map((String value) {
+                          return DropdownMenuItem<String>(
+                              value: value, child: Text(value));
                         }).toList(),
                         onChanged: (String? newValue) {
                           setState(() {
@@ -486,16 +530,16 @@ class _AdminSignUpScreenState extends State<AdminSignUpScreen> {
                           ),
                           child: _isLoading
                               ? const CircularProgressIndicator(
-                            color: Color(0xFF04D26F),
-                          )
-                          :const Text(
-                            'Sign Up',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
+                                  color: Color(0xFF04D26F),
+                                )
+                              : const Text(
+                                  'Sign Up',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                ),
                         ),
                       ),
                       SizedBox(height: 10),
@@ -517,16 +561,17 @@ class _AdminSignUpScreenState extends State<AdminSignUpScreen> {
 
               // Positioned Back Button (top-left corner)
               Positioned(
-                top: MediaQuery.of(context).padding.top + 15, // Add padding for safe area
+                top: MediaQuery.of(context).padding.top +
+                    15, // Add padding for safe area
                 left: 15,
                 child: IconButton(
                   icon: const Icon(Icons.arrow_back_ios),
                   color: Colors.grey[500],
                   onPressed: () {
-                    Navigator.pop(context); // Navigate back to the previous screen
+                    Navigator.pop(
+                        context); // Navigate back to the previous screen
                   },
-                )
-                ,
+                ),
               ),
             ],
           ),
