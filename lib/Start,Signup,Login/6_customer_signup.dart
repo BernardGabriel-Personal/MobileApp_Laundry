@@ -1,7 +1,50 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-class CustomerSignUpScreen extends StatelessWidget {
+class CustomerSignUpScreen extends StatefulWidget {
   const CustomerSignUpScreen({super.key});
+
+  @override
+  State<CustomerSignUpScreen> createState() => _CustomerSignUpScreenState();
+}
+
+class _CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
+  final _fullNameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _contactController = TextEditingController();
+  final _addressController = TextEditingController();
+  final _passwordController = TextEditingController();
+
+  final _auth = FirebaseAuth.instance;
+  final _firestore = FirebaseFirestore.instance;
+
+  Future<void> _signUp() async {
+    try {
+      // Create user with Firebase Auth
+      final userCredential = await _auth.createUserWithEmailAndPassword(
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
+      );
+
+      // Store user data in Firestore
+      await _firestore.collection('users').doc(userCredential.user!.uid).set({
+        'fullName': _fullNameController.text.trim(),
+        'email': _emailController.text.trim(),
+        'contact': _contactController.text.trim(),
+        'address': _addressController.text.trim(),
+        'role': 'customer',
+      });
+
+      // Navigate to customer homepage
+      Navigator.pushNamed(context, '/customer-home');
+    } catch (e) {
+      print('Sign up error: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Sign up failed. Please try again.')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -41,33 +84,21 @@ class CustomerSignUpScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 50),
 
-                  // Full Name Input
-                  _buildTextField(label: 'Full Name'),
+                  _buildTextField(label: 'Full Name', controller: _fullNameController),
                   const SizedBox(height: 16),
-
-                  // Email Address Input
-                  _buildTextField(label: 'Email Address', keyboardType: TextInputType.emailAddress),
+                  _buildTextField(label: 'Email Address', controller: _emailController, keyboardType: TextInputType.emailAddress),
                   const SizedBox(height: 16),
-
-                  // Contact Number Input
-                  _buildTextField(label: 'Contact Number', keyboardType: TextInputType.phone),
+                  _buildTextField(label: 'Contact Number', controller: _contactController, keyboardType: TextInputType.phone),
                   const SizedBox(height: 16),
-
-                  // Home Address Input
-                  _buildTextField(label: 'Current Home Address'),
+                  _buildTextField(label: 'Current Home Address', controller: _addressController),
                   const SizedBox(height: 16),
-
-                  // Password Input
-                  _buildTextField(label: 'Password', obscureText: true),
+                  _buildTextField(label: 'Password', controller: _passwordController, obscureText: true),
                   const SizedBox(height: 30),
 
-                  // Sign Up Button
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: () {
-                        print("Customer signed up");
-                      },
+                      onPressed: _signUp,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF04D26F),
                         padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
@@ -86,7 +117,6 @@ class CustomerSignUpScreen extends StatelessWidget {
             ),
           ),
 
-          // Positioned logo image
           Positioned(
             top: -20,
             left: 0,
@@ -99,7 +129,6 @@ class CustomerSignUpScreen extends StatelessWidget {
             ),
           ),
 
-          // Positioned Back Button
           Positioned(
             top: MediaQuery.of(context).padding.top + 15,
             left: 15,
@@ -116,8 +145,14 @@ class CustomerSignUpScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildTextField({required String label, TextInputType keyboardType = TextInputType.text, bool obscureText = false}) {
+  Widget _buildTextField({
+    required String label,
+    required TextEditingController controller,
+    TextInputType keyboardType = TextInputType.text,
+    bool obscureText = false,
+  }) {
     return TextField(
+      controller: controller,
       obscureText: obscureText,
       keyboardType: keyboardType,
       decoration: InputDecoration(
@@ -127,10 +162,6 @@ class CustomerSignUpScreen extends StatelessWidget {
         filled: true,
         fillColor: const Color(0xFFBDC3C7),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(20),
-          borderSide: BorderSide.none,
-        ),
-        enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(20),
           borderSide: BorderSide.none,
         ),

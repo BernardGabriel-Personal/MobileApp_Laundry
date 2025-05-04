@@ -12,6 +12,7 @@ import 'Start,Signup,Login/4_customer_login.dart'; // Customer login screen
 import 'Start,Signup,Login/6_customer_signup.dart'; // Customer sign up screen
 import '../OwnerDirectoryPage/1_owner_homepage.dart'; // Owner home page
 import 'Start,Signup,Login/7_owner_login.dart'; // Owner login screen
+import 'CustomerDirectoryPage/8_customer_cartPage.dart'; // Cart page
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -44,6 +45,7 @@ class MyApp extends StatelessWidget {
         '/customer-signup': (context) => const CustomerSignUpScreen(), // Customer sign-up screen
         '/owner-login': (context) => const OwnerLoginScreen(), // Owner login screen
         '/owner-home': (context) => const OwnerHomePage(), // Owner home after successful login
+        '/Cart' : (context) => const CartPage(),
       },
     );
   }
