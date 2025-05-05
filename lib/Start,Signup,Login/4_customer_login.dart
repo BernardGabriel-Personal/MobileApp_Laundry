@@ -151,9 +151,9 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                     decoration: InputDecoration(
                       labelText: 'Email Address',
                       labelStyle:
-                          TextStyle(color: Colors.grey[700], fontSize: 16),
+                      TextStyle(color: Colors.grey[700], fontSize: 16),
                       floatingLabelStyle:
-                          const TextStyle(color: Colors.green, fontSize: 16),
+                      const TextStyle(color: Colors.green, fontSize: 16),
                       filled: true,
                       fillColor: const Color(0xFFBDC3C7),
                       border: OutlineInputBorder(
@@ -167,7 +167,7 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(20),
                         borderSide:
-                            const BorderSide(color: Colors.green, width: 2.0),
+                        const BorderSide(color: Colors.green, width: 2.0),
                       ),
                       floatingLabelBehavior: FloatingLabelBehavior.auto,
                     ),
@@ -181,9 +181,9 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                     decoration: InputDecoration(
                       labelText: 'Password',
                       labelStyle:
-                          TextStyle(color: Colors.grey[700], fontSize: 16),
+                      TextStyle(color: Colors.grey[700], fontSize: 16),
                       floatingLabelStyle:
-                          const TextStyle(color: Colors.green, fontSize: 16),
+                      const TextStyle(color: Colors.green, fontSize: 16),
                       filled: true,
                       fillColor: const Color(0xFFBDC3C7),
                       border: OutlineInputBorder(
@@ -197,7 +197,7 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(20),
                         borderSide:
-                            const BorderSide(color: Colors.green, width: 2.0),
+                        const BorderSide(color: Colors.green, width: 2.0),
                       ),
                       floatingLabelBehavior: FloatingLabelBehavior.auto,
                       suffixIcon: IconButton(
@@ -232,10 +232,10 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                       child: _isLoading
                           ? const CircularProgressIndicator(color: Colors.white)
                           : const Text(
-                              'Login',
-                              style: TextStyle(
-                                  fontSize: 24, color: Color(0xFFECF0F1)),
-                            ),
+                        'Login',
+                        style: TextStyle(
+                            fontSize: 24, color: Color(0xFFECF0F1)),
+                      ),
                     ),
                   ),
                   const SizedBox(height: 5),
