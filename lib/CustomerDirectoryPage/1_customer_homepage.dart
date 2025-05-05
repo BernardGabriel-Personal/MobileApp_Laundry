@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import '2_customer_premiumpage.dart'; // Premium care page import
+import '2_customer_premiumPage.dart'; // Premium care page import
 import '3_customer_stainRemovalPage.dart'; // Stain removal page import
 import '4_customer_rushServicePage.dart'; // Rush service page import
 import '5_customer_dryCleaningPage.dart'; // Dry clean page import
@@ -9,7 +8,8 @@ import '6_customer_washAndFoldPage.dart'; // Wash & Fold page import
 import '7_customer_ironingPage.dart'; // Ironing page import
 
 class CustomerHomePage extends StatefulWidget {
-  const CustomerHomePage({super.key});
+  final String fullName;
+  const CustomerHomePage({super.key, required this.fullName});
 
   @override
   State<CustomerHomePage> createState() => _CustomerHomePageState();
@@ -25,12 +25,14 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
 
     switch (index) {
       case 0:
-      // Logout
+        // Logout
         FirebaseAuth.instance.signOut();
-        Navigator.pushReplacementNamed(context, '/Cart'); // Replace with your login route
+        Navigator.pushReplacementNamed(
+            context, '/Cart'); // Replace with your login route
         break;
       case 1:
-        Navigator.pushNamed(context, '/invoice'); // Adjust this to your actual route
+        Navigator.pushNamed(
+            context, '/invoice'); // Adjust this to your actual route
         break;
       case 2:
         Navigator.pushReplacementNamed(context, '/customer-home');
@@ -44,22 +46,11 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
     }
   }
 
-  String fullName = 'Loading...';
-
+  late String fullName;
   @override
   void initState() {
     super.initState();
-    _fetchUserName();
-  }
-
-  Future<void> _fetchUserName() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      final doc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
-      setState(() {
-        fullName = doc.data()?['fullName'] ?? 'No Name';
-      });
-    }
+    fullName = widget.fullName;
   }
 
   @override
@@ -122,7 +113,8 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
                   onTap: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => const PremiumCarePage()),
+                      MaterialPageRoute(
+                          builder: (context) => const PremiumCarePage()),
                     );
                   },
                   child: _buildServiceTile(Icons.verified, 'Premium Care'),
@@ -131,7 +123,8 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
                   onTap: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => const StainRemovalPage()),
+                      MaterialPageRoute(
+                          builder: (context) => const StainRemovalPage()),
                     );
                   },
                   child: _buildServiceTile(Icons.checklist, 'Stain Removal'),
@@ -140,7 +133,8 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
                   onTap: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => const RushServicePage()),
+                      MaterialPageRoute(
+                          builder: (context) => const RushServicePage()),
                     );
                   },
                   child: _buildServiceTile(Icons.speed, 'Stain Removal'),
@@ -149,25 +143,30 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
                   onTap: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => const DryCleaningPage()),
+                      MaterialPageRoute(
+                          builder: (context) => const DryCleaningPage()),
                     );
                   },
-                  child: _buildServiceTile(Icons.local_laundry_service, 'Dry Cleaning'),
+                  child: _buildServiceTile(
+                      Icons.local_laundry_service, 'Dry Cleaning'),
                 ),
                 InkWell(
                   onTap: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => const WashAndFoldPage()),
+                      MaterialPageRoute(
+                          builder: (context) => const WashAndFoldPage()),
                     );
                   },
-                  child: _buildServiceTile(Icons.local_laundry_service_outlined, 'Wash & Fold'),
+                  child: _buildServiceTile(
+                      Icons.local_laundry_service_outlined, 'Wash & Fold'),
                 ),
                 InkWell(
                   onTap: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => const IroningPage()),
+                      MaterialPageRoute(
+                          builder: (context) => const IroningPage()),
                     );
                   },
                   child: _buildServiceTile(Icons.iron, 'Ironing Service'),
@@ -217,10 +216,13 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
         items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.shopping_cart), label: 'Cart'),
-          BottomNavigationBarItem(icon: Icon(Icons.receipt_long), label: 'Invoice'),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.shopping_cart), label: 'Cart'),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.receipt_long), label: 'Invoice'),
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.calendar_today), label: 'Schedules'),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.calendar_today), label: 'Schedules'),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
         ],
       ),
@@ -240,12 +242,14 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
           child: Icon(icon, size: 40, color: Colors.blue),
         ),
         const SizedBox(height: 6),
-        Text(label, textAlign: TextAlign.center, style: const TextStyle(fontSize: 12)),
+        Text(label,
+            textAlign: TextAlign.center, style: const TextStyle(fontSize: 12)),
       ],
     );
   }
 
-  Widget _buildTransactionTile({required IconData icon, required String text, required String time}) {
+  Widget _buildTransactionTile(
+      {required IconData icon, required String text, required String time}) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
