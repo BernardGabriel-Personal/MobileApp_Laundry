@@ -69,14 +69,24 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
       builder: (context) {
         return AlertDialog(
           backgroundColor: Colors.white,
-          title: Center(
-            child: Text(
-              'Login Failed',
-              style: const TextStyle(
-                color: Colors.green,
-                fontWeight: FontWeight.bold,
+          title: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.error_outline,
+                color: const Color(0xFFE57373),
+                size: 50,
               ),
-            ),
+              const SizedBox(height: 8),
+              Text(
+                'Login Failed',
+                style: const TextStyle(
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
           ),
           content: Padding(
             padding: const EdgeInsets.symmetric(vertical: 10.0),
@@ -238,7 +248,7 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                           : const Text(
                               'Login',
                               style: TextStyle(
-                                  fontSize: 24, color: Color(0xFFECF0F1)),
+                                  fontSize: 24, color: const Color(0xFFECF0F1)),
                             ),
                     ),
                   ),
