@@ -7,7 +7,7 @@ import 'Start,Signup,Login/2_welcome_page.dart';
 // import 'AdminDirectoryPage/1_admin_homepage.dart'; // Admin home page
 import 'Start,Signup,Login/3_admin_login.dart'; // Admin login screen
 import 'Start,Signup,Login/5_admin_signup.dart'; // Admin sign up screen
-import 'CustomerDirectoryPage/1_customer_homepage.dart'; // Customer home page
+// import 'CustomerDirectoryPage/1_customer_homepage.dart'; // Customer home page
 import 'Start,Signup,Login/4_customer_login.dart'; // Customer login screen
 import 'Start,Signup,Login/6_customer_signup.dart'; // Customer sign up screen
 import '../OwnerDirectoryPage/1_owner_homepage.dart'; // Owner home page
@@ -41,7 +41,7 @@ class MyApp extends StatelessWidget {
         // '/admin-home': (context) => const AdminHomePage(),  // Admin home after successful login
         '/admin-signup': (context) => const AdminSignUpScreen(),  // Admin sign-up screen
         '/customer-login': (context) => const CustomerLoginScreen(), // Customer login
-        '/customer-home': (context) => const CustomerHomePage(), // Customer home after successful login
+        // '/customer-home': (context) => const CustomerHomePage(), // Customer home after successful login
         '/customer-signup': (context) => const CustomerSignUpScreen(), // Customer sign-up screen
         '/owner-login': (context) => const OwnerLoginScreen(), // Owner login screen
         '/owner-home': (context) => const OwnerHomePage(), // Owner home after successful login
