@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart'; // Import Firestore
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class CustomerSignUpScreen extends StatefulWidget {
   const CustomerSignUpScreen({super.key});
@@ -14,43 +14,61 @@ class _CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
   final TextEditingController _contactController = TextEditingController();
   final TextEditingController _addressController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-
   bool _obscurePassword = true;
 
+  // Helper function to show error dialog
+  // Function to show error dialog with design
   void _showErrorDialog(String message) {
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
           backgroundColor: Colors.white,
-          title: Center(
-            child: Text(
-              'ERROR',
-              style: const TextStyle(
-                color: Colors.green,
-                fontWeight: FontWeight.bold,
+          title: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.error_outline, // Exclamation icon
+                color: const Color(0xFFE57373),
+                size: 50,
               ),
-            ),
+              const SizedBox(height: 8),
+              Text(
+                'ERROR',
+                style: const TextStyle(
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
           ),
           content: Padding(
             padding: const EdgeInsets.symmetric(vertical: 10.0),
             child: Text(
               message,
-              style: const TextStyle(fontSize: 16, color: Colors.black),
+              style: const TextStyle(
+                fontSize: 16,
+                color: Colors.black,
+              ),
               textAlign: TextAlign.center,
             ),
           ),
           actions: [
             Center(
               child: TextButton(
-                onPressed: () => Navigator.of(context).pop(),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
                 style: TextButton.styleFrom(
                   backgroundColor: const Color(0xFF04D26F),
                   foregroundColor: Colors.white,
                 ),
                 child: const Text(
                   'OK',
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ),
@@ -60,40 +78,59 @@ class _CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
     );
   }
 
+  // Helper function to show success dialog
+  // Function to show success dialog with design
   void _showSuccessDialog(String message) {
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
           backgroundColor: Colors.white,
-          title: Center(
-            child: Text(
-              'SUCCESS',
-              style: const TextStyle(
-                color: Colors.green,
-                fontWeight: FontWeight.bold,
+          title: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.check_circle,
+                color: const Color(0xFF04D26F),
+                size: 50,
               ),
-            ),
+              const SizedBox(height: 8),
+              Text(
+                'Sign-up successful',
+                style: const TextStyle(
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
           ),
           content: Padding(
             padding: const EdgeInsets.symmetric(vertical: 10.0),
             child: Text(
               message,
-              style: const TextStyle(fontSize: 16, color: Colors.black),
+              style: const TextStyle(
+                fontSize: 16,
+                color: Colors.black,
+              ),
               textAlign: TextAlign.center,
             ),
           ),
           actions: [
             Center(
               child: TextButton(
-                onPressed: () => Navigator.of(context).pop(),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
                 style: TextButton.styleFrom(
                   backgroundColor: const Color(0xFF04D26F),
                   foregroundColor: Colors.white,
                 ),
                 child: const Text(
                   'OK',
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ),
@@ -115,7 +152,7 @@ class _CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
 
   Future<void> _signUp() async {
     setState(() {
-      _isLoading = true; // Start the loading spinner
+      _isLoading = true;
     });
 
     String fullName = _fullNameController.text.trim();
@@ -124,7 +161,11 @@ class _CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
     String address = _addressController.text.trim();
     String password = _passwordController.text;
 
-    if (fullName.isEmpty || email.isEmpty || contact.isEmpty || address.isEmpty || password.isEmpty) {
+    if (fullName.isEmpty ||
+        email.isEmpty ||
+        contact.isEmpty ||
+        address.isEmpty ||
+        password.isEmpty) {
       setState(() {
         _isLoading = false; // Stop the loading spinner
       });
@@ -170,28 +211,55 @@ class _CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
       return;
     }
 
+    // Check if contact number already exists
+    var contactCheck = await FirebaseFirestore.instance
+        .collection('customers')
+        .where('contact', isEqualTo: contact)
+        .get();
+
+    if (contactCheck.docs.isNotEmpty) {
+      setState(() {
+        _isLoading = false;
+      });
+      _showErrorDialog("A customer with this phone number already exists.");
+      return;
+    }
+
     // Simulate a delay for signing up (this is where your firebase logic would go)
     await FirebaseFirestore.instance.collection('customers').add({
       'fullName': fullName,
       'email': email,
       'contact': contact,
       'address': address,
-      'password': password, // You should hash passwords in a real app for security
+      'password':
+          password, // You should hash passwords in a real app for security
     });
-
+    _clearTextFields();
     setState(() {
       _isLoading = false; // Stop the loading spinner
     });
 
-    _showSuccessDialog("Customer signed up successfully!");
+    _showSuccessDialog("Customer signed up successfully! You can now log-in");
+  }
+
+  // Function to clear all text fields after successful sign-up
+  void _clearTextFields() {
+    _fullNameController.clear();
+    _emailController.clear();
+    _contactController.clear();
+    _addressController.clear();
+    _passwordController.clear();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      resizeToAvoidBottomInset: true, // Allow the screen to resize when keyboard shows up
-      body: Scrollbar( // Wrap the SingleChildScrollView with Scrollbar
-        child: SingleChildScrollView( // Wrap the entire body in SingleChildScrollView
+      resizeToAvoidBottomInset:
+          true, // Allow the screen to resize when keyboard shows up
+      body: Scrollbar(
+        // Wrap the SingleChildScrollView with Scrollbar
+        child: SingleChildScrollView(
+          // Wrap the entire body in SingleChildScrollView
           child: Stack(
             children: [
               Container(
@@ -227,7 +295,8 @@ class _CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
                       const SizedBox(height: 50),
 
                       // Full Name Input
-                      _buildTextField(label: 'Full Name', controller: _fullNameController),
+                      _buildTextField(
+                          label: 'Full Name', controller: _fullNameController),
                       const SizedBox(height: 16),
 
                       // Email Address Input
@@ -278,16 +347,16 @@ class _CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
                           ),
                           child: _isLoading
                               ? const CircularProgressIndicator(
-                            color: Color(0xFF04D26F),
-                          )
+                                  color: const Color(0xFF04D26F),
+                                )
                               : const Text(
-                            'Sign Up',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
+                                  'Sign Up',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                ),
                         ),
                       ),
                       const SizedBox(height: 10),
@@ -309,13 +378,15 @@ class _CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
 
               // Positioned Back Button (top-left corner)
               Positioned(
-                top: MediaQuery.of(context).padding.top + 15, // Add padding for safe area
+                top: MediaQuery.of(context).padding.top +
+                    15, // Add padding for safe area
                 left: 15,
                 child: IconButton(
                   icon: const Icon(Icons.arrow_back_ios),
                   color: Colors.grey[500],
                   onPressed: () {
-                    Navigator.pop(context); // Navigate back to the previous screen
+                    Navigator.pop(
+                        context); // Navigate back to the previous screen
                   },
                 ),
               ),
@@ -357,16 +428,16 @@ class _CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
         ),
         suffixIcon: isPassword
             ? IconButton(
-          icon: Icon(
-            _obscurePassword ? Icons.visibility_off : Icons.visibility,
-            color: Colors.grey[500],
-          ),
-          onPressed: () {
-            setState(() {
-              _obscurePassword = !_obscurePassword;
-            });
-          },
-        )
+                icon: Icon(
+                  _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                  color: Colors.grey[500],
+                ),
+                onPressed: () {
+                  setState(() {
+                    _obscurePassword = !_obscurePassword;
+                  });
+                },
+              )
             : null,
       ),
       cursorColor: Colors.green,
