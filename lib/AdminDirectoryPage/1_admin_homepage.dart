@@ -1,13 +1,21 @@
 import 'package:flutter/material.dart';
+import '../AdminDirectoryPage/2_admin_profilePage.dart'; // Redirect to Profile page
+import '../Start,Signup,Login/2_welcome_page.dart'; // For logout redirect to HomeScreen
 
 class AdminHomePage extends StatefulWidget {
   final String fullName;
   final String branch;
+  final String employeeId;
+  final String email;
+  final String contact;
 
   const AdminHomePage({
     Key? key,
     required this.fullName,
     required this.branch,
+    required this.employeeId,
+    required this.email,
+    required this.contact,
   }) : super(key: key);
 
   @override
@@ -24,7 +32,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
           children: [
             const Icon(
               Icons.error_outline,
-              color: const Color(0xFFE57373),
+              color: Color(0xFFE57373),
               size: 28,
             ),
             const SizedBox(width: 10),
@@ -53,7 +61,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
           TextButton(
             style: TextButton.styleFrom(
               foregroundColor: Colors.white,
-              backgroundColor: const Color(0xFFE57373),
+              backgroundColor: Color(0xFFE57373),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
               ),
@@ -75,7 +83,10 @@ class _AdminHomePageState extends State<AdminHomePage> {
         if (!didPop) {
           final shouldLogout = await _confirmLogout(context);
           if (shouldLogout) {
-            Navigator.pop(context);
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const HomeScreen()),
+            );
           }
         }
       },
@@ -88,20 +99,37 @@ class _AdminHomePageState extends State<AdminHomePage> {
           type: BottomNavigationBarType.fixed,
           currentIndex: 2,
           onTap: (index) async {
-            if (index == 0) {
-              final shouldLogout = await _confirmLogout(context);
-              if (shouldLogout) {
-                Navigator.pop(context);
-              }
+            switch (index) {
+              case 0:
+                final shouldLogout = await _confirmLogout(context);
+                if (shouldLogout) {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => const HomeScreen()),
+                  );
+                }
+                break;
+              case 4:
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => AdminProfilePage(
+                      fullName: widget.fullName,
+                      branch: widget.branch,
+                      employeeId: widget.employeeId,
+                      contact: widget.contact,
+                      email: widget.email,
+                    ),
+                  ),
+                );
+                break;
             }
           },
           items: const [
             BottomNavigationBarItem(icon: Icon(Icons.logout), label: 'Logout'),
-            BottomNavigationBarItem(
-                icon: Icon(Icons.shopping_basket), label: 'Basket'),
+            BottomNavigationBarItem(icon: Icon(Icons.shopping_basket), label: 'Basket'),
             BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-            BottomNavigationBarItem(
-                icon: Icon(Icons.schedule), label: 'Schedules'),
+            BottomNavigationBarItem(icon: Icon(Icons.schedule), label: 'Schedules'),
             BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
           ],
         ),
@@ -116,40 +144,32 @@ class _AdminHomePageState extends State<AdminHomePage> {
                   ),
                   child: Container(
                     color: const Color(0xFF170CFE),
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 30),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 30),
                     child: Center(
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           const CircleAvatar(
                             radius: 30,
-                            backgroundColor: const Color(0xFF04D26F),
-                            child: Icon(Icons.person,
-                                color: Colors.white, size: 40),
+                            backgroundColor: Color(0xFF04D26F),
+                            child: Icon(Icons.person, color: Colors.white, size: 40),
                           ),
                           const SizedBox(height: 12),
                           const Text(
                             "WELCOME!",
                             style: TextStyle(
-                              color: const Color(0xFF04D26F),
+                              color: Color(0xFF04D26F),
                               fontWeight: FontWeight.bold,
                               fontSize: 22,
                             ),
                           ),
                           Text(
-                            "${widget.fullName}",
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 20,
-                            ),
+                            widget.fullName,
+                            style: const TextStyle(color: Colors.white, fontSize: 20),
                           ),
                           Text(
                             "${widget.branch} Branch",
-                            style: const TextStyle(
-                              color: Colors.white70,
-                              fontSize: 18,
-                            ),
+                            style: const TextStyle(color: Colors.white70, fontSize: 18),
                           ),
                         ],
                       ),
@@ -166,11 +186,9 @@ class _AdminHomePageState extends State<AdminHomePage> {
                     crossAxisSpacing: 12,
                     mainAxisSpacing: 12,
                     children: [
-                      _buildDashboardTile(
-                          Icons.local_laundry_service, 'Detergent'),
+                      _buildDashboardTile(Icons.local_laundry_service, 'Detergent'),
                       _buildDashboardTile(Icons.attach_money, 'Pricing'),
-                      _buildDashboardTile(
-                          Icons.shopping_cart, 'Order Management'),
+                      _buildDashboardTile(Icons.shopping_cart, 'Order Management'),
                       _buildDashboardTile(Icons.library_books, 'Log Book'),
                       _buildDashboardTile(Icons.bar_chart, 'Analytics'),
                       _buildDashboardTile(Icons.verified_user, 'Accounts'),
@@ -184,16 +202,13 @@ class _AdminHomePageState extends State<AdminHomePage> {
                     alignment: Alignment.centerLeft,
                     child: Text(
                       'Activity Logs:',
-                      style:
-                          TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                     ),
                   ),
                 ),
                 const SizedBox(height: 8),
-                _buildActivityLog("Sample Admin #1",
-                    "made changes in the detergent stock!", "15:00"),
-                _buildActivityLog(
-                    "Sample Admin #2", "Viewed the customers log.", "14:30"),
+                _buildActivityLog("Sample Admin #1", "made changes in the detergent stock!", "15:00"),
+                _buildActivityLog("Sample Admin #2", "Viewed the customers log.", "14:30"),
                 const SizedBox(height: 24),
               ],
             ),
@@ -218,7 +233,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
             label,
             textAlign: TextAlign.center,
             style: const TextStyle(
-              color: const Color(0xFF04D26F),
+              color: Color(0xFF04D26F),
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -247,13 +262,8 @@ class _AdminHomePageState extends State<AdminHomePage> {
               ),
             ),
             const SizedBox(width: 12),
-            Expanded(
-              child: Text("$admin $action"),
-            ),
-            Text(
-              time,
-              style: const TextStyle(color: Colors.black54),
-            ),
+            Expanded(child: Text("$admin $action")),
+            Text(time, style: const TextStyle(color: Colors.black54)),
           ],
         ),
       ),
