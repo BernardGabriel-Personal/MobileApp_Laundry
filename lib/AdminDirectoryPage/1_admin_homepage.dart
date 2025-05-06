@@ -91,7 +91,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
         }
       },
       child: Scaffold(
-        backgroundColor: const Color(0xFFECF0F1),
+        backgroundColor: const Color(0xFFECF0F3),
         bottomNavigationBar: BottomNavigationBar(
           backgroundColor: const Color(0xFF170CFE),
           selectedItemColor: Colors.white,
