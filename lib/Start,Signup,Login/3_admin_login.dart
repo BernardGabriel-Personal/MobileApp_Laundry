@@ -48,6 +48,9 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
               builder: (context) => AdminHomePage(
                 fullName: adminDoc['fullName'],
                 branch: adminDoc['branch'],
+                employeeId: adminDoc['employeeId'],
+                contact: adminDoc['contact'],
+                email: adminDoc['email'],
               ),
             ),
           );
