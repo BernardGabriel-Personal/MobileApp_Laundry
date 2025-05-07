@@ -279,7 +279,7 @@ class _EmployeeManagementPageState extends State<EmployeeManagementPage> {
             ),
           ),
           Positioned(
-            top: MediaQuery.of(context).padding.top + 15,
+            top: MediaQuery.of(context).padding.top,
             left: 15,
             child: IconButton(
               icon: const Icon(Icons.arrow_back_ios),
