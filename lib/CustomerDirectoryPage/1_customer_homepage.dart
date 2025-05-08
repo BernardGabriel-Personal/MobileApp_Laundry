@@ -132,7 +132,7 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
                           builder: (context) => const RushServicePage()),
                     );
                   },
-                  child: _buildServiceTile(Icons.speed, 'Stain Removal'),
+                  child: _buildServiceTile(Icons.speed, 'Rush Service'),
                 ),
                 InkWell(
                   onTap: () {
