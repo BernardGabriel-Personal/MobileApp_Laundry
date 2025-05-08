@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import '2_customer_premiumPage.dart'; // Premium care page import
-import '3_customer_stainRemovalPage.dart'; // Stain removal page import
-import '4_customer_rushServicePage.dart'; // Rush service page import
-import '5_customer_dryCleaningPage.dart'; // Dry clean page import
-import '6_customer_washAndFoldPage.dart'; // Wash & Fold page import
-import '7_customer_ironingPage.dart'; // Ironing page import
+import '2_customer_premiumPage.dart';
+import '3_customer_stainRemovalPage.dart';
+import '4_customer_rushServicePage.dart';
+import '5_customer_dryCleaningPage.dart';
+import '6_customer_washAndFoldPage.dart';
+import '7_customer_ironingPage.dart';
 
 class CustomerHomePage extends StatefulWidget {
   final String fullName;
@@ -15,7 +15,7 @@ class CustomerHomePage extends StatefulWidget {
 }
 
 class _CustomerHomePageState extends State<CustomerHomePage> {
-  int _selectedIndex = 2; // Default to 'Home'
+  int _selectedIndex = 2;
 
   void _onItemTapped(int index) {
     setState(() {
@@ -24,19 +24,25 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
 
     switch (index) {
       case 0:
-        Navigator.pushNamed(context, '/Cart'); // Replace with your login route
+        Navigator.pushNamed(context, '/Cart');
         break;
       case 1:
-        Navigator.pushNamed(context, '/invoice'); // Invoice page
+        Navigator.pushNamed(context, '/invoice');
         break;
       case 2:
-        Navigator.pushReplacementNamed(context, '/customer-home');
+      // FIX: Replace pushReplacementNamed with pushReplacement and pass fullName
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => CustomerHomePage(fullName: widget.fullName),
+          ),
+        );
         break;
       case 3:
-        Navigator.pushNamed(context, '/schedules'); // Sched page
+        Navigator.pushNamed(context, '/schedules');
         break;
       case 4:
-        Navigator.pushNamed(context, '/profile'); // Profile page
+        Navigator.pushNamed(context, '/profile');
         break;
     }
   }
@@ -67,13 +73,13 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
             ),
             child: Column(
               children: [
-                CircleAvatar(
+                const CircleAvatar(
                   radius: 30,
                   backgroundColor: Colors.white,
                   child: Icon(Icons.person, size: 40, color: Colors.green),
                 ),
-                SizedBox(height: 10),
-                Text(
+                const SizedBox(height: 10),
+                const Text(
                   'WELCOME!',
                   style: TextStyle(
                     fontSize: 20,
@@ -84,7 +90,7 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
                 ),
                 Text(
                   fullName,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 18,
                     color: Colors.white,
                     fontWeight: FontWeight.w500,
