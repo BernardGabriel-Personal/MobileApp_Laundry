@@ -19,7 +19,7 @@ class _PremiumCarePageState extends State<PremiumCarePage> {
 
     switch (index) {
       case 0:
-        Navigator.pushReplacementNamed(context, '/cart');
+        Navigator.pushReplacementNamed(context, '/Cart');
         break;
       case 1:
         Navigator.pushNamed(context, '/invoice');
@@ -41,7 +41,7 @@ class _PremiumCarePageState extends State<PremiumCarePage> {
     return Scaffold(
       backgroundColor: Colors.grey[200],
       appBar: AppBar(
-        title: const Text('Stain Removal'),
+        title: const Text('Premium Care'),
         backgroundColor: Colors.green,
       ),
       body: SingleChildScrollView(
