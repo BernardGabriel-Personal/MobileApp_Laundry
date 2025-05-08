@@ -131,7 +131,7 @@ class _EmployeeManagementPageState extends State<EmployeeManagementPage> {
                                 contentPadding: const EdgeInsets.all(15),
                                 leading: const CircleAvatar(
                                   backgroundColor: const Color(0xFF04D26F),
-                                  child: Icon(Icons.person, color: Colors.white),
+                                  child: Icon(Icons.person_outline, color: Colors.white),
                                 ),
                                 title: Text(
                                   admin['fullName'] ?? 'No Name',
