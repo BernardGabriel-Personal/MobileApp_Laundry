@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'package:crypto/crypto.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import '5_admin_signup.dart';
@@ -16,6 +18,13 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
   bool _isPasswordVisible = false;
   bool _isLoading = false;
 
+  // Hashing function using SHA-256
+  String hashPassword(String password) {
+    final bytes = utf8.encode(password);
+    final digest = sha256.convert(bytes);
+    return digest.toString();
+  }
+
   void _loginAdmin() async {
     String employeeId = _idController.text.trim();
     String password = _passwordController.text.trim();
@@ -30,7 +39,6 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
     });
 
     try {
-      // Query Firestore for a matching Employee ID
       QuerySnapshot adminQuery = await FirebaseFirestore.instance
           .collection('approved_admin')
           .where('employeeId', isEqualTo: employeeId)
@@ -39,10 +47,10 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
       if (adminQuery.docs.isNotEmpty) {
         DocumentSnapshot adminDoc = adminQuery.docs.first;
         String storedPassword = adminDoc['password'];
+        String hashedInputPassword = hashPassword(password);
 
-        if (storedPassword == password) {
+        if (storedPassword == hashedInputPassword) {
           Navigator.pushReplacement(
-            // IMPORTANT TO DISPLAY USER NAME
             context,
             MaterialPageRoute(
               builder: (context) => AdminHomePage(
@@ -62,7 +70,6 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
       }
     } catch (e) {
       _showErrorDialog('An error occurred during login. Please try again.');
-      // print('Login error: $e'); // Debugging output
     } finally {
       setState(() {
         _isLoading = false;
@@ -85,9 +92,9 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                 size: 50,
               ),
               const SizedBox(height: 8),
-              Text(
+              const Text(
                 'Login Failed',
-                style: const TextStyle(
+                style: TextStyle(
                   color: Colors.black,
                   fontWeight: FontWeight.bold,
                 ),
@@ -118,9 +125,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                 ),
                 child: const Text(
                   'OK',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontWeight: FontWeight.bold),
                 ),
               ),
             ),
@@ -151,7 +156,6 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                 children: [
                   const SizedBox(height: 80),
                   const SizedBox(height: 115),
-
                   const Text(
                     'Login as Employee',
                     style: TextStyle(
@@ -168,8 +172,6 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                     ),
                   ),
                   const SizedBox(height: 20),
-
-                  // Employee ID Input
                   TextField(
                     controller: _idController,
                     decoration: InputDecoration(
@@ -178,7 +180,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                         color: Colors.grey[700],
                         fontSize: 16,
                       ),
-                      floatingLabelStyle: TextStyle(
+                      floatingLabelStyle: const TextStyle(
                         color: Colors.green,
                         fontSize: 16,
                       ),
@@ -190,19 +192,14 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(20),
-                        borderSide: const BorderSide(
-                          color: Colors.green,
-                          width: 2.0,
-                        ),
+                        borderSide:
+                        const BorderSide(color: Colors.green, width: 2.0),
                       ),
-                      floatingLabelBehavior: FloatingLabelBehavior.auto,
                     ),
                     keyboardType: TextInputType.number,
                     cursorColor: Colors.green,
                   ),
                   const SizedBox(height: 16),
-
-                  // Password Input
                   TextField(
                     controller: _passwordController,
                     obscureText: !_isPasswordVisible,
@@ -212,7 +209,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                         color: Colors.grey[700],
                         fontSize: 16,
                       ),
-                      floatingLabelStyle: TextStyle(
+                      floatingLabelStyle: const TextStyle(
                         color: Colors.green,
                         fontSize: 16,
                       ),
@@ -224,10 +221,8 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(20),
-                        borderSide: const BorderSide(
-                          color: Colors.green,
-                          width: 2.0,
-                        ),
+                        borderSide:
+                        const BorderSide(color: Colors.green, width: 2.0),
                       ),
                       suffixIcon: IconButton(
                         icon: Icon(
@@ -245,10 +240,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                     ),
                     cursorColor: Colors.green,
                   ),
-
                   const SizedBox(height: 35),
-
-                  // Login Button
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
@@ -266,10 +258,10 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                       child: _isLoading
                           ? const CircularProgressIndicator(color: Colors.white)
                           : const Text(
-                              'Login',
-                              style: TextStyle(
-                                  fontSize: 24, color: Color(0xFFECF0F1)),
-                            ),
+                        'Login',
+                        style: TextStyle(
+                            fontSize: 24, color: Color(0xFFECF0F1)),
+                      ),
                     ),
                   ),
                   const SizedBox(height: 5),
@@ -278,18 +270,19 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (context) => const AdminSignUpScreen()),
+                          builder: (context) => const AdminSignUpScreen(),
+                        ),
                       );
                     },
                     child: Text(
                       'Create an Account',
                       style: TextStyle(
-                        color: Color(0xFF04D26F),
+                        color: const Color(0xFF04D26F),
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
                         shadows: [
                           Shadow(
-                            offset: Offset(1.0, 4.0),
+                            offset: const Offset(1.0, 4.0),
                             blurRadius: 10.0,
                             color: Colors.grey.withOpacity(0.7),
                           ),
@@ -301,8 +294,6 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
               ),
             ),
           ),
-
-          // Positioned Logo Image
           Positioned(
             top: -20,
             left: 0,
@@ -314,21 +305,17 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
               ),
             ),
           ),
-
-          // Positioned Back Button (top-left corner)
           Positioned(
-            top: MediaQuery.of(context).padding.top +
-                15, // Add padding for safe area
+            top: MediaQuery.of(context).padding.top + 15,
             left: 15,
             child: IconButton(
               icon: const Icon(Icons.arrow_back_ios),
               color: Colors.grey[500],
               onPressed: () {
-                Navigator.pop(context); // Navigate back to the previous screen
+                Navigator.pop(context);
               },
             ),
           ),
-
           Align(
             alignment: Alignment.bottomCenter,
             child: Stack(

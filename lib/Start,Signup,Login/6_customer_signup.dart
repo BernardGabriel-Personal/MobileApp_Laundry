@@ -1,3 +1,5 @@
+import 'dart:convert'; // For utf8.encode
+import 'package:crypto/crypto.dart'; // For SHA-256 hash
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -15,145 +17,78 @@ class _CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
   final TextEditingController _addressController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   bool _obscurePassword = true;
+  bool _isLoading = false;
 
-  // Helper function to show error dialog
-  // Function to show error dialog with design
+  // Password hashing using SHA-256
+  String _hashPassword(String password) {
+    final bytes = utf8.encode(password);
+    final digest = sha256.convert(bytes);
+    return digest.toString();
+  }
+
   void _showErrorDialog(String message) {
     showDialog(
       context: context,
-      builder: (context) {
-        return AlertDialog(
-          backgroundColor: Colors.white,
-          title: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                Icons.error_outline, // Exclamation icon
-                color: const Color(0xFFE57373),
-                size: 50,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'ERROR',
-                style: const TextStyle(
-                  color: Colors.black,
-                  fontWeight: FontWeight.bold,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
-          content: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 10.0),
-            child: Text(
-              message,
-              style: const TextStyle(
-                fontSize: 16,
-                color: Colors.black,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ),
-          actions: [
-            Center(
-              child: TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-                style: TextButton.styleFrom(
-                  backgroundColor: const Color(0xFF04D26F),
-                  foregroundColor: Colors.white,
-                ),
-                child: const Text(
-                  'OK',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ),
+      builder: (context) => AlertDialog(
+        backgroundColor: Colors.white,
+        title: Column(
+          children: [
+            Icon(Icons.error_outline, color: const Color(0xFFE57373), size: 50),
+            const SizedBox(height: 8),
+            const Text('ERROR', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
           ],
-        );
-      },
+        ),
+        content: Text(message, textAlign: TextAlign.center),
+        actions: [
+          Center(
+            child: TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              style: TextButton.styleFrom(
+                backgroundColor: const Color(0xFF04D26F),
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('OK', style: TextStyle(fontWeight: FontWeight.bold)),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
-  // Helper function to show success dialog
-  // Function to show success dialog with design
   void _showSuccessDialog(String message) {
     showDialog(
       context: context,
-      builder: (context) {
-        return AlertDialog(
-          backgroundColor: Colors.white,
-          title: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                Icons.check_circle,
-                color: const Color(0xFF04D26F),
-                size: 50,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Sign-up successful',
-                style: const TextStyle(
-                  color: Colors.black,
-                  fontWeight: FontWeight.bold,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
-          content: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 10.0),
-            child: Text(
-              message,
-              style: const TextStyle(
-                fontSize: 16,
-                color: Colors.black,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ),
-          actions: [
-            Center(
-              child: TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-                style: TextButton.styleFrom(
-                  backgroundColor: const Color(0xFF04D26F),
-                  foregroundColor: Colors.white,
-                ),
-                child: const Text(
-                  'OK',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ),
+      builder: (context) => AlertDialog(
+        backgroundColor: Colors.white,
+        title: Column(
+          children: [
+            Icon(Icons.check_circle, color: const Color(0xFF04D26F), size: 50),
+            const SizedBox(height: 8),
+            const Text('Sign-up successful', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
           ],
-        );
-      },
+        ),
+        content: Text(message, textAlign: TextAlign.center),
+        actions: [
+          Center(
+            child: TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              style: TextButton.styleFrom(
+                backgroundColor: const Color(0xFF04D26F),
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('OK', style: TextStyle(fontWeight: FontWeight.bold)),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
-  bool _isValidEmail(String email) {
-    return RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(email);
-  }
-
-  bool _isValidContactNumber(String number) {
-    return RegExp(r'^\d{11}$').hasMatch(number);
-  }
-
-  bool _isLoading = false;
+  bool _isValidEmail(String email) => RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(email);
+  bool _isValidContactNumber(String number) => RegExp(r'^\d{11}$').hasMatch(number);
 
   Future<void> _signUp() async {
-    setState(() {
-      _isLoading = true;
-    });
+    setState(() => _isLoading = true);
 
     String fullName = _fullNameController.text.trim();
     String email = _emailController.text.trim();
@@ -161,88 +96,67 @@ class _CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
     String address = _addressController.text.trim();
     String password = _passwordController.text;
 
-    if (fullName.isEmpty ||
-        email.isEmpty ||
-        contact.isEmpty ||
-        address.isEmpty ||
-        password.isEmpty) {
-      setState(() {
-        _isLoading = false; // Stop the loading spinner
-      });
+    if ([fullName, email, contact, address, password].any((field) => field.isEmpty)) {
+      setState(() => _isLoading = false);
       _showErrorDialog("Please fill in all fields.");
       return;
     }
 
     if (!_isValidEmail(email)) {
-      setState(() {
-        _isLoading = false; // Stop the loading spinner
-      });
+      setState(() => _isLoading = false);
       _showErrorDialog("Please enter a valid email address.");
       return;
     }
 
     if (!_isValidContactNumber(contact)) {
-      setState(() {
-        _isLoading = false; // Stop the loading spinner
-      });
+      setState(() => _isLoading = false);
       _showErrorDialog("Please enter a valid 11-digit contact number.");
       return;
     }
 
     if (password.length < 6) {
-      setState(() {
-        _isLoading = false; // Stop the loading spinner
-      });
+      setState(() => _isLoading = false);
       _showErrorDialog("Password must be at least 6 characters long.");
       return;
     }
 
-    // Check if email already exists in Firestore
-    var emailCheck = await FirebaseFirestore.instance
+    final emailExists = await FirebaseFirestore.instance
         .collection('customers')
         .where('email', isEqualTo: email)
         .get();
 
-    if (emailCheck.docs.isNotEmpty) {
-      setState(() {
-        _isLoading = false; // Stop the loading spinner
-      });
+    if (emailExists.docs.isNotEmpty) {
+      setState(() => _isLoading = false);
       _showErrorDialog("An account with this email already exists.");
       return;
     }
 
-    // Check if contact number already exists
-    var contactCheck = await FirebaseFirestore.instance
+    final contactExists = await FirebaseFirestore.instance
         .collection('customers')
         .where('contact', isEqualTo: contact)
         .get();
 
-    if (contactCheck.docs.isNotEmpty) {
-      setState(() {
-        _isLoading = false;
-      });
+    if (contactExists.docs.isNotEmpty) {
+      setState(() => _isLoading = false);
       _showErrorDialog("A customer with this phone number already exists.");
       return;
     }
 
-    // Simulate a delay for signing up (this is where your firebase logic would go)
+    final hashedPassword = _hashPassword(password);
+
     await FirebaseFirestore.instance.collection('customers').add({
       'fullName': fullName,
       'email': email,
       'contact': contact,
       'address': address,
-      'password':
-          password, // You should hash passwords in a real app for security
-    });
-    _clearTextFields();
-    setState(() {
-      _isLoading = false; // Stop the loading spinner
+      'password': hashedPassword,
     });
 
+    _clearTextFields();
+    setState(() => _isLoading = false);
     _showSuccessDialog("Customer signed up successfully! You can now log-in");
   }
 
-  // Function to clear all text fields after successful sign-up
   void _clearTextFields() {
     _fullNameController.clear();
     _emailController.clear();
@@ -254,12 +168,9 @@ class _CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      resizeToAvoidBottomInset:
-          true, // Allow the screen to resize when keyboard shows up
+      resizeToAvoidBottomInset: true,
       body: Scrollbar(
-        // Wrap the SingleChildScrollView with Scrollbar
         child: SingleChildScrollView(
-          // Wrap the entire body in SingleChildScrollView
           child: Stack(
             children: [
               Container(
@@ -273,7 +184,6 @@ class _CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
                   child: Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
                     children: [
                       const SizedBox(height: 80),
                       const SizedBox(height: 115),
@@ -281,82 +191,34 @@ class _CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
                         'Customer Sign-Up',
                         style: TextStyle(
                           fontFamily: 'IndieFlower',
-                          shadows: [
-                            Shadow(
-                              offset: Offset(4.0, 6.0),
-                              blurRadius: 10.0,
-                              color: Colors.grey,
-                            ),
-                          ],
+                          shadows: [Shadow(offset: Offset(4.0, 6.0), blurRadius: 10.0, color: Colors.grey)],
                           fontSize: 35,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                       const SizedBox(height: 50),
-
-                      // Full Name Input
-                      _buildTextField(
-                          label: 'Full Name', controller: _fullNameController),
+                      _buildTextField(label: 'Full Name', controller: _fullNameController),
                       const SizedBox(height: 16),
-
-                      // Email Address Input
-                      _buildTextField(
-                        label: 'Email Address',
-                        controller: _emailController,
-                        keyboardType: TextInputType.emailAddress,
-                      ),
+                      _buildTextField(label: 'Email Address', controller: _emailController, keyboardType: TextInputType.emailAddress),
                       const SizedBox(height: 16),
-
-                      // Contact Number Input
-                      _buildTextField(
-                        label: 'Contact Number',
-                        controller: _contactController,
-                        keyboardType: TextInputType.phone,
-                      ),
+                      _buildTextField(label: 'Contact Number', controller: _contactController, keyboardType: TextInputType.phone),
                       const SizedBox(height: 16),
-
-                      // Current Home Address Input
-                      _buildTextField(
-                        label: 'Current Home Address',
-                        controller: _addressController,
-                      ),
+                      _buildTextField(label: 'Current Home Address', controller: _addressController),
                       const SizedBox(height: 16),
-
-                      // Password Input
-                      _buildTextField(
-                        label: 'Password',
-                        controller: _passwordController,
-                        isPassword: true,
-                      ),
+                      _buildTextField(label: 'Password', controller: _passwordController, isPassword: true),
                       const SizedBox(height: 30),
-
-                      // Sign Up Button
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
                           onPressed: _isLoading ? null : _signUp,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFF04D26F),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 32,
-                              vertical: 12,
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(20),
-                            ),
+                            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                           ),
                           child: _isLoading
-                              ? const CircularProgressIndicator(
-                                  color: const Color(0xFF04D26F),
-                                )
-                              : const Text(
-                                  'Sign Up',
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
-                                  ),
-                                ),
+                              ? const CircularProgressIndicator(color: const Color(0xFF04D26F))
+                              : const Text('Sign Up', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
                         ),
                       ),
                       const SizedBox(height: 10),
@@ -369,25 +231,16 @@ class _CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
                 left: 0,
                 right: 0,
                 child: Center(
-                  child: Image.asset(
-                    'assets/FiveStarsLaundromat.png',
-                    height: 250,
-                  ),
+                  child: Image.asset('assets/FiveStarsLaundromat.png', height: 250),
                 ),
               ),
-
-              // Positioned Back Button (top-left corner)
               Positioned(
-                top: MediaQuery.of(context).padding.top +
-                    15, // Add padding for safe area
+                top: MediaQuery.of(context).padding.top + 15,
                 left: 15,
                 child: IconButton(
                   icon: const Icon(Icons.arrow_back_ios),
                   color: Colors.grey[500],
-                  onPressed: () {
-                    Navigator.pop(
-                        context); // Navigate back to the previous screen
-                  },
+                  onPressed: () => Navigator.pop(context),
                 ),
               ),
             ],
@@ -414,30 +267,14 @@ class _CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
         floatingLabelStyle: const TextStyle(color: Colors.green, fontSize: 16),
         filled: true,
         fillColor: const Color(0xFFBDC3C7),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(20),
-          borderSide: BorderSide.none,
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(20),
-          borderSide: BorderSide.none,
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(20),
-          borderSide: const BorderSide(color: Colors.green, width: 2.0),
-        ),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(20), borderSide: BorderSide.none),
+        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(20), borderSide: BorderSide.none),
+        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(20), borderSide: const BorderSide(color: Colors.green, width: 2.0)),
         suffixIcon: isPassword
             ? IconButton(
-                icon: Icon(
-                  _obscurePassword ? Icons.visibility_off : Icons.visibility,
-                  color: Colors.grey[500],
-                ),
-                onPressed: () {
-                  setState(() {
-                    _obscurePassword = !_obscurePassword;
-                  });
-                },
-              )
+          icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility, color: Colors.grey[500]),
+          onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+        )
             : null,
       ),
       cursorColor: Colors.green,
