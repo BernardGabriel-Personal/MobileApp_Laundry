@@ -38,14 +38,14 @@ class MyApp extends StatelessWidget {
         '/': (context) => const SplashScreen(),
         '/home': (context) => const HomeScreen(),
         '/admin-login': (context) => const AdminLoginScreen(),
-        '/admin-home': (context) => const AdminHomePage(fullName: '', branch: '', employeeId: '', email: '', contact: '',),  // Admin home after successful login
-        '/admin-signup': (context) => const AdminSignUpScreen(),  // Admin sign-up screen
-        '/customer-login': (context) => const CustomerLoginScreen(), // Customer login
-        '/customer-home': (context) => const CustomerHomePage(fullName: '',), // Customer home after successful login
-        '/customer-signup': (context) => const CustomerSignUpScreen(), // Customer sign-up screen
-        '/owner-login': (context) => const OwnerLoginScreen(), // Owner login screen
-        '/owner-home': (context) => const OwnerHomePage(), // Owner home after successful login
-        '/Cart' : (context) => const CartPage(),
+        '/admin-signup': (context) => const AdminSignUpScreen(),
+        '/admin-home': (context) => const AdminHomePage(fullName: '', branch: '', employeeId: '', email: '', contact: '',),
+        '/customer-login': (context) => const CustomerLoginScreen(),
+        '/customer-signup': (context) => const CustomerSignUpScreen(),
+        '/customer-home': (context) => const CustomerHomePage(fullName: '',),
+        '/owner-login': (context) => const OwnerLoginScreen(),
+        '/owner-home': (context) => const OwnerHomePage(),
+        '/Cart': (context) => const CartPage(),
       },
     );
   }
