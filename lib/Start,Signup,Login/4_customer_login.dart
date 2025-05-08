@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'dart:convert';
+import 'package:crypto/crypto.dart';
 import '6_customer_signup.dart';
 import '../CustomerDirectoryPage/1_customer_homepage.dart';
 
@@ -16,6 +18,13 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
   final TextEditingController _passwordController = TextEditingController();
   bool _isPasswordVisible = false;
   bool _isLoading = false;
+
+  // Hashing function
+  String hashPassword(String password) {
+    final bytes = utf8.encode(password);
+    final digest = sha256.convert(bytes);
+    return digest.toString();
+  }
 
   Future<void> _loginCustomer() async {
     if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
@@ -39,8 +48,10 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
       } else {
         final customerData = querySnapshot.docs.first.data();
         final storedPassword = customerData['password'];
+        final enteredPasswordHash =
+        hashPassword(_passwordController.text.trim());
 
-        if (storedPassword != _passwordController.text.trim()) {
+        if (storedPassword != enteredPasswordHash) {
           _showErrorDialog('Invalid password.');
         } else {
           // Successful login
@@ -165,9 +176,9 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                     decoration: InputDecoration(
                       labelText: 'Email Address',
                       labelStyle:
-                          TextStyle(color: Colors.grey[700], fontSize: 16),
+                      TextStyle(color: Colors.grey[700], fontSize: 16),
                       floatingLabelStyle:
-                          const TextStyle(color: Colors.green, fontSize: 16),
+                      const TextStyle(color: Colors.green, fontSize: 16),
                       filled: true,
                       fillColor: const Color(0xFFBDC3C7),
                       border: OutlineInputBorder(
@@ -181,7 +192,7 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(20),
                         borderSide:
-                            const BorderSide(color: Colors.green, width: 2.0),
+                        const BorderSide(color: Colors.green, width: 2.0),
                       ),
                       floatingLabelBehavior: FloatingLabelBehavior.auto,
                     ),
@@ -195,9 +206,9 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                     decoration: InputDecoration(
                       labelText: 'Password',
                       labelStyle:
-                          TextStyle(color: Colors.grey[700], fontSize: 16),
+                      TextStyle(color: Colors.grey[700], fontSize: 16),
                       floatingLabelStyle:
-                          const TextStyle(color: Colors.green, fontSize: 16),
+                      const TextStyle(color: Colors.green, fontSize: 16),
                       filled: true,
                       fillColor: const Color(0xFFBDC3C7),
                       border: OutlineInputBorder(
@@ -211,7 +222,7 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(20),
                         borderSide:
-                            const BorderSide(color: Colors.green, width: 2.0),
+                        const BorderSide(color: Colors.green, width: 2.0),
                       ),
                       floatingLabelBehavior: FloatingLabelBehavior.auto,
                       suffixIcon: IconButton(
@@ -246,10 +257,10 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                       child: _isLoading
                           ? const CircularProgressIndicator(color: Colors.white)
                           : const Text(
-                              'Login',
-                              style: TextStyle(
-                                  fontSize: 24, color: const Color(0xFFECF0F1)),
-                            ),
+                        'Login',
+                        style: TextStyle(
+                            fontSize: 24, color: const Color(0xFFECF0F1)),
+                      ),
                     ),
                   ),
                   const SizedBox(height: 5),
