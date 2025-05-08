@@ -19,7 +19,7 @@ class _PremiumCarePageState extends State<PremiumCarePage> {
 
     switch (index) {
       case 0:
-        Navigator.pushReplacementNamed(context, '/cart');
+        Navigator.pushReplacementNamed(context, '/Cart');
         break;
       case 1:
         Navigator.pushNamed(context, '/invoice');

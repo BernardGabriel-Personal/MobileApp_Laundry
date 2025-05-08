@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import '2_customer_premiumPage.dart'; // Premium care page import
 import '3_customer_stainRemovalPage.dart'; // Stain removal page import
 import '4_customer_rushServicePage.dart'; // Rush service page import
@@ -25,23 +24,19 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
 
     switch (index) {
       case 0:
-        // Logout
-        FirebaseAuth.instance.signOut();
-        Navigator.pushReplacementNamed(
-            context, '/Cart'); // Replace with your login route
+        Navigator.pushNamed(context, '/Cart'); // Replace with your login route
         break;
       case 1:
-        Navigator.pushNamed(
-            context, '/invoice'); // Adjust this to your actual route
+        Navigator.pushNamed(context, '/invoice'); // Invoice page
         break;
       case 2:
         Navigator.pushReplacementNamed(context, '/customer-home');
         break;
       case 3:
-        Navigator.pushNamed(context, '/schedules'); // Adjust as needed
+        Navigator.pushNamed(context, '/schedules'); // Sched page
         break;
       case 4:
-        Navigator.pushNamed(context, '/profile'); // Adjust as needed
+        Navigator.pushNamed(context, '/profile'); // Profile page
         break;
     }
   }
