@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
 class PremiumCarePage extends StatefulWidget {
   const PremiumCarePage({super.key});
@@ -229,7 +228,7 @@ class _PremiumCarePageState extends State<PremiumCarePage> {
                   Expanded(
                     child: ElevatedButton.icon(
                       onPressed: () {
-                        // TODO: Add logic to add to cart
+                        // Add logic to add to cart
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.grey[400],
@@ -247,7 +246,7 @@ class _PremiumCarePageState extends State<PremiumCarePage> {
                   Expanded(
                     child: ElevatedButton.icon(
                       onPressed: () {
-                        // TODO: Add logic to proceed to order
+                        // Add logic to proceed to order
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.grey[400],
