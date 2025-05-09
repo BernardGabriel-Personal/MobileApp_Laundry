@@ -1,269 +1,269 @@
 import 'package:flutter/material.dart';
+import '../Start,Signup,Login/2_welcome_page.dart'; // For logout redirect to HomeScreen
 import '2_customer_premiumPage.dart';
 import '3_customer_stainRemovalPage.dart';
 import '4_customer_rushServicePage.dart';
 import '5_customer_dryCleaningPage.dart';
 import '6_customer_washAndFoldPage.dart';
 import '7_customer_ironingPage.dart';
+import '8_customer_cartPage.dart';
+// Note: All services should not have navigation bottom bar, users can use the appbar back button instead for cleaner UI.
 
 class CustomerHomePage extends StatefulWidget {
   final String fullName;
-  const CustomerHomePage({super.key, required this.fullName});
+
+  const CustomerHomePage({
+    Key? key,
+    required this.fullName,
+  }) : super(key: key);
 
   @override
-  State<CustomerHomePage> createState() => _CustomerHomePageState();
+  _CustomerHomePageState createState() => _CustomerHomePageState();
 }
 
 class _CustomerHomePageState extends State<CustomerHomePage> {
-  int _selectedIndex = 2;
-
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-
-    switch (index) {
-      case 0:
-        Navigator.pushNamed(context, '/Cart');
-        break;
-      case 1:
-        Navigator.pushNamed(context, '/invoice');
-        break;
-      case 2:
-      // FIX: Replace pushReplacementNamed with pushReplacement and pass fullName
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => CustomerHomePage(fullName: widget.fullName),
+  Future<bool> _confirmLogout(BuildContext context) async {
+    final shouldLogout = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFFD9D9D9),
+        title: Row(
+          children: [
+            const Icon(Icons.error_outline, color: const Color(0xFFE57373), size: 28),
+            const SizedBox(width: 10),
+            const Text('Are you leaving?', style: TextStyle(fontSize: 18)),
+          ],
+        ),
+        content: const Text(
+          'Are you sure you want to log out? You can always log back in at any time.',
+          style: TextStyle(fontSize: 14),
+        ),
+        actions: [
+          TextButton(
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.white,
+              backgroundColor: Colors.grey,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
           ),
-        );
-        break;
-      case 3:
-        Navigator.pushNamed(context, '/schedules');
-        break;
-      case 4:
-        Navigator.pushNamed(context, '/profile');
-        break;
-    }
-  }
-
-  late String fullName;
-  @override
-  void initState() {
-    super.initState();
-    fullName = widget.fullName;
+          TextButton(
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.white,
+              backgroundColor: const Color(0xFFE57373),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Logout'),
+          ),
+        ],
+      ),
+    );
+    return shouldLogout == true;
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: Column(
-        children: [
-          // Header
-          Container(
-            padding: const EdgeInsets.only(top: 40, bottom: 20),
-            width: double.infinity,
-            decoration: const BoxDecoration(
-              color: Colors.green,
-              borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(25),
-                bottomRight: Radius.circular(25),
-              ),
-            ),
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (!didPop) {
+          final shouldLogout = await _confirmLogout(context);
+          if (shouldLogout) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const HomeScreen()),
+            );
+          }
+        }
+      },
+      child: Scaffold(
+        backgroundColor: const Color(0xFFECF0F3),
+        bottomNavigationBar: BottomNavigationBar(
+          backgroundColor: const Color(0xFF170CFE),
+          selectedItemColor: Colors.white,
+          unselectedItemColor: Colors.white70,
+          type: BottomNavigationBarType.fixed,
+          currentIndex: 2,
+          onTap: (index) async {
+            switch (index) {
+              case 0:
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const CartPage()),
+                );
+                break;
+            }
+          },
+          items: const [
+            BottomNavigationBarItem(icon: Icon(Icons.shopping_cart), label: 'Cart'),
+            BottomNavigationBarItem(icon: Icon(Icons.receipt_long), label: 'Invoice'),
+            BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+            BottomNavigationBarItem(icon: Icon(Icons.schedule), label: 'Schedules'),
+            BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
+          ],
+        ),
+        body: SafeArea(
+          child: SingleChildScrollView(
             child: Column(
               children: [
-                const CircleAvatar(
-                  radius: 30,
-                  backgroundColor: Colors.white,
-                  child: Icon(Icons.person, size: 40, color: Colors.green),
-                ),
-                const SizedBox(height: 10),
-                const Text(
-                  'WELCOME!',
-                  style: TextStyle(
-                    fontSize: 20,
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 1.2,
+                ClipRRect(
+                  borderRadius: const BorderRadius.only(
+                    bottomLeft: Radius.circular(24),
+                    bottomRight: Radius.circular(24),
+                  ),
+                  child: Container(
+                    color:  const Color(0xFF04D26F),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 30),
+                    child: Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const CircleAvatar(
+                            radius: 30,
+                            backgroundColor: const Color(0xFF170CFE),
+                            child: Icon(Icons.person, color: Colors.white, size: 40),
+                          ),
+                          const SizedBox(height: 12),
+                          const Text(
+                            "WELCOME!",
+                            style: TextStyle(
+                              color: const Color(0xFF170CFE),
+                              fontWeight: FontWeight.bold,
+                              fontSize: 22,
+                            ),
+                          ),
+                          Text(widget.fullName, style: const TextStyle(color: Colors.white, fontSize: 20)),
+                          Text("Five Stars Laundromat | CUSTOMER", style: const TextStyle(color: Colors.white70, fontSize: 18)),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
-                Text(
-                  fullName,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    color: Colors.white,
-                    fontWeight: FontWeight.w500,
+                const SizedBox(height: 12),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: GridView.count(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    crossAxisCount: 3,
+                    crossAxisSpacing: 12,
+                    mainAxisSpacing: 12,
+                    children: [
+                      _buildDashboardTile(Icons.verified, 'Premium Care', () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const PremiumCarePage()),
+                        );
+                      }),
+                      _buildDashboardTile(Icons.checklist, 'Stain Removal', () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const StainRemovalPage()),
+                        );
+                      }),
+                      _buildDashboardTile(Icons.speed, 'Rush Service',() {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) =>  const RushServicePage()),
+                        );
+                      }),
+                      _buildDashboardTile(Icons.local_laundry_service, 'Dry Cleaning', () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const DryCleaningPage()),
+                        );
+                      }),
+                      _buildDashboardTile(Icons.local_laundry_service_outlined, 'Wash & Fold', () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const WashAndFoldPage()),
+                        );
+                      }),
+                      _buildDashboardTile(Icons.iron, 'Ironing Service', () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const IroningPage()),
+                        );
+                      }),
+                    ],
                   ),
                 ),
-              ],
-            ),
-          ),
-
-          // Service icons
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: GridView.count(
-              shrinkWrap: true,
-              crossAxisCount: 3,
-              crossAxisSpacing: 18,
-              mainAxisSpacing: 18,
-              physics: const NeverScrollableScrollPhysics(),
-              children: [
-                InkWell(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => const PremiumCarePage()),
-                    );
-                  },
-                  child: _buildServiceTile(Icons.verified, 'Premium Care'),
-                ),
-                InkWell(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => const StainRemovalPage()),
-                    );
-                  },
-                  child: _buildServiceTile(Icons.checklist, 'Stain Removal'),
-                ),
-                InkWell(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => const RushServicePage()),
-                    );
-                  },
-                  child: _buildServiceTile(Icons.speed, 'Rush Service'),
-                ),
-                InkWell(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => const DryCleaningPage()),
-                    );
-                  },
-                  child: _buildServiceTile(
-                      Icons.local_laundry_service, 'Dry Cleaning'),
-                ),
-                InkWell(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => const WashAndFoldPage()),
-                    );
-                  },
-                  child: _buildServiceTile(
-                      Icons.local_laundry_service_outlined, 'Wash & Fold'),
-                ),
-                InkWell(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => const IroningPage()),
-                    );
-                  },
-                  child: _buildServiceTile(Icons.iron, 'Ironing Service'),
-                ),
-              ],
-            ),
-          ),
-
-          // Transactions
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Transactions:',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
+                const SizedBox(height: 12),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      'Transaction Logs:',
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 8),
-                _buildTransactionTile(
-                  icon: Icons.notifications_active,
-                  text: 'Delivered Successfully!\nWaiting for your payment',
-                  time: '15:00',
-                ),
-                const SizedBox(height: 10),
-                _buildTransactionTile(
-                  icon: Icons.local_shipping,
-                  text: 'The rider is on its way\nfor delivery',
-                  time: '14:30',
-                ),
+                _buildActivityLog("Log #1", "Waiting for your payment", "15:00"),
+                _buildActivityLog("Log #2", "Rider is on the way", "14:30"),
+                const SizedBox(height: 24),
               ],
             ),
           ),
-        ],
-      ),
-
-      // Bottom Navigation
-      bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: Colors.green,
-        selectedItemColor: Colors.white,
-        unselectedItemColor: Colors.white54,
-        showUnselectedLabels: true,
-        currentIndex: _selectedIndex,
-        onTap: _onItemTapped,
-        items: const [
-          BottomNavigationBarItem(
-              icon: Icon(Icons.shopping_cart), label: 'Cart'),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.receipt_long), label: 'Invoice'),
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.calendar_today), label: 'Schedules'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildServiceTile(IconData icon, String label) {
-    return Column(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.grey.shade100,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.grey.shade300),
-          ),
-          child: Icon(icon, size: 40, color: Colors.blue),
         ),
-        const SizedBox(height: 6),
-        Text(label,
-            textAlign: TextAlign.center, style: const TextStyle(fontSize: 12)),
-      ],
+      ),
     );
   }
 
-  Widget _buildTransactionTile(
-      {required IconData icon, required String text, required String time}) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.green.shade100,
-        borderRadius: BorderRadius.circular(12),
+  static Widget _buildDashboardTile(IconData icon, String label, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        decoration: BoxDecoration(
+          color: const Color(0xFFD9D9D9),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 40, color: const Color(0xFF170CFE)),
+            const SizedBox(height: 8),
+            Text(
+              label,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                color: const Color(0xFF170CFE),
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
       ),
-      child: Row(
-        children: [
-          Icon(icon, color: Colors.green, size: 28),
-          const SizedBox(width: 12),
-          Expanded(child: Text(text, style: const TextStyle(fontSize: 14))),
-          Text(time, style: const TextStyle(fontSize: 14, color: Colors.grey)),
-        ],
+    );
+  }
+
+  static Widget _buildActivityLog(String customer, String action, String time) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4),
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.green.shade100,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Row(
+          children: [
+            CircleAvatar(
+              backgroundColor: const Color(0xFF04D26F),
+              radius: 20,
+              child: Text(
+                customer.split(' ').last,
+                style: const TextStyle(color: Colors.white, fontSize: 12),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(child: Text("$customer $action")),
+            Text(time, style: const TextStyle(color: Colors.black54)),
+          ],
+        ),
       ),
     );
   }

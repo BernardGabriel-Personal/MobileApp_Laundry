@@ -4,6 +4,7 @@ import '../Start,Signup,Login/2_welcome_page.dart'; // For logout redirect to Ho
 import '../AdminDirectoryPage/3_admin_detergent.dart'; // Detergent Feature
 import '../AdminDirectoryPage/4_admin_pricing.dart'; // Pricing Feature
 import '../AdminDirectoryPage/5_admin_orderManagement.dart'; // Order Management Feature
+// Note: All services should not have navigation bottom bar, users can use the appbar back button instead for cleaner UI.
 
 class AdminHomePage extends StatefulWidget {
   final String fullName;
@@ -33,7 +34,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
         backgroundColor: const Color(0xFFD9D9D9),
         title: Row(
           children: [
-            const Icon(Icons.error_outline, color: Color(0xFFE57373), size: 28),
+            const Icon(Icons.error_outline, color: const Color(0xFFE57373), size: 28),
             const SizedBox(width: 10),
             const Text('Are you leaving?', style: TextStyle(fontSize: 18)),
           ],
@@ -55,7 +56,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
           TextButton(
             style: TextButton.styleFrom(
               foregroundColor: Colors.white,
-              backgroundColor: Color(0xFFE57373),
+              backgroundColor: const Color(0xFFE57373),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             ),
             onPressed: () => Navigator.pop(context, true),
@@ -143,7 +144,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
                         children: [
                           const CircleAvatar(
                             radius: 30,
-                            backgroundColor: Color(0xFF04D26F),
+                            backgroundColor: const Color(0xFF04D26F),
                             child: Icon(Icons.person, color: Colors.white, size: 40),
                           ),
                           const SizedBox(height: 12),
@@ -156,7 +157,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
                             ),
                           ),
                           Text(widget.fullName, style: const TextStyle(color: Colors.white, fontSize: 20)),
-                          Text("${widget.branch} Branch", style: const TextStyle(color: Colors.white70, fontSize: 18)),
+                          Text("${widget.branch} Branch | EMPLOYEE", style: const TextStyle(color: Colors.white70, fontSize: 18)),
                         ],
                       ),
                     ),
@@ -236,7 +237,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
               label,
               textAlign: TextAlign.center,
               style: const TextStyle(
-                color: Color(0xFF04D26F),
+                color: const Color(0xFF04D26F),
                 fontWeight: FontWeight.w600,
               ),
             ),

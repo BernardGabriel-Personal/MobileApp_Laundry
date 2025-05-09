@@ -284,7 +284,7 @@ class _AdminProfilePageState extends State<AdminProfilePage> {
                       const SizedBox(height: 12),
                       Text(widget.fullName, style: const TextStyle(color: Colors.white, fontSize: 22)),
                       Text(widget.employeeId, style: const TextStyle(color: Colors.white70, fontSize: 18)),
-                      Text("${widget.branch} Branch", style: const TextStyle(color: Colors.white70, fontSize: 16)),
+                      Text("${widget.branch} Branch | EMPLOYEE", style: const TextStyle(color: Colors.white70, fontSize: 16)),
                     ],
                   ),
                 ),
