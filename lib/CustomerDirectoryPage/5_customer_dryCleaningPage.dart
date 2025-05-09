@@ -8,32 +8,7 @@ class DryCleaningPage extends StatefulWidget {
 }
 
 class _DryCleaningPageState extends State<DryCleaningPage> {
-  int _selectedIndex = 2; // Default to 'Home'
   String selectedOption = 'Delivery'; // To track Delivery vs Pick-up selection
-
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-
-    switch (index) {
-      case 0:
-        Navigator.pushReplacementNamed(context, '/Cart');
-        break;
-      case 1:
-        Navigator.pushNamed(context, '/invoice');
-        break;
-      case 2:
-        Navigator.pushReplacementNamed(context, '/customer-home');
-        break;
-      case 3:
-        Navigator.pushNamed(context, '/schedules');
-        break;
-      case 4:
-        Navigator.pushNamed(context, '/profile');
-        break;
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -63,9 +38,11 @@ class _DryCleaningPageState extends State<DryCleaningPage> {
                     SizedBox(width: 16),
                     Text(
                       'Dry Cleaning',
-                      style: TextStyle(fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.blue),
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.blue,
+                      ),
                     ),
                   ],
                 ),
@@ -89,8 +66,8 @@ class _DryCleaningPageState extends State<DryCleaningPage> {
                         filled: true,
                         fillColor: Colors.grey,
                         border: OutlineInputBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(
-                                10))),
+                          borderRadius: BorderRadius.all(Radius.circular(10)),
+                        ),
                       ),
                     ),
                   ),
@@ -105,8 +82,8 @@ class _DryCleaningPageState extends State<DryCleaningPage> {
                         filled: true,
                         fillColor: Colors.grey,
                         border: OutlineInputBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(
-                                10))),
+                          borderRadius: BorderRadius.all(Radius.circular(10)),
+                        ),
                       ),
                     ),
                   ),
@@ -132,7 +109,8 @@ class _DryCleaningPageState extends State<DryCleaningPage> {
                       filled: true,
                       fillColor: Colors.grey,
                       border: OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(10))),
+                        borderRadius: BorderRadius.all(Radius.circular(10)),
+                      ),
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -147,7 +125,8 @@ class _DryCleaningPageState extends State<DryCleaningPage> {
                       filled: true,
                       fillColor: Colors.grey,
                       border: OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(10))),
+                        borderRadius: BorderRadius.all(Radius.circular(10)),
+                      ),
                     ),
                   ),
                 ],
@@ -169,21 +148,27 @@ class _DryCleaningPageState extends State<DryCleaningPage> {
                         });
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: selectedOption == 'Delivery' ? Colors
-                            .green : Colors.grey.shade300,
+                        backgroundColor: selectedOption == 'Delivery'
+                            ? Colors.green
+                            : Colors.grey.shade300,
                         padding: const EdgeInsets.symmetric(vertical: 20),
                         shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12)),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
-                      icon: Icon(Icons.delivery_dining,
-                          color: selectedOption == 'Delivery'
-                              ? Colors.white
-                              : Colors.black),
+                      icon: Icon(
+                        Icons.delivery_dining,
+                        color: selectedOption == 'Delivery'
+                            ? Colors.white
+                            : Colors.black,
+                      ),
                       label: Text(
                         'Delivery',
-                        style: TextStyle(color: selectedOption == 'Delivery'
-                            ? Colors.white
-                            : Colors.black),
+                        style: TextStyle(
+                          color: selectedOption == 'Delivery'
+                              ? Colors.white
+                              : Colors.black,
+                        ),
                       ),
                     ),
                   ),
@@ -196,21 +181,27 @@ class _DryCleaningPageState extends State<DryCleaningPage> {
                         });
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: selectedOption == 'Pick-up' ? Colors
-                            .green : Colors.grey.shade300,
+                        backgroundColor: selectedOption == 'Pick-up'
+                            ? Colors.green
+                            : Colors.grey.shade300,
                         padding: const EdgeInsets.symmetric(vertical: 20),
                         shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12)),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
-                      icon: Icon(Icons.local_laundry_service,
-                          color: selectedOption == 'Pick-up'
-                              ? Colors.white
-                              : Colors.black),
+                      icon: Icon(
+                        Icons.local_laundry_service,
+                        color: selectedOption == 'Pick-up'
+                            ? Colors.white
+                            : Colors.black,
+                      ),
                       label: Text(
                         'Pick-up',
-                        style: TextStyle(color: selectedOption == 'Pick-up'
-                            ? Colors.white
-                            : Colors.black),
+                        style: TextStyle(
+                          color: selectedOption == 'Pick-up'
+                              ? Colors.white
+                              : Colors.black,
+                        ),
                       ),
                     ),
                   ),
@@ -234,12 +225,17 @@ class _DryCleaningPageState extends State<DryCleaningPage> {
                         backgroundColor: Colors.grey[400],
                         padding: const EdgeInsets.symmetric(vertical: 20),
                         shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12)),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
                       icon: const Icon(
-                          Icons.shopping_cart, color: Colors.black),
+                        Icons.shopping_cart,
+                        color: Colors.black,
+                      ),
                       label: const Text(
-                          'Add to Cart', style: TextStyle(color: Colors.black)),
+                        'Add to Cart',
+                        style: TextStyle(color: Colors.black),
+                      ),
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -252,11 +248,17 @@ class _DryCleaningPageState extends State<DryCleaningPage> {
                         backgroundColor: Colors.grey[400],
                         padding: const EdgeInsets.symmetric(vertical: 20),
                         shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12)),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
-                      icon: const Icon(Icons.check_circle, color: Colors.black),
+                      icon: const Icon(
+                        Icons.check_circle,
+                        color: Colors.black,
+                      ),
                       label: const Text(
-                          'Order Now', style: TextStyle(color: Colors.black)),
+                        'Order Now',
+                        style: TextStyle(color: Colors.black),
+                      ),
                     ),
                   ),
                 ],
@@ -266,26 +268,6 @@ class _DryCleaningPageState extends State<DryCleaningPage> {
             const SizedBox(height: 20),
           ],
         ),
-      ),
-
-      bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: Colors.green,
-        selectedItemColor: Colors.white,
-        unselectedItemColor: Colors.white54,
-        showUnselectedLabels: true,
-        currentIndex: _selectedIndex,
-        onTap: _onItemTapped,
-        items: const [
-          BottomNavigationBarItem(
-              icon: Icon(Icons.shopping_cart), label: 'Cart'),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.receipt_long), label: 'Invoice'),
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.calendar_today), label: 'Schedules'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
-        ],
       ),
     );
   }

@@ -8,32 +8,7 @@ class WashAndFoldPage extends StatefulWidget {
 }
 
 class _WashAndFoldPageState extends State<WashAndFoldPage> {
-  int _selectedIndex = 2; // Default to 'Home'
   String selectedOption = 'Delivery'; // To track Delivery vs Pick-up selection
-
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-
-    switch (index) {
-      case 0:
-        Navigator.pushReplacementNamed(context, '/Cart');
-        break;
-      case 1:
-        Navigator.pushNamed(context, '/invoice');
-        break;
-      case 2:
-        Navigator.pushReplacementNamed(context, '/customer-home');
-        break;
-      case 3:
-        Navigator.pushNamed(context, '/schedules');
-        break;
-      case 4:
-        Navigator.pushNamed(context, '/profile');
-        break;
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -267,26 +242,6 @@ class _WashAndFoldPageState extends State<WashAndFoldPage> {
             const SizedBox(height: 20),
           ],
         ),
-      ),
-
-      bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: Colors.green,
-        selectedItemColor: Colors.white,
-        unselectedItemColor: Colors.white54,
-        showUnselectedLabels: true,
-        currentIndex: _selectedIndex,
-        onTap: _onItemTapped,
-        items: const [
-          BottomNavigationBarItem(
-              icon: Icon(Icons.shopping_cart), label: 'Cart'),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.receipt_long), label: 'Invoice'),
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.calendar_today), label: 'Schedules'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
-        ],
       ),
     );
   }
