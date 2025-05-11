@@ -60,6 +60,9 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
             MaterialPageRoute(
               builder: (context) => CustomerHomePage(
                 fullName: customerData['fullName'],
+                address: customerData['address'],
+                email: customerData['email'],
+                contact: customerData['contact'],
               ),
             ),
           );
