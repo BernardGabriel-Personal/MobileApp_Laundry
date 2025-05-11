@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:async';
 import '2_employee_management.dart';
 import '3_customer_management.dart';
@@ -16,12 +17,15 @@ class OwnerHomePage extends StatefulWidget {
 
 class _OwnerHomePageState extends State<OwnerHomePage> {
   String currentTime = "";
+  String ownerName = "[Owner]";
 
   @override
   void initState() {
     super.initState();
     currentTime = _getCurrentTime();
+    _fetchOwnerName(); // Fetch name on init
 
+    // Update time every minute
     Timer.periodic(Duration(minutes: 1), (timer) {
       setState(() {
         currentTime = _getCurrentTime();
@@ -29,29 +33,43 @@ class _OwnerHomePageState extends State<OwnerHomePage> {
     });
   }
 
+  // Format the current time
   String _getCurrentTime() {
     final now = DateTime.now();
     return DateFormat('h:mm a | MMMM d, yyyy').format(now);
   }
 
+  // Fetch owner fullName from Firestore
+  Future<void> _fetchOwnerName() async {
+    try {
+      final snapshot = await FirebaseFirestore.instance
+          .collection('owner')
+          .limit(1)
+          .get();
+
+      if (snapshot.docs.isNotEmpty) {
+        final data = snapshot.docs.first.data();
+        setState(() {
+          ownerName = data['fullName'] ?? "Owner";
+        });
+      }
+    } catch (e) {
+      print('Error fetching owner name: $e');
+    }
+  }
+
+  // Logout confirmation dialog
   Future<bool> _showLogoutConfirmation(BuildContext context) async {
     final shouldLogout = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: Color(0xFFF6E9D4),
+        backgroundColor: const Color(0xFFF6E9D4),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Row(
           children: const [
-            Icon(
-              Icons.error_outline,
-              color: Color(0xFFE57373),
-              size: 28,
-            ),
+            Icon(Icons.error_outline, color: const Color(0xFFE57373), size: 28),
             SizedBox(width: 10),
-            Text(
-              'Are you leaving?',
-              style: TextStyle(fontSize: 18),
-            ),
+            Text('Are you leaving?', style: TextStyle(fontSize: 18)),
           ],
         ),
         content: const Text(
@@ -73,7 +91,7 @@ class _OwnerHomePageState extends State<OwnerHomePage> {
           TextButton(
             style: TextButton.styleFrom(
               foregroundColor: Colors.white,
-              backgroundColor: Color(0xFFE57373),
+              backgroundColor: const Color(0xFFE57373),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
               ),
@@ -114,7 +132,6 @@ class _OwnerHomePageState extends State<OwnerHomePage> {
                 child: Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -122,11 +139,7 @@ class _OwnerHomePageState extends State<OwnerHomePage> {
                           CircleAvatar(
                             radius: 30,
                             backgroundColor: Colors.grey[200],
-                            child: Icon(
-                              Icons.account_circle,
-                              size: 60,
-                              color: const Color(0xFF04D26F),
-                            ),
+                            child: Icon(Icons.account_circle, size: 60, color: const Color(0xFF04D26F)),
                           ),
                           SizedBox(width: 20),
                           Column(
@@ -135,16 +148,18 @@ class _OwnerHomePageState extends State<OwnerHomePage> {
                               Text(
                                 'Five-Stars Laundry',
                                 style: TextStyle(
-                                    fontSize: 35,
-                                    fontWeight: FontWeight.bold,
-                                    color: Color(0xFFF0F0F0)),
+                                  fontSize: 35,
+                                  fontWeight: FontWeight.bold,
+                                  color: const Color(0xFFF0F0F0),
+                                ),
                               ),
                               Text(
-                                'Welcome [Owner]',
+                                '$ownerName',
                                 style: TextStyle(
-                                    fontSize: 25,
-                                    fontWeight: FontWeight.bold,
-                                    color: Color(0xFFF0F0F0)),
+                                  fontSize: 25,
+                                  fontWeight: FontWeight.bold,
+                                  color: const Color(0xFFF0F0F0),
+                                ),
                               ),
                             ],
                           ),
@@ -154,9 +169,10 @@ class _OwnerHomePageState extends State<OwnerHomePage> {
                       Text(
                         currentTime,
                         style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFFF0F0F0)),
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: const Color(0xFFF0F0F0),
+                        ),
                       ),
                     ],
                   ),
@@ -185,7 +201,7 @@ class _OwnerHomePageState extends State<OwnerHomePage> {
                             width: 310,
                             height: 200,
                             decoration: BoxDecoration(
-                              color: Color(0xFFD9D9D9),
+                              color: const Color(0xFFD9D9D9),
                               borderRadius: BorderRadius.circular(20),
                             ),
                             child: Stack(
@@ -228,7 +244,7 @@ class _OwnerHomePageState extends State<OwnerHomePage> {
                             width: 310,
                             height: 200,
                             decoration: BoxDecoration(
-                              color: Color(0xFFD9D9D9),
+                              color: const Color(0xFFD9D9D9),
                               borderRadius: BorderRadius.circular(20),
                             ),
                             child: Stack(
@@ -293,6 +309,12 @@ class _OwnerHomePageState extends State<OwnerHomePage> {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               IconButton(
+                icon: Icon(Icons.logout, color: Colors.white, size: 30),
+                onPressed: () {
+                  _showLogoutConfirmation(context);
+                },
+              ),
+              IconButton(
                 icon: Icon(Icons.home, color: Colors.white, size: 30),
                 onPressed: () {
                   // Already on Home
@@ -303,14 +325,8 @@ class _OwnerHomePageState extends State<OwnerHomePage> {
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (_) =>  const OwnerProfilePage()), // Temporary
+                    MaterialPageRoute(builder: (_) => const OwnerProfilePage()),
                   );
-                },
-              ),
-              IconButton(
-                icon: Icon(Icons.logout, color: Colors.white, size: 30),
-                onPressed: () {
-                  _showLogoutConfirmation(context);
                 },
               ),
             ],
@@ -322,4 +338,3 @@ class _OwnerHomePageState extends State<OwnerHomePage> {
     );
   }
 }
-

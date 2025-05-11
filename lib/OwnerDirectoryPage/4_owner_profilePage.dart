@@ -146,7 +146,7 @@ class _OwnerProfilePageState extends State<OwnerProfilePage> {
                 ),
                 const SizedBox(height: 30),
                 const Text(
-                  'Branches',
+                  'Five-Stars Laundromat Branches',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 10),
@@ -156,16 +156,16 @@ class _OwnerProfilePageState extends State<OwnerProfilePage> {
                       margin: const EdgeInsets.only(bottom: 10),
                       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
                       decoration: BoxDecoration(
-                        color: Colors.blue[100],
+                        color: const Color(0xFF170CFE),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(branch, style: const TextStyle(fontSize: 14)),
+                          Text(branch, style: const TextStyle(fontSize: 14, color: Colors.white)),
                           Text(
                             '${branchEmployeeCounts[branch] ?? 0} employees',
-                            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white),
                           ),
                         ],
                       ),
@@ -178,13 +178,19 @@ class _OwnerProfilePageState extends State<OwnerProfilePage> {
         ),
         bottomNavigationBar: Container(
           decoration: const BoxDecoration(
-            color: Color(0xFF170CFE),
+            color: const Color(0xFF170CFE),
             boxShadow: [BoxShadow(color: Colors.black12, spreadRadius: 1, blurRadius: 5)],
           ),
           padding: const EdgeInsets.symmetric(vertical: 8),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
+              IconButton(
+                icon: const Icon(Icons.logout, color: Colors.white, size: 30),
+                onPressed: () {
+                  _showLogoutConfirmation(context);
+                },
+              ),
               IconButton(
                 icon: const Icon(Icons.home, color: Colors.white, size: 30),
                 onPressed: () {
@@ -198,12 +204,6 @@ class _OwnerProfilePageState extends State<OwnerProfilePage> {
                 icon: const Icon(Icons.person, color: Colors.white, size: 30),
                 onPressed: () {
                   // Already on profile page
-                },
-              ),
-              IconButton(
-                icon: const Icon(Icons.logout, color: Colors.white, size: 30),
-                onPressed: () {
-                  _showLogoutConfirmation(context);
                 },
               ),
             ],
@@ -221,7 +221,7 @@ class _OwnerProfilePageState extends State<OwnerProfilePage> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: const Row(
           children: [
-            Icon(Icons.error_outline, color: Color(0xFFE57373), size: 28),
+            Icon(Icons.error_outline, color: const Color(0xFFE57373), size: 28),
             SizedBox(width: 10),
             Text('Are you leaving?', style: TextStyle(fontSize: 18)),
           ],
@@ -243,7 +243,7 @@ class _OwnerProfilePageState extends State<OwnerProfilePage> {
           TextButton(
             style: TextButton.styleFrom(
               foregroundColor: Colors.white,
-              backgroundColor: Color(0xFFE57373),
+              backgroundColor: const Color(0xFFE57373),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             ),
             onPressed: () => Navigator.pop(context, true),
