@@ -42,7 +42,7 @@ class MyApp extends StatelessWidget {
         '/admin-home': (context) => const AdminHomePage(fullName: '', branch: '', employeeId: '', email: '', contact: '',),
         '/customer-login': (context) => const CustomerLoginScreen(),
         '/customer-signup': (context) => const CustomerSignUpScreen(),
-        '/customer-home': (context) => const CustomerHomePage(fullName: '',),
+        '/customer-home': (context) => const CustomerHomePage(fullName: '', address: '', contact: '', email: '',),
         '/owner-login': (context) => const OwnerLoginScreen(),
         '/owner-home': (context) => const OwnerHomePage(),
         '/Cart': (context) => const CartPage(),

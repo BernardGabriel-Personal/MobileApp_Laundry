@@ -7,14 +7,21 @@ import '5_customer_dryCleaningPage.dart';
 import '6_customer_washAndFoldPage.dart';
 import '7_customer_ironingPage.dart';
 import '8_customer_cartPage.dart';
+import '9_customer_profilePage.dart';
 // Note: All services should not have navigation bottom bar, users can use the appbar back button instead for cleaner UI.
 
 class CustomerHomePage extends StatefulWidget {
   final String fullName;
+  final String address;
+  final String email;
+  final String contact;
 
   const CustomerHomePage({
     Key? key,
     required this.fullName,
+    required this.address,
+    required this.email,
+    required this.contact,
   }) : super(key: key);
 
   @override
@@ -81,7 +88,7 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
       child: Scaffold(
         backgroundColor: const Color(0xFFECF0F3),
         bottomNavigationBar: BottomNavigationBar(
-          backgroundColor: const Color(0xFF170CFE),
+          backgroundColor: const Color(0xFF04D26F),
           selectedItemColor: Colors.white,
           unselectedItemColor: Colors.white70,
           type: BottomNavigationBarType.fixed,
@@ -92,6 +99,19 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => const CartPage()),
+                );
+                break;
+              case 4:
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => CustomerProfilePage(
+                      fullName: widget.fullName,
+                      address: widget.address,
+                      contact: widget.contact,
+                      email: widget.email,
+                    ),
+                  ),
                 );
                 break;
             }
