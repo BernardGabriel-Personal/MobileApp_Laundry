@@ -176,7 +176,10 @@ class _AdminHomePageState extends State<AdminHomePage> {
                       _buildDashboardTile(Icons.local_laundry_service, 'Detergent', () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => const AdminDetergentPage()),
+                          MaterialPageRoute(builder: (context) => AdminDetergentPage(
+                            employeeId: widget.employeeId,
+                            branch: widget.branch,
+                          )),
                         );
                       }),
                       _buildDashboardTile(Icons.attach_money, 'Pricing', () {
