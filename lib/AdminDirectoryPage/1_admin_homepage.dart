@@ -185,7 +185,9 @@ class _AdminHomePageState extends State<AdminHomePage> {
                       _buildDashboardTile(Icons.attach_money, 'Pricing', () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => const AdminPricingPage()),
+                          MaterialPageRoute(builder: (context) => AdminPricingPage(
+                            employeeId: widget.employeeId,
+                          )),
                         );
                       }),
                       _buildDashboardTile(Icons.shopping_cart, 'Order Management',() {
