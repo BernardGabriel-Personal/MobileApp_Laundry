@@ -50,7 +50,7 @@ class _AdminDetergentPageState extends State<AdminDetergentPage> {
       'timestamp': FieldValue.serverTimestamp(),
     });
 
-    _showCustomSnackBar('Detergent added successfully!', isError: false);
+    _showCustomSnackBar('Item added successfully!', isError: false);
 
     _typeController.clear();
     setState(() {
@@ -75,7 +75,8 @@ class _AdminDetergentPageState extends State<AdminDetergentPage> {
   }
 
   Future<void> _updateAvailability(String docId, dynamic currentValue) async {
-    final newValue = (currentValue == true || currentValue == 'Yes') ? 'No' : 'Yes';
+    final newValue =
+        (currentValue == true || currentValue == 'Yes') ? 'No' : 'Yes';
     await FirebaseFirestore.instance
         .collection('detergent_management')
         .doc(docId)
@@ -100,8 +101,8 @@ class _AdminDetergentPageState extends State<AdminDetergentPage> {
       body: Theme(
         data: Theme.of(context).copyWith(
           colorScheme: Theme.of(context).colorScheme.copyWith(
-            primary: highlightColor,
-          ),
+                primary: highlightColor,
+              ),
         ),
         child: Padding(
           padding: const EdgeInsets.all(20),
@@ -110,18 +111,28 @@ class _AdminDetergentPageState extends State<AdminDetergentPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  'Add Laundry Detergent / Fabric Softener',
+                  'ADD ITEMS',
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
                     color: const Color(0xFF170CFE),
                   ),
                 ),
+                const SizedBox(height: 4),
+                const Text(
+                  'Laundry Detergent, Fabric Softener, Other Cleaning Agents',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey,
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
                 const SizedBox(height: 20),
                 TextField(
                   controller: _typeController,
                   decoration: InputDecoration(
-                    labelText: 'Laundry Detergent/Fabric Softener',
+                    labelText:
+                        'Laundry Detergent/Fabric Softener/Cleaning Agents',
                     filled: true,
                     fillColor: Colors.white,
                     border: OutlineInputBorder(
@@ -138,9 +149,9 @@ class _AdminDetergentPageState extends State<AdminDetergentPage> {
                   value: _selectedAvailability,
                   items: _availabilityOptions
                       .map((status) => DropdownMenuItem(
-                    value: status,
-                    child: Text(status),
-                  ))
+                            value: status,
+                            child: Text(status),
+                          ))
                       .toList(),
                   onChanged: (value) {
                     setState(() {
@@ -186,11 +197,20 @@ class _AdminDetergentPageState extends State<AdminDetergentPage> {
                 const Divider(thickness: 2),
                 const SizedBox(height: 10),
                 const Text(
-                  'Existing Detergents/Softeners',
+                  'EXISTING ITEMS',
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: const Color(0xFF170CFE),
+                    color: Color(0xFF170CFE),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                const Text(
+                  'Detergents, Softeners, Other Cleaning Agents',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey,
+                    fontStyle: FontStyle.italic,
                   ),
                 ),
                 const SizedBox(height: 10),
@@ -227,7 +247,10 @@ class _AdminDetergentPageState extends State<AdminDetergentPage> {
                         final detergentName = data['detergentSoftener'] ?? '';
                         final employeeId = data['employeeId'] ?? '';
                         final rawAvailability = data['availability'];
-                        final availability = (rawAvailability == true || rawAvailability == 'Yes') ? 'Yes' : 'No';
+                        final availability = (rawAvailability == true ||
+                                rawAvailability == 'Yes')
+                            ? 'Yes'
+                            : 'No';
 
                         return Card(
                           shape: RoundedRectangleBorder(
@@ -243,9 +266,12 @@ class _AdminDetergentPageState extends State<AdminDetergentPage> {
                                 _updateAvailability(docId, availability);
                               },
                               child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 8),
                                 decoration: BoxDecoration(
-                                  color: availability == 'Yes' ? const Color(0xFF04D26F) : const Color(0xFFE57373),
+                                  color: availability == 'Yes'
+                                      ? const Color(0xFF04D26F)
+                                      : const Color(0xFFE57373),
                                   borderRadius: BorderRadius.circular(8),
                                   boxShadow: [
                                     BoxShadow(

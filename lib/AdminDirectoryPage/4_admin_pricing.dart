@@ -24,7 +24,12 @@ class _AdminPricingPageState extends State<AdminPricingPage> {
     'Wash, Dry & Press (per kg)': TextEditingController(),
     'Press Only (per kg)': TextEditingController(),
     'Shoes/Bag/Helmet Cleaning': TextEditingController(),
+    'Delivery/Pickup Fee': TextEditingController(),
   };
+
+  final TextEditingController _noteWashController = TextEditingController();
+  final TextEditingController _noteDryController = TextEditingController();
+  final TextEditingController _noteSingleController = TextEditingController();
 
   final String _documentId = "pricing";
   bool _isLoading = true;
@@ -54,6 +59,12 @@ class _AdminPricingPageState extends State<AdminPricingPage> {
             (data['pressOnly'] ?? '').toString();
         _controllers['Shoes/Bag/Helmet Cleaning']!.text =
             (data['shoesBagHelmet'] ?? '').toString();
+        _controllers['Delivery/Pickup Fee']!.text =
+            (data['deliveryPickupFee'] ?? '').toString();
+
+        _noteWashController.text = data['washNote'] ?? '';
+        _noteDryController.text = data['dryNote'] ?? '';
+        _noteSingleController.text = data['noteSingle'] ?? '';
       }
     } catch (e) {
       debugPrint('Error loading pricing: $e');
@@ -127,6 +138,11 @@ class _AdminPricingPageState extends State<AdminPricingPage> {
       'shoesBagHelmet': int.tryParse(
               _controllers['Shoes/Bag/Helmet Cleaning']!.text.trim()) ??
           0,
+      'deliveryPickupFee':
+          int.tryParse(_controllers['Delivery/Pickup Fee']!.text.trim()) ?? 0,
+      'washNote': _noteWashController.text.trim(),
+      'dryNote': _noteDryController.text.trim(),
+      'noteSingle': _noteSingleController.text.trim(),
       'employeeId': widget.employeeId,
       'timestamp': FieldValue.serverTimestamp(),
     };
@@ -161,6 +177,20 @@ class _AdminPricingPageState extends State<AdminPricingPage> {
     }
   }
 
+  Widget _buildSectionTitle(String title) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 20, bottom: 6),
+      child: Text(
+        title,
+        style: TextStyle(
+          fontWeight: FontWeight.bold,
+          fontSize: 17,
+          color: primaryColor,
+        ),
+      ),
+    );
+  }
+
   Widget _buildPriceField(String label, TextEditingController controller) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
@@ -187,15 +217,26 @@ class _AdminPricingPageState extends State<AdminPricingPage> {
     );
   }
 
-  Widget _buildNote(String text) {
+  Widget _buildNoteEditor(TextEditingController controller) {
     return Padding(
-      padding: const EdgeInsets.only(top: 4, bottom: 12),
-      child: Text(
-        text,
+      padding: const EdgeInsets.only(bottom: 12),
+      child: TextField(
+        controller: controller,
+        maxLines: 2,
         style: const TextStyle(
-          color: Colors.black54,
           fontStyle: FontStyle.italic,
-          fontSize: 14,
+          color: Colors.grey,
+        ),
+        decoration: InputDecoration(
+          labelText: 'Note',
+          labelStyle: const TextStyle(color: Colors.grey),
+          filled: true,
+          fillColor: Colors.grey.shade200,
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+          focusedBorder: OutlineInputBorder(
+            borderSide: BorderSide(color: Colors.grey.shade400, width: 2),
+            borderRadius: BorderRadius.circular(12),
+          ),
         ),
       ),
     );
@@ -206,6 +247,9 @@ class _AdminPricingPageState extends State<AdminPricingPage> {
     for (var controller in _controllers.values) {
       controller.dispose();
     }
+    _noteWashController.dispose();
+    _noteDryController.dispose();
+    _noteSingleController.dispose();
     super.dispose();
   }
 
@@ -230,21 +274,28 @@ class _AdminPricingPageState extends State<AdminPricingPage> {
                   Expanded(
                     child: ListView(
                       children: [
+                        _buildSectionTitle('Wash'),
                         _buildPriceField('Wash', _controllers['Wash']!),
-                        _buildNote(
-                            'Regular Clothes: Max 8 kg | Beddings, Curtains, Blankets: Max 6 kg'),
+                        _buildNoteEditor(_noteWashController),
+                        _buildSectionTitle('Dry'),
                         _buildPriceField('Dry', _controllers['Dry']!),
-                        _buildNote(
-                            'Regular Clothes: Max 8 kg | Beddings, Curtains, Blankets: Max 6 kg'),
+                        _buildNoteEditor(_noteDryController),
+                        _buildSectionTitle('Single/Queen Size (per piece)'),
                         _buildPriceField('Single/Queen Size (per piece)',
                             _controllers['Single/Queen Size (per piece)']!),
-                        _buildNote('Comforters, Fleece Blanket, Quilt'),
+                        _buildNoteEditor(_noteSingleController),
+                        _buildSectionTitle('Wash, Dry & Press (per kg)'),
                         _buildPriceField('Wash, Dry & Press (per kg)',
                             _controllers['Wash, Dry & Press (per kg)']!),
+                        _buildSectionTitle('Press Only (per kg)'),
                         _buildPriceField('Press Only (per kg)',
                             _controllers['Press Only (per kg)']!),
+                        _buildSectionTitle('Shoes/Bag/Helmet Cleaning'),
                         _buildPriceField('Shoes/Bag/Helmet Cleaning',
                             _controllers['Shoes/Bag/Helmet Cleaning']!),
+                        _buildSectionTitle('Delivery / Pickup Fee'),
+                        _buildPriceField('Delivery/Pickup Fee',
+                            _controllers['Delivery/Pickup Fee']!),
                       ],
                     ),
                   ),
@@ -261,7 +312,7 @@ class _AdminPricingPageState extends State<AdminPricingPage> {
                         ),
                       ),
                       child: const Text(
-                        'Save Prices',
+                        'Save Notes & Prices',
                         style: TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
