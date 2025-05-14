@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 
-class WashAndFoldPage extends StatefulWidget {
-  const WashAndFoldPage({super.key});
+class  washDryPressPage extends StatefulWidget {
+  const  washDryPressPage({super.key});
 
   @override
-  State<WashAndFoldPage> createState() => _WashAndFoldPageState();
+  State<washDryPressPage> createState() => _washDryPressPageState();
 }
 
-class _WashAndFoldPageState extends State<WashAndFoldPage> {
+class _washDryPressPageState extends State<washDryPressPage> {
   String selectedOption = 'Delivery'; // To track Delivery vs Pick-up selection
 
   @override
@@ -15,7 +15,7 @@ class _WashAndFoldPageState extends State<WashAndFoldPage> {
     return Scaffold(
       backgroundColor: Colors.grey[200],
       appBar: AppBar(
-        title: const Text('Wash & Fold'),
+        title: const Text('Rush Service'),
         backgroundColor: Colors.green,
       ),
       body: SingleChildScrollView(
@@ -34,12 +34,12 @@ class _WashAndFoldPageState extends State<WashAndFoldPage> {
                 ),
                 child: Row(
                   children: const [
-                    Icon(Icons.local_laundry_service, size: 50, color: Colors.blue),
-
+                    Icon(Icons.flash_on, size: 50, color: Colors.blue),
                     SizedBox(width: 16),
                     Text(
-                      'Wash & Fold',
-                      style: TextStyle(fontSize: 22,
+                      'Rush Service',
+                      style: TextStyle(
+                          fontSize: 22,
                           fontWeight: FontWeight.bold,
                           color: Colors.blue),
                     ),
@@ -65,8 +65,8 @@ class _WashAndFoldPageState extends State<WashAndFoldPage> {
                         filled: true,
                         fillColor: Colors.grey,
                         border: OutlineInputBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(
-                                10))),
+                            borderRadius:
+                            BorderRadius.all(Radius.circular(10))),
                       ),
                     ),
                   ),
@@ -81,8 +81,8 @@ class _WashAndFoldPageState extends State<WashAndFoldPage> {
                         filled: true,
                         fillColor: Colors.grey,
                         border: OutlineInputBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(
-                                10))),
+                            borderRadius:
+                            BorderRadius.all(Radius.circular(10))),
                       ),
                     ),
                   ),
@@ -145,8 +145,9 @@ class _WashAndFoldPageState extends State<WashAndFoldPage> {
                         });
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: selectedOption == 'Delivery' ? Colors
-                            .green : Colors.grey.shade300,
+                        backgroundColor: selectedOption == 'Delivery'
+                            ? Colors.green
+                            : Colors.grey.shade300,
                         padding: const EdgeInsets.symmetric(vertical: 20),
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12)),
@@ -157,9 +158,10 @@ class _WashAndFoldPageState extends State<WashAndFoldPage> {
                               : Colors.black),
                       label: Text(
                         'Delivery',
-                        style: TextStyle(color: selectedOption == 'Delivery'
-                            ? Colors.white
-                            : Colors.black),
+                        style: TextStyle(
+                            color: selectedOption == 'Delivery'
+                                ? Colors.white
+                                : Colors.black),
                       ),
                     ),
                   ),
@@ -172,8 +174,9 @@ class _WashAndFoldPageState extends State<WashAndFoldPage> {
                         });
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: selectedOption == 'Pick-up' ? Colors
-                            .green : Colors.grey.shade300,
+                        backgroundColor: selectedOption == 'Pick-up'
+                            ? Colors.green
+                            : Colors.grey.shade300,
                         padding: const EdgeInsets.symmetric(vertical: 20),
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12)),
@@ -184,9 +187,10 @@ class _WashAndFoldPageState extends State<WashAndFoldPage> {
                               : Colors.black),
                       label: Text(
                         'Pick-up',
-                        style: TextStyle(color: selectedOption == 'Pick-up'
-                            ? Colors.white
-                            : Colors.black),
+                        style: TextStyle(
+                            color: selectedOption == 'Pick-up'
+                                ? Colors.white
+                                : Colors.black),
                       ),
                     ),
                   ),
@@ -212,10 +216,10 @@ class _WashAndFoldPageState extends State<WashAndFoldPage> {
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12)),
                       ),
-                      icon: const Icon(
-                          Icons.shopping_cart, color: Colors.black),
-                      label: const Text(
-                          'Add to Cart', style: TextStyle(color: Colors.black)),
+                      icon: const Icon(Icons.shopping_cart,
+                          color: Colors.black),
+                      label: const Text('Add to Cart',
+                          style: TextStyle(color: Colors.black)),
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -230,9 +234,10 @@ class _WashAndFoldPageState extends State<WashAndFoldPage> {
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12)),
                       ),
-                      icon: const Icon(Icons.check_circle, color: Colors.black),
-                      label: const Text(
-                          'Order Now', style: TextStyle(color: Colors.black)),
+                      icon: const Icon(Icons.check_circle,
+                          color: Colors.black),
+                      label: const Text('Order Now',
+                          style: TextStyle(color: Colors.black)),
                     ),
                   ),
                 ],

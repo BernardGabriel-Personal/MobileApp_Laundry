@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 
-class RushServicePage extends StatefulWidget {
-  const RushServicePage({super.key});
+class dryCleaningPage extends StatefulWidget {
+  const dryCleaningPage({super.key});
 
   @override
-  State<RushServicePage> createState() => _RushServicePageState();
+  State<dryCleaningPage> createState() => _dryCleaningPageState();
 }
 
-class _RushServicePageState extends State<RushServicePage> {
+class _dryCleaningPageState extends State<dryCleaningPage> {
   String selectedOption = 'Delivery'; // To track Delivery vs Pick-up selection
 
   @override
@@ -15,7 +15,7 @@ class _RushServicePageState extends State<RushServicePage> {
     return Scaffold(
       backgroundColor: Colors.grey[200],
       appBar: AppBar(
-        title: const Text('Rush Service'),
+        title: const Text('Stain Removal'),
         backgroundColor: Colors.green,
       ),
       body: SingleChildScrollView(
@@ -34,12 +34,11 @@ class _RushServicePageState extends State<RushServicePage> {
                 ),
                 child: Row(
                   children: const [
-                    Icon(Icons.flash_on, size: 50, color: Colors.blue),
+                    Icon(Icons.cleaning_services, size: 50, color: Colors.blue),
                     SizedBox(width: 16),
                     Text(
-                      'Rush Service',
-                      style: TextStyle(
-                          fontSize: 22,
+                      'Stain Removal',
+                      style: TextStyle(fontSize: 22,
                           fontWeight: FontWeight.bold,
                           color: Colors.blue),
                     ),
@@ -65,8 +64,7 @@ class _RushServicePageState extends State<RushServicePage> {
                         filled: true,
                         fillColor: Colors.grey,
                         border: OutlineInputBorder(
-                            borderRadius:
-                            BorderRadius.all(Radius.circular(10))),
+                            borderRadius: BorderRadius.all(Radius.circular(10))),
                       ),
                     ),
                   ),
@@ -81,8 +79,7 @@ class _RushServicePageState extends State<RushServicePage> {
                         filled: true,
                         fillColor: Colors.grey,
                         border: OutlineInputBorder(
-                            borderRadius:
-                            BorderRadius.all(Radius.circular(10))),
+                            borderRadius: BorderRadius.all(Radius.circular(10))),
                       ),
                     ),
                   ),

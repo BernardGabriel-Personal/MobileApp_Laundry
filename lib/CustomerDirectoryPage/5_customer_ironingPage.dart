@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 
-class StainRemovalPage extends StatefulWidget {
-  const StainRemovalPage({super.key});
+class ironingPage extends StatefulWidget {
+  const ironingPage({super.key});
 
   @override
-  State<StainRemovalPage> createState() => _StainRemovalPage();
+  State<ironingPage> createState() => _ironingPageState();
 }
 
-class _StainRemovalPage extends State<StainRemovalPage> {
+class _ironingPageState extends State<ironingPage> {
   String selectedOption = 'Delivery'; // To track Delivery vs Pick-up selection
 
   @override
@@ -15,7 +15,7 @@ class _StainRemovalPage extends State<StainRemovalPage> {
     return Scaffold(
       backgroundColor: Colors.grey[200],
       appBar: AppBar(
-        title: const Text('Stain Removal'),
+        title: const Text('Dry Cleaning'),
         backgroundColor: Colors.green,
       ),
       body: SingleChildScrollView(
@@ -34,13 +34,15 @@ class _StainRemovalPage extends State<StainRemovalPage> {
                 ),
                 child: Row(
                   children: const [
-                    Icon(Icons.cleaning_services, size: 50, color: Colors.blue),
+                    Icon(Icons.opacity, size: 50, color: Colors.blue),
                     SizedBox(width: 16),
                     Text(
-                      'Stain Removal',
-                      style: TextStyle(fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.blue),
+                      'Dry Cleaning',
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.blue,
+                      ),
                     ),
                   ],
                 ),
@@ -64,7 +66,8 @@ class _StainRemovalPage extends State<StainRemovalPage> {
                         filled: true,
                         fillColor: Colors.grey,
                         border: OutlineInputBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(10))),
+                          borderRadius: BorderRadius.all(Radius.circular(10)),
+                        ),
                       ),
                     ),
                   ),
@@ -79,7 +82,8 @@ class _StainRemovalPage extends State<StainRemovalPage> {
                         filled: true,
                         fillColor: Colors.grey,
                         border: OutlineInputBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(10))),
+                          borderRadius: BorderRadius.all(Radius.circular(10)),
+                        ),
                       ),
                     ),
                   ),
@@ -105,7 +109,8 @@ class _StainRemovalPage extends State<StainRemovalPage> {
                       filled: true,
                       fillColor: Colors.grey,
                       border: OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(10))),
+                        borderRadius: BorderRadius.all(Radius.circular(10)),
+                      ),
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -120,7 +125,8 @@ class _StainRemovalPage extends State<StainRemovalPage> {
                       filled: true,
                       fillColor: Colors.grey,
                       border: OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(10))),
+                        borderRadius: BorderRadius.all(Radius.circular(10)),
+                      ),
                     ),
                   ),
                 ],
@@ -147,18 +153,22 @@ class _StainRemovalPage extends State<StainRemovalPage> {
                             : Colors.grey.shade300,
                         padding: const EdgeInsets.symmetric(vertical: 20),
                         shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12)),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
-                      icon: Icon(Icons.delivery_dining,
-                          color: selectedOption == 'Delivery'
-                              ? Colors.white
-                              : Colors.black),
+                      icon: Icon(
+                        Icons.delivery_dining,
+                        color: selectedOption == 'Delivery'
+                            ? Colors.white
+                            : Colors.black,
+                      ),
                       label: Text(
                         'Delivery',
                         style: TextStyle(
-                            color: selectedOption == 'Delivery'
-                                ? Colors.white
-                                : Colors.black),
+                          color: selectedOption == 'Delivery'
+                              ? Colors.white
+                              : Colors.black,
+                        ),
                       ),
                     ),
                   ),
@@ -176,18 +186,22 @@ class _StainRemovalPage extends State<StainRemovalPage> {
                             : Colors.grey.shade300,
                         padding: const EdgeInsets.symmetric(vertical: 20),
                         shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12)),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
-                      icon: Icon(Icons.local_laundry_service,
-                          color: selectedOption == 'Pick-up'
-                              ? Colors.white
-                              : Colors.black),
+                      icon: Icon(
+                        Icons.local_laundry_service,
+                        color: selectedOption == 'Pick-up'
+                            ? Colors.white
+                            : Colors.black,
+                      ),
                       label: Text(
                         'Pick-up',
                         style: TextStyle(
-                            color: selectedOption == 'Pick-up'
-                                ? Colors.white
-                                : Colors.black),
+                          color: selectedOption == 'Pick-up'
+                              ? Colors.white
+                              : Colors.black,
+                        ),
                       ),
                     ),
                   ),
@@ -211,12 +225,17 @@ class _StainRemovalPage extends State<StainRemovalPage> {
                         backgroundColor: Colors.grey[400],
                         padding: const EdgeInsets.symmetric(vertical: 20),
                         shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12)),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
-                      icon: const Icon(Icons.shopping_cart,
-                          color: Colors.black),
-                      label: const Text('Add to Cart',
-                          style: TextStyle(color: Colors.black)),
+                      icon: const Icon(
+                        Icons.shopping_cart,
+                        color: Colors.black,
+                      ),
+                      label: const Text(
+                        'Add to Cart',
+                        style: TextStyle(color: Colors.black),
+                      ),
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -229,12 +248,17 @@ class _StainRemovalPage extends State<StainRemovalPage> {
                         backgroundColor: Colors.grey[400],
                         padding: const EdgeInsets.symmetric(vertical: 20),
                         shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12)),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
-                      icon: const Icon(Icons.check_circle,
-                          color: Colors.black),
-                      label: const Text('Order Now',
-                          style: TextStyle(color: Colors.black)),
+                      icon: const Icon(
+                        Icons.check_circle,
+                        color: Colors.black,
+                      ),
+                      label: const Text(
+                        'Order Now',
+                        style: TextStyle(color: Colors.black),
+                      ),
                     ),
                   ),
                 ],

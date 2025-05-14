@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 import '../Start,Signup,Login/2_welcome_page.dart'; // For logout redirect to HomeScreen
-import '2_customer_premiumPage.dart';
-import '3_customer_stainRemovalPage.dart';
-import '4_customer_rushServicePage.dart';
-import '5_customer_dryCleaningPage.dart';
-import '6_customer_washAndFoldPage.dart';
-import '7_customer_ironingPage.dart';
-import '8_customer_cartPage.dart';
-import '9_customer_profilePage.dart';
+import '2_customer_washCleaningPage.dart';
+import '3_customer_dryCleaningPage.dart';
+import '4_customer_washDryPressPage.dart';
+import '5_customer_ironingPage.dart';
+import '6_customer_accessoryCleaningPage.dart';
+import '7_customer_cartPage.dart';
+import '8_customer_profilePage.dart';
 // Note: All services should not have navigation bottom bar, users can use the appbar back button instead for cleaner UI.
 
 class CustomerHomePage extends StatefulWidget {
@@ -171,40 +170,34 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
                     crossAxisSpacing: 12,
                     mainAxisSpacing: 12,
                     children: [
-                      _buildDashboardTile(Icons.verified, 'Premium Care', () {
+                      _buildDashboardTile(Icons.local_laundry_service, 'Wash Cleaning', () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => const PremiumCarePage()),
+                          MaterialPageRoute(builder: (context) => const washCleaningPage()),
                         );
                       }),
-                      _buildDashboardTile(Icons.checklist, 'Stain Removal', () {
+                      _buildDashboardTile(Icons.dry_cleaning, 'Dry Cleaning', () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => const StainRemovalPage()),
+                          MaterialPageRoute(builder: (context) => const dryCleaningPage()),
                         );
                       }),
-                      _buildDashboardTile(Icons.speed, 'Rush Service',() {
+                      _buildDashboardTile(Icons.inventory, 'Wash, Dry & Press Service',() {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) =>  const RushServicePage()),
-                        );
-                      }),
-                      _buildDashboardTile(Icons.local_laundry_service, 'Dry Cleaning', () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => const DryCleaningPage()),
-                        );
-                      }),
-                      _buildDashboardTile(Icons.local_laundry_service_outlined, 'Wash & Fold', () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => const WashAndFoldPage()),
+                          MaterialPageRoute(builder: (context) =>  const washDryPressPage()),
                         );
                       }),
                       _buildDashboardTile(Icons.iron, 'Ironing Service', () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => const IroningPage()),
+                          MaterialPageRoute(builder: (context) => const ironingPage()),
+                        );
+                      }),
+                      _buildDashboardTile(Icons.cleaning_services, 'Accessory Cleaning', () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const accessoryCleaningPage()),
                         );
                       }),
                     ],
