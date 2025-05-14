@@ -3,7 +3,7 @@ import 'package:crypto/crypto.dart'; // for sha256
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../CustomerDirectoryPage/1_customer_homepage.dart';
-import '../CustomerDirectoryPage/8_customer_cartPage.dart';
+import '../CustomerDirectoryPage/7_customer_cartPage.dart';
 import '../Start,Signup,Login/2_welcome_page.dart';
 
 class CustomerProfilePage extends StatefulWidget {

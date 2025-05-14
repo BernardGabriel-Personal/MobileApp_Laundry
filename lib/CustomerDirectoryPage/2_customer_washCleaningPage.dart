@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 // import 'package:firebase_auth/firebase_auth.dart';
 
-class PremiumCarePage extends StatefulWidget {
-  const PremiumCarePage({super.key});
+class washCleaningPage extends StatefulWidget {
+  const washCleaningPage({super.key});
 
   @override
-  State<PremiumCarePage> createState() => _PremiumCarePageState();
+  State<washCleaningPage> createState() => _washCleaningPageState();
 }
 
-class _PremiumCarePageState extends State<PremiumCarePage> {
+class _washCleaningPageState extends State<washCleaningPage> {
   String selectedOption = 'Delivery'; // To track Delivery vs Pick-up selection
 
   @override
