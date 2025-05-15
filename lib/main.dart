@@ -45,7 +45,7 @@ class MyApp extends StatelessWidget {
         '/customer-home': (context) => const CustomerHomePage(fullName: '', address: '', contact: '', email: '',),
         '/owner-login': (context) => const OwnerLoginScreen(),
         '/owner-home': (context) => const OwnerHomePage(),
-        '/Cart': (context) => const CartPage(),
+        '/Cart': (context) => const CartPage(fullName: '', address: '', contact: '', email: '',),
       },
     );
   }
