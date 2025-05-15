@@ -35,7 +35,8 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
         backgroundColor: const Color(0xFFD9D9D9),
         title: Row(
           children: [
-            const Icon(Icons.error_outline, color: const Color(0xFFE57373), size: 28),
+            const Icon(Icons.error_outline,
+                color: const Color(0xFFE57373), size: 28),
             const SizedBox(width: 10),
             const Text('Are you leaving?', style: TextStyle(fontSize: 18)),
           ],
@@ -49,7 +50,8 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
             style: TextButton.styleFrom(
               foregroundColor: Colors.white,
               backgroundColor: Colors.grey,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8)),
             ),
             onPressed: () => Navigator.pop(context, false),
             child: const Text('Cancel'),
@@ -58,7 +60,8 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
             style: TextButton.styleFrom(
               foregroundColor: Colors.white,
               backgroundColor: const Color(0xFFE57373),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8)),
             ),
             onPressed: () => Navigator.pop(context, true),
             child: const Text('Logout'),
@@ -97,7 +100,14 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
               case 0:
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const CartPage()),
+                  MaterialPageRoute(
+                    builder: (context) => CartPage(
+                      fullName: widget.fullName,
+                      address: widget.address,
+                      contact: widget.contact,
+                      email: widget.email,
+                    ),
+                  ),
                 );
                 break;
               case 4:
@@ -116,10 +126,13 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
             }
           },
           items: const [
-            BottomNavigationBarItem(icon: Icon(Icons.shopping_cart), label: 'Cart'),
-            BottomNavigationBarItem(icon: Icon(Icons.receipt_long), label: 'Invoice'),
+            BottomNavigationBarItem(
+                icon: Icon(Icons.shopping_cart), label: 'Cart'),
+            BottomNavigationBarItem(
+                icon: Icon(Icons.receipt_long), label: 'Invoice'),
             BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-            BottomNavigationBarItem(icon: Icon(Icons.schedule), label: 'Schedules'),
+            BottomNavigationBarItem(
+                icon: Icon(Icons.schedule), label: 'Schedules'),
             BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
           ],
         ),
@@ -133,8 +146,9 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
                     bottomRight: Radius.circular(24),
                   ),
                   child: Container(
-                    color:  const Color(0xFF04D26F),
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 30),
+                    color: const Color(0xFF04D26F),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 30),
                     child: Center(
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
@@ -142,7 +156,8 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
                           const CircleAvatar(
                             radius: 30,
                             backgroundColor: const Color(0xFF170CFE),
-                            child: Icon(Icons.person, color: Colors.white, size: 40),
+                            child: Icon(Icons.person,
+                                color: Colors.white, size: 40),
                           ),
                           const SizedBox(height: 12),
                           const Text(
@@ -153,8 +168,12 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
                               fontSize: 22,
                             ),
                           ),
-                          Text(widget.fullName, style: const TextStyle(color: Colors.white, fontSize: 20)),
-                          Text("Five Stars Laundromat | CUSTOMER", style: const TextStyle(color: Colors.white70, fontSize: 18)),
+                          Text(widget.fullName,
+                              style: const TextStyle(
+                                  color: Colors.white, fontSize: 20)),
+                          Text("Five Stars Laundromat | CUSTOMER",
+                              style: const TextStyle(
+                                  color: Colors.white70, fontSize: 18)),
                         ],
                       ),
                     ),
@@ -170,34 +189,44 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
                     crossAxisSpacing: 12,
                     mainAxisSpacing: 12,
                     children: [
-                      _buildDashboardTile(Icons.local_laundry_service, 'Wash Cleaning', () {
+                      _buildDashboardTile(
+                          Icons.local_laundry_service, 'Wash Cleaning', () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => const washCleaningPage()),
+                          MaterialPageRoute(
+                              builder: (context) => const washCleaningPage()),
                         );
                       }),
-                      _buildDashboardTile(Icons.dry_cleaning, 'Dry Cleaning', () {
+                      _buildDashboardTile(Icons.dry_cleaning, 'Dry Cleaning',
+                          () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => const dryCleaningPage()),
+                          MaterialPageRoute(
+                              builder: (context) => const dryCleaningPage()),
                         );
                       }),
-                      _buildDashboardTile(Icons.inventory, 'Wash, Dry & Press Service',() {
+                      _buildDashboardTile(
+                          Icons.inventory, 'Wash, Dry & Press Service', () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) =>  const washDryPressPage()),
+                          MaterialPageRoute(
+                              builder: (context) => const washDryPressPage()),
                         );
                       }),
                       _buildDashboardTile(Icons.iron, 'Ironing Service', () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => const ironingPage()),
+                          MaterialPageRoute(
+                              builder: (context) => const ironingPage()),
                         );
                       }),
-                      _buildDashboardTile(Icons.cleaning_services, 'Accessory Cleaning', () {
+                      _buildDashboardTile(
+                          Icons.cleaning_services, 'Accessory Cleaning', () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => const accessoryCleaningPage()),
+                          MaterialPageRoute(
+                              builder: (context) =>
+                                  const accessoryCleaningPage()),
                         );
                       }),
                     ],
@@ -210,12 +239,14 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
                     alignment: Alignment.centerLeft,
                     child: Text(
                       'Transaction Logs:',
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                      style:
+                          TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                     ),
                   ),
                 ),
                 const SizedBox(height: 8),
-                _buildActivityLog("Log #1", "Waiting for your payment", "15:00"),
+                _buildActivityLog(
+                    "Log #1", "Waiting for your payment", "15:00"),
                 _buildActivityLog("Log #2", "Rider is on the way", "14:30"),
                 const SizedBox(height: 24),
               ],
@@ -226,7 +257,8 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
     );
   }
 
-  static Widget _buildDashboardTile(IconData icon, String label, VoidCallback onTap) {
+  static Widget _buildDashboardTile(
+      IconData icon, String label, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
