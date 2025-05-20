@@ -233,21 +233,26 @@ class _AdminProfilePageState extends State<AdminProfilePage> {
                 if (shouldLogout) {
                   Navigator.pushReplacement(
                     context,
-                    MaterialPageRoute(builder: (context) => const HomeScreen()),
+                    PageRouteBuilder(pageBuilder: (context, animation, secondaryAnimation) => const HomeScreen(),
+                      transitionDuration: Duration.zero, // No transition animation
+                      reverseTransitionDuration: Duration.zero,
+                    ),
                   );
                 }
                 break;
               case 2:
                 Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(
-                    builder: (context) => AdminHomePage(
+                  PageRouteBuilder(
+                    pageBuilder: (context, animation, secondaryAnimation) => AdminHomePage(
                       fullName: widget.fullName,
                       branch: widget.branch,
                       employeeId: widget.employeeId,
                       contact: widget.contact,
                       email: widget.email,
                     ),
+                    transitionDuration: Duration.zero, // No transition animation
+                    reverseTransitionDuration: Duration.zero,
                   ),
                 );
                 break;

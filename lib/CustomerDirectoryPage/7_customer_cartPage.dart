@@ -175,26 +175,30 @@ class CartPage extends StatelessWidget {
               case 2:
                 Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(
-                    builder: (context) => CustomerHomePage(
+                  PageRouteBuilder(
+                    pageBuilder: (context, animation, secondaryAnimation) => CustomerHomePage(
                       fullName: fullName,
                       address: address,
                       contact: contact,
                       email: email,
                     ),
+                    transitionDuration: Duration.zero, // No transition animation
+                    reverseTransitionDuration: Duration.zero,
                   ),
                 );
                 break;
               case 4:
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
-                    builder: (context) => CustomerProfilePage(
+                  PageRouteBuilder(
+                    pageBuilder: (context, animation, secondaryAnimation) => CustomerProfilePage(
                       fullName: fullName,
                       address: address,
                       contact: contact,
                       email: email,
                     ),
+                    transitionDuration: Duration.zero, // No transition animation
+                    reverseTransitionDuration: Duration.zero,
                   ),
                 );
                 break;

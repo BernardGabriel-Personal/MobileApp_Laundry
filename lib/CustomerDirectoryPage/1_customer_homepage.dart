@@ -100,28 +100,34 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
               case 0:
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
-                    builder: (context) => CartPage(
+                  PageRouteBuilder(
+                    pageBuilder: (context, animation, secondaryAnimation) => CartPage(
                       fullName: widget.fullName,
                       address: widget.address,
                       contact: widget.contact,
                       email: widget.email,
                     ),
+                    transitionDuration: Duration.zero, // No transition animation
+                    reverseTransitionDuration: Duration.zero,
                   ),
                 );
+
                 break;
               case 4:
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
-                    builder: (context) => CustomerProfilePage(
+                  PageRouteBuilder(
+                    pageBuilder: (context, animation, secondaryAnimation) => CustomerProfilePage(
                       fullName: widget.fullName,
                       address: widget.address,
                       contact: widget.contact,
                       email: widget.email,
                     ),
+                    transitionDuration: Duration.zero,
+                    reverseTransitionDuration: Duration.zero,
                   ),
                 );
+
                 break;
             }
           },
