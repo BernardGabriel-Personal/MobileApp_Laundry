@@ -200,7 +200,13 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (context) => const washCleaningPage()),
+                              builder: (context) => washCleaningPage(
+                                fullName: widget.fullName,
+                                address: widget.address,
+                                contact: widget.contact,
+                                email: widget.email,
+                              ),
+                          ),
                         );
                       }),
                       _buildDashboardTile(Icons.dry_cleaning, 'Dry Cleaning',
