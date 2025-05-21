@@ -209,12 +209,17 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
                           ),
                         );
                       }),
-                      _buildDashboardTile(Icons.dry_cleaning, 'Dry Cleaning',
-                          () {
+                      _buildDashboardTile(Icons.dry_cleaning, 'Dry Cleaning', () {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (context) => const dryCleaningPage()),
+                              builder: (context) => dryCleaningPage(
+                                fullName: widget.fullName,
+                                address: widget.address,
+                                contact: widget.contact,
+                                email: widget.email,
+                              ),
+                          ),
                         );
                       }),
                       _buildDashboardTile(

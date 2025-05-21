@@ -71,7 +71,7 @@ class _washCleaningPageState extends State<washCleaningPage> {
         backgroundColor: const Color(0xFFD9D9D9),
         title: Row(
           children: const [
-            Icon(Icons.error_outline, color: Color(0xFFE57373), size: 28),
+            Icon(Icons.error_outline, color: const Color(0xFFE57373), size: 28),
             SizedBox(width: 10),
             Text('Nothing selected', style: TextStyle(fontSize: 18)),
           ],
@@ -84,7 +84,7 @@ class _washCleaningPageState extends State<washCleaningPage> {
           TextButton(
             style: TextButton.styleFrom(
               foregroundColor: Colors.white,
-              backgroundColor: Color(0xFFE57373),
+              backgroundColor: const Color(0xFFE57373),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.all(Radius.circular(8)),
               ),
@@ -144,7 +144,7 @@ class _washCleaningPageState extends State<washCleaningPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Icon(Icons.local_laundry_service,
-                size: 50, color: Color(0xFF170CFE)),
+                size: 50, color: const Color(0xFF170CFE)),
             const SizedBox(width: 16),
             Expanded(
               child: Column(
@@ -154,7 +154,7 @@ class _washCleaningPageState extends State<washCleaningPage> {
                       style: TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFF170CFE))),
+                          color: const Color(0xFF170CFE))),
                   SizedBox(height: 4),
                   Text(
                     'Standard washing and drying service for everyday clothes. Free fold included.',
@@ -397,7 +397,7 @@ class _washCleaningPageState extends State<washCleaningPage> {
             borderRadius: BorderRadius.all(Radius.circular(10)),
           ),
           focusedBorder: const OutlineInputBorder(
-            borderSide: BorderSide(color: Color(0xFF04D26F)),
+            borderSide: BorderSide(color: const Color(0xFF04D26F)),
             borderRadius: BorderRadius.all(Radius.circular(10)),
           ),
         ),
