@@ -2,42 +2,34 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class dryCleaningPage extends StatefulWidget {
-  const dryCleaningPage({Key? key}) : super(key: key);
+  final String fullName;
+  final String address;
+  final String email;
+  final String contact;
+
+  const dryCleaningPage({
+    Key? key,
+    required this.fullName,
+    required this.address,
+    required this.email,
+    required this.contact,
+  }) : super(key: key);
 
   @override
   State<dryCleaningPage> createState() => _dryCleaningPageState();
 }
 
 class _dryCleaningPageState extends State<dryCleaningPage> {
+  // ────────────────────────────── DATA SOURCES ──────────────────────────────
   final List<String> regularLaundryTypes = [
-    'Cotton',
-    'Linen',
-    'Polyester',
-    'Silk',
-    'Wool',
-    'Rayon',
-    'Nylon',
-    'Spandex',
-    'Denim',
-    'Velvet',
-    'Suits',
-    'Dress Shirts',
-    'Gowns / Dresses',
-    'Uniforms',
-    'Baby Clothes',
-    'Delicates / Lingerie',
-    'Athletic Wear',
+    'Cotton', 'Linen', 'Polyester', 'Silk', 'Wool', 'Rayon', 'Nylon', 'Spandex', 'Denim', 'Velvet', 'Suits', 'Dress Shirts', 'Gowns / Dresses', 'Uniforms', 'Baby Clothes', 'Delicates / Lingerie', 'Athletic Wear',
   ];
 
   final List<String> beddingItems = [
-    'Beddings',
-    'Curtains',
-    'Blanket',
-    'Comforter',
-    'Fleece',
-    'Quilt',
+    'Beddings', 'Curtains', 'Blanket', 'Comforter', 'Fleece', 'Quilt',
   ];
 
+  // ────────────────────────────── STATE MAPS ──────────────────────────────
   late final Map<String, bool> selectedRegularLaundryTypes;
   late final Map<String, bool> selectedBeddingItems;
   late final Map<String, int> beddingQuantities;
@@ -49,33 +41,71 @@ class _dryCleaningPageState extends State<dryCleaningPage> {
   @override
   void initState() {
     super.initState();
-    selectedRegularLaundryTypes = {
-      for (var type in regularLaundryTypes) type: false
-    };
-    selectedBeddingItems = {for (var item in beddingItems) item: false};
-    beddingQuantities = {for (var item in beddingItems) item: 1};
+    selectedRegularLaundryTypes = {for (var t in regularLaundryTypes) t: false};
+    selectedBeddingItems = {for (var i in beddingItems) i: false};
+    beddingQuantities = {for (var i in beddingItems) i: 1};
   }
 
+  // ────────────────────────────── HELPERS ──────────────────────────────
   double _getSelectedBeddingTotal(double unitPrice) {
     double total = 0;
     selectedBeddingItems.forEach((item, selected) {
-      if (selected) {
-        total += (beddingQuantities[item] ?? 0) * unitPrice;
-      }
+      if (selected) total += (beddingQuantities[item] ?? 0) * unitPrice;
     });
     return total;
   }
 
+  bool _hasAnySelection({
+    required List<String> laundry,
+    required Map<String, int> bulky,
+  }) {
+    final bool hasLaundry = laundry.isNotEmpty;
+    final bool hasBulky = bulky.isNotEmpty;
+    return hasLaundry || hasBulky;
+  }
+
+  void _showValidationDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFFD9D9D9),
+        title: Row(
+          children: const [
+            Icon(Icons.error_outline, color: const Color(0xFFE57373), size: 28),
+            SizedBox(width: 10),
+            Text('Nothing selected', style: TextStyle(fontSize: 18)),
+          ],
+        ),
+        content: const Text(
+          'Please pick at least one regular laundry type or bulky item before adding to cart.',
+          style: TextStyle(fontSize: 14),
+        ),
+        actions: [
+          TextButton(
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.white,
+              backgroundColor: const Color(0xFFE57373),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.all(Radius.circular(8)),
+              ),
+            ),
+            onPressed: () => Navigator.pop(context),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ────────────────────────────── UI BUILD ──────────────────────────────
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFECF0F3),
       appBar: AppBar(
         backgroundColor: const Color(0xFF04D26F),
-        title: const Text(
-          'Dry Cleaning',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-        ),
+        title: const Text('Dry Cleaning',
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: SingleChildScrollView(
@@ -100,6 +130,7 @@ class _dryCleaningPageState extends State<dryCleaningPage> {
     );
   }
 
+  // ────────────────────────────── WIDGETS ──────────────────────────────
   Widget _buildHeaderCard() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -119,13 +150,11 @@ class _dryCleaningPageState extends State<dryCleaningPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: const [
-                  Text(
-                    'Dry Cleaning',
-                    style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        color: const Color(0xFF170CFE)),
-                  ),
+                  Text('Dry Cleaning',
+                      style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: const Color(0xFF170CFE))),
                   SizedBox(height: 4),
                   Text(
                     'Professional dry cleaning service for delicate garments. Gentle care with free fold included.',
@@ -161,9 +190,7 @@ class _dryCleaningPageState extends State<dryCleaningPage> {
             double.tryParse(data['singleQueen']?.toString() ?? '0') ?? 0;
         final dryNote = data['dryNote']?.toString() ?? '';
 
-        final double total =
-            dryBase + _getSelectedBeddingTotal(singleQueenUnit);
-        final totalStr = total.toStringAsFixed(2);
+        final total = dryBase + _getSelectedBeddingTotal(singleQueenUnit);
 
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -172,26 +199,23 @@ class _dryCleaningPageState extends State<dryCleaningPage> {
             children: [
               Row(
                 children: [
-                  const Text(
-                    'TOTAL = ',
-                    style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black54),
-                  ),
+                  const Text('TOTAL = ',
+                      style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black54)),
                   Expanded(
                     child: IgnorePointer(
                       child: TextField(
                         readOnly: true,
-                        controller: TextEditingController(text: '₱ $totalStr'),
+                        controller:
+                        TextEditingController(text: '₱ ${total.toStringAsFixed(2)}'),
                         style: const TextStyle(color: Colors.black),
                         decoration: InputDecoration(
                           filled: true,
                           fillColor: Colors.grey[300],
                           border: const OutlineInputBorder(
-                            borderRadius: BorderRadius.all(
-                              Radius.circular(10),
-                            ),
+                            borderRadius: BorderRadius.all(Radius.circular(10)),
                           ),
                           contentPadding: const EdgeInsets.symmetric(
                               vertical: 8, horizontal: 12),
@@ -202,10 +226,8 @@ class _dryCleaningPageState extends State<dryCleaningPage> {
                 ],
               ),
               const SizedBox(height: 6),
-              Text(
-                dryNote,
-                style: const TextStyle(fontSize: 12, color: Colors.black54),
-              ),
+              Text(dryNote,
+                  style: const TextStyle(fontSize: 12, color: Colors.black54)),
             ],
           ),
         );
@@ -218,11 +240,7 @@ class _dryCleaningPageState extends State<dryCleaningPage> {
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Container(
         padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: Colors.grey[200],
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: Colors.grey),
-        ),
+        decoration: _boxDecoration(),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -236,14 +254,13 @@ class _dryCleaningPageState extends State<dryCleaningPage> {
               child: Scrollbar(
                 child: ListView(
                   children: [
-                    ...regularLaundryTypes.map((type) {
-                      return _miniCheckboxTile(
-                        label: type,
-                        value: selectedRegularLaundryTypes[type],
-                        onChanged: (val) => setState(() =>
-                        selectedRegularLaundryTypes[type] = val ?? false),
-                      );
-                    }),
+                    ...regularLaundryTypes.map((type) => _miniCheckboxTile(
+                      label: type,
+                      value: selectedRegularLaundryTypes[type],
+                      onChanged: (val) => setState(
+                              () => selectedRegularLaundryTypes[type] =
+                              val ?? false),
+                    )),
                     _miniCheckboxTile(
                       label: 'Others',
                       value: othersSelected,
@@ -265,11 +282,9 @@ class _dryCleaningPageState extends State<dryCleaningPage> {
                             isDense: true,
                             contentPadding: EdgeInsets.symmetric(
                                 vertical: 8, horizontal: 12),
-                            focusedBorder: OutlineInputBorder(
-                              borderSide: BorderSide(color: const Color(0xFF04D26F)),
-                            ),
                           ),
-                          onChanged: (val) => setState(() => othersText = val),
+                          onChanged: (val) =>
+                              setState(() => othersText = val),
                         ),
                       ),
                   ],
@@ -287,11 +302,7 @@ class _dryCleaningPageState extends State<dryCleaningPage> {
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Container(
         padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: Colors.grey[200],
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: Colors.grey),
-        ),
+        decoration: _boxDecoration(),
         child: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
           stream: FirebaseFirestore.instance
               .collection('pricing_management')
@@ -299,73 +310,71 @@ class _dryCleaningPageState extends State<dryCleaningPage> {
               .snapshots(),
           builder: (context, snapshot) {
             final data = snapshot.data?.data() ?? {};
-            final singleQueen = data['singleQueen']?.toString() ?? '—';
-            final double singleQueenUnit = double.tryParse(singleQueen) ?? 0;
+            final double singleQueenUnit =
+                double.tryParse(data['singleQueen']?.toString() ?? '0') ?? 0;
+            final singleQueenText =
+            data['singleQueen'] != null ? data['singleQueen'].toString() : '—';
 
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Single/Queen Size Bulky Items = ₱$singleQueen per-piece',
+                  'Single/Queen Size Bulky Items = ₱$singleQueenText per-piece',
                   style: const TextStyle(
                       fontSize: 14, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 10),
-                ...beddingItems.map((item) {
-                  return Column(
-                    children: [
-                      _miniCheckboxTile(
-                        label: item,
-                        value: selectedBeddingItems[item],
-                        onChanged: (val) {
-                          setState(() {
-                            selectedBeddingItems[item] = val ?? false;
-                            if (val == true && beddingQuantities[item] == 0) {
-                              beddingQuantities[item] = 1;
-                            }
-                          });
-                        },
-                      ),
-                      if (selectedBeddingItems[item] == true)
-                        Padding(
-                          padding: const EdgeInsets.only(left: 40, bottom: 8),
-                          child: Row(
-                            children: [
-                              IconButton(
-                                icon: const Icon(Icons.remove_circle_outline),
-                                onPressed: () {
-                                  setState(() {
-                                    if (beddingQuantities[item]! > 1) {
-                                      beddingQuantities[item] =
-                                          beddingQuantities[item]! - 1;
-                                    }
-                                  });
-                                },
-                              ),
-                              Text(
-                                beddingQuantities[item].toString(),
-                                style: const TextStyle(fontSize: 16),
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.add_circle_outline),
-                                onPressed: () {
-                                  setState(() {
+                ...beddingItems.map((item) => Column(
+                  children: [
+                    _miniCheckboxTile(
+                      label: item,
+                      value: selectedBeddingItems[item],
+                      onChanged: (val) {
+                        setState(() {
+                          selectedBeddingItems[item] = val ?? false;
+                          if (val == true && beddingQuantities[item] == 0) {
+                            beddingQuantities[item] = 1;
+                          }
+                        });
+                      },
+                    ),
+                    if (selectedBeddingItems[item] == true)
+                      Padding(
+                        padding: const EdgeInsets.only(left: 40, bottom: 8),
+                        child: Row(
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.remove_circle_outline),
+                              onPressed: () {
+                                setState(() {
+                                  if (beddingQuantities[item]! > 1) {
                                     beddingQuantities[item] =
-                                        beddingQuantities[item]! + 1;
-                                  });
-                                },
-                              ),
-                            ],
-                          ),
+                                        beddingQuantities[item]! - 1;
+                                  }
+                                });
+                              },
+                            ),
+                            Text(beddingQuantities[item].toString(),
+                                style: const TextStyle(fontSize: 16)),
+                            IconButton(
+                              icon: const Icon(Icons.add_circle_outline),
+                              onPressed: () {
+                                setState(() {
+                                  beddingQuantities[item] =
+                                      beddingQuantities[item]! + 1;
+                                });
+                              },
+                            ),
+                          ],
                         ),
-                    ],
-                  );
-                }),
+                      ),
+                  ],
+                )),
                 const SizedBox(height: 4),
                 Text(
                   'Selected bulky items total: ₱${_getSelectedBeddingTotal(singleQueenUnit).toStringAsFixed(2)}',
                   style: const TextStyle(fontSize: 12, color: Colors.black54),
-                )
+                ),
               ],
             );
           },
@@ -405,11 +414,10 @@ class _dryCleaningPageState extends State<dryCleaningPage> {
             child: ElevatedButton.icon(
               onPressed: _handleAddToCart,
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.grey[400],
+                backgroundColor: const Color(0xFFFFD700),
                 padding: const EdgeInsets.symmetric(vertical: 20),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
+                shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
               icon: const Icon(Icons.shopping_cart, color: Colors.black),
               label: const Text('Add to Cart',
@@ -421,15 +429,14 @@ class _dryCleaningPageState extends State<dryCleaningPage> {
             child: ElevatedButton.icon(
               onPressed: () {},
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.grey[400],
+                backgroundColor: const Color(0xFF04D26F),
                 padding: const EdgeInsets.symmetric(vertical: 20),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
+                shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
-              icon: const Icon(Icons.check_circle, color: Colors.black),
+              icon: const Icon(Icons.check_circle, color: Colors.white),
               label: const Text('Order Now',
-                  style: TextStyle(color: Colors.black)),
+                  style: TextStyle(color: Colors.white)),
             ),
           ),
         ],
@@ -437,24 +444,115 @@ class _dryCleaningPageState extends State<dryCleaningPage> {
     );
   }
 
-  void _handleAddToCart() {
-    final selectedRegular = selectedRegularLaundryTypes.entries
+  // ────────────────────────────── FIRESTORE SAVE ──────────────────────────────
+  Future<void> _handleAddToCart() async {
+    // 1. Pull latest pricing so we compute with current values.
+    final pricingSnap = await FirebaseFirestore.instance
+        .collection('pricing_management')
+        .doc('pricing')
+        .get();
+    final pricing = pricingSnap.data() ?? {};
+    final double dryBase =
+        double.tryParse(pricing['dry']?.toString() ?? '0') ?? 0;
+    final double singleQueenUnit =
+        double.tryParse(pricing['singleQueen']?.toString() ?? '0') ?? 0;
+
+    // 2. Gather selections.
+    final List<String> typeOfLaundry = selectedRegularLaundryTypes.entries
         .where((e) => e.value)
         .map((e) => e.key)
         .toList();
-    final selectedBedding = selectedBeddingItems.entries
-        .where((e) => e.value)
-        .map((e) => '${e.key} x${beddingQuantities[e.key]}')
-        .toList();
-    final allSelected = [
-      ...selectedRegular,
-      ...selectedBedding,
-      if (othersSelected && othersText.trim().isNotEmpty) 'Others: $othersText',
-      if (noteController.text.trim().isNotEmpty)
-        'Note: ${noteController.text.trim()}'
-    ];
-    debugPrint('Selected laundry types: $allSelected');
+    if (othersSelected && othersText.trim().isNotEmpty) {
+      typeOfLaundry.add('Others: ${othersText.trim()}');
+    }
+
+    final Map<String, int> bulkyCounts = {};
+    selectedBeddingItems.forEach((item, selected) {
+      if (selected) bulkyCounts[item] = beddingQuantities[item]!;
+    });
+
+    // 3. Early validation check.
+    if (!_hasAnySelection(laundry: typeOfLaundry, bulky: bulkyCounts)) {
+      _showValidationDialog();
+      return; // stop here if nothing was selected
+    }
+
+    // 4. Compute totals.
+    final double priceOfBulkyItems = bulkyCounts.entries.fold<double>(
+        0, (sum, e) => sum + (e.value * singleQueenUnit));
+    final double totalPrice = dryBase + priceOfBulkyItems;
+
+    // 5. Write to Firestore.
+    try {
+      await FirebaseFirestore.instance.collection('cart_customers').add({
+        'email': widget.email,
+        'contact':widget.contact,
+        'serviceType': 'Dry Cleaning', // Hard-coded type of service
+        'typeOfLaundry': typeOfLaundry,           // List<String>
+        'bulkyItems': bulkyCounts.keys.toList(),  // List<String>
+        'numberOfBulkyItems': bulkyCounts,        // Map<String,int>
+        'priceOfBulkyItems': priceOfBulkyItems,
+        'personalRequest': noteController.text.trim(),
+        'totalPrice': totalPrice,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: const Color(0xFF04D26F),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            content: Row(
+              children: const [
+                Icon(Icons.check_circle_outline, color: Colors.white),
+                SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'Added to cart!',
+                    style: TextStyle(color: Colors.white, fontSize: 16),
+                  ),
+                ),
+              ],
+            ),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: const Color(0xFFE57373),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            content: Row(
+              children: [
+                const Icon(Icons.error_outline, color: Colors.white),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'Unable to add to cart: $e',
+                    style: const TextStyle(color: Colors.white, fontSize: 14),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    }
   }
+
+  // ────────────────────────────── SMALL HELPERS ──────────────────────────────
+  BoxDecoration _boxDecoration() => BoxDecoration(
+    color: Colors.grey[200],
+    borderRadius: BorderRadius.circular(10),
+    border: Border.all(color: Colors.grey),
+  );
 
   Widget _miniCheckboxTile({
     required String label,
@@ -465,7 +563,6 @@ class _dryCleaningPageState extends State<dryCleaningPage> {
       dense: true,
       visualDensity: const VisualDensity(horizontal: -4, vertical: -4),
       contentPadding: EdgeInsets.zero,
-      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
       controlAffinity: ListTileControlAffinity.leading,
       activeColor: const Color(0xFF04D26F),
       title: Text(label, style: const TextStyle(fontSize: 14)),
