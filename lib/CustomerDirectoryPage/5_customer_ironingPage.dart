@@ -22,23 +22,7 @@ class ironingPage extends StatefulWidget {
 class _ironingPageState extends State<ironingPage> {
   // ───────────────── DATA SOURCES ─────────────────
   final List<String> itemTypes = [
-    'Cotton',
-    'Linen',
-    'Polyester',
-    'Silk',
-    'Wool',
-    'Rayon',
-    'Nylon',
-    'Spandex',
-    'Denim',
-    'Velvet',
-    'Suits',
-    'Dress Shirts',
-    'Gowns / Dresses',
-    'Uniforms',
-    'Baby Clothes',
-    'Delicates / Lingerie',
-    'Athletic Wear',
+    'Cotton', 'Linen', 'Polyester', 'Silk', 'Wool', 'Rayon', 'Nylon', 'Spandex', 'Denim', 'Velvet', 'Suits', 'Dress Shirts', 'Gowns / Dresses', 'Uniforms', 'Baby Clothes', 'Delicates / Lingerie', 'Athletic Wear', 'Beddings', 'Curtains', 'Blanket', 'Comforter', 'Fleece', 'Quilt',
   ];
 
   late final Map<String, bool> selectedItems;

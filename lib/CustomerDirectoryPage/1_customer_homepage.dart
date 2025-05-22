@@ -227,7 +227,13 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (context) => const washDryPressPage()),
+                              builder: (context) => washDryPressPage(
+                                fullName: widget.fullName,
+                                address: widget.address,
+                                contact: widget.contact,
+                                email: widget.email,
+                              ),
+                          ),
                         );
                       }),
                       _buildDashboardTile(Icons.iron, 'Ironing Service', () {
