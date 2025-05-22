@@ -14,10 +14,11 @@ class AdminPricingPage extends StatefulWidget {
 }
 
 class _AdminPricingPageState extends State<AdminPricingPage> {
+  /* ─────────────────────────  COLORS  ───────────────────────── */
   final Color primaryColor = const Color(0xFF170CFE);
   final Color successColor = const Color(0xFF04D26F);
 
-  // ───────── Price controllers ─────────
+  /* ─────────────────────────  PRICE CONTROLLERS  ───────────────────────── */
   final Map<String, TextEditingController> _controllers = {
     'Wash': TextEditingController(),
     'Dry': TextEditingController(),
@@ -28,18 +29,18 @@ class _AdminPricingPageState extends State<AdminPricingPage> {
     'Delivery/Pickup Fee': TextEditingController(),
   };
 
-  // ───────── Note controllers ─────────
+  /* ─────────────────────────  NOTE CONTROLLERS  ───────────────────────── */
   final TextEditingController _noteWashController = TextEditingController();
   final TextEditingController _noteDryController = TextEditingController();
   final TextEditingController _noteSingleController = TextEditingController();
   final TextEditingController _notePressController = TextEditingController();
-  final TextEditingController _noteWashDryPressController =
-  TextEditingController(); // NEW
+  final TextEditingController _noteWashDryPressController = TextEditingController();
+  final TextEditingController _noteShoesBagController = TextEditingController();
 
   final String _documentId = 'pricing';
   bool _isLoading = true;
 
-  // ───────── Load existing pricing ─────────
+  /* ─────────────────────────  INIT  ───────────────────────── */
   @override
   void initState() {
     super.initState();
@@ -72,8 +73,8 @@ class _AdminPricingPageState extends State<AdminPricingPage> {
         _noteDryController.text = data['dryNote'] ?? '';
         _noteSingleController.text = data['noteSingle'] ?? '';
         _notePressController.text = data['pressNote'] ?? '';
-        _noteWashDryPressController.text =
-            data['washDryPressNote'] ?? ''; // NEW
+        _noteWashDryPressController.text = data['washDryPressNote'] ?? '';
+        _noteShoesBagController.text = data['shoesBagHelmetNote'] ?? '';
       }
     } catch (e) {
       debugPrint('Error loading pricing: $e');
@@ -82,7 +83,7 @@ class _AdminPricingPageState extends State<AdminPricingPage> {
     }
   }
 
-  // ───────── Confirm & save ─────────
+  /* ─────────────────────────  SAVE  ───────────────────────── */
   Future<void> _confirmAndSavePricing() async {
     final confirm = await showDialog<bool>(
       context: context,
@@ -92,7 +93,8 @@ class _AdminPricingPageState extends State<AdminPricingPage> {
             Icon(Icons.error_outline, color: successColor),
             const SizedBox(width: 8),
             Text('Confirm Save',
-                style: TextStyle(color: successColor, fontWeight: FontWeight.bold)),
+                style: TextStyle(
+                    color: successColor, fontWeight: FontWeight.bold)),
           ],
         ),
         content: const Text(
@@ -105,7 +107,8 @@ class _AdminPricingPageState extends State<AdminPricingPage> {
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
             style: ElevatedButton.styleFrom(backgroundColor: successColor),
-            child: const Text('Yes, Save', style: TextStyle(color: Colors.white)),
+            child:
+            const Text('Yes, Save', style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -116,18 +119,22 @@ class _AdminPricingPageState extends State<AdminPricingPage> {
 
   Future<void> _savePricing() async {
     final pricingData = {
-      'wash': int.tryParse(_controllers['Wash']!.text.trim()) ?? 0,
-      'dry': int.tryParse(_controllers['Dry']!.text.trim()) ?? 0,
+      'wash':
+      int.tryParse(_controllers['Wash']!.text.trim()) ?? 0,
+      'dry':
+      int.tryParse(_controllers['Dry']!.text.trim()) ?? 0,
       'singleQueen':
-      int.tryParse(_controllers['Single/Queen Size (per piece | regular wash)']!.text.trim()) ??
+      int.tryParse(_controllers['Single/Queen Size (per piece | regular wash)']!
+          .text
+          .trim()) ??
           0,
       'washDryPress':
       int.tryParse(_controllers['Wash, Dry & Press (per kg)']!.text.trim()) ??
           0,
       'pressOnly':
       int.tryParse(_controllers['Press Only (per kg)']!.text.trim()) ?? 0,
-      'shoesBagHelmet': int.tryParse(
-          _controllers['Shoes/Bag/Helmet Cleaning']!.text.trim()) ??
+      'shoesBagHelmet':
+      int.tryParse(_controllers['Shoes/Bag/Helmet Cleaning']!.text.trim()) ??
           0,
       'deliveryPickupFee':
       int.tryParse(_controllers['Delivery/Pickup Fee']!.text.trim()) ?? 0,
@@ -135,8 +142,8 @@ class _AdminPricingPageState extends State<AdminPricingPage> {
       'dryNote': _noteDryController.text.trim(),
       'noteSingle': _noteSingleController.text.trim(),
       'pressNote': _notePressController.text.trim(),
-      'washDryPressNote': _noteWashDryPressController.text
-          .trim(), // NEW FIELD
+      'washDryPressNote': _noteWashDryPressController.text.trim(),
+      'shoesBagHelmetNote': _noteShoesBagController.text.trim(),
       'employeeId': widget.employeeId,
       'timestamp': FieldValue.serverTimestamp(),
     };
@@ -147,20 +154,21 @@ class _AdminPricingPageState extends State<AdminPricingPage> {
           .doc(_documentId)
           .set(pricingData);
 
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text(
-            'Prices saved successfully!',
-            textAlign: TextAlign.center,
-            style: TextStyle(fontWeight: FontWeight.bold),
-          ),
+          content: const Text('Prices saved successfully!',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontWeight: FontWeight.bold)),
           backgroundColor: successColor,
           behavior: SnackBarBehavior.floating,
           margin: const EdgeInsets.symmetric(horizontal: 40, vertical: 20),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape:
+          RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
       );
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Failed to save prices: $e'),
@@ -170,15 +178,18 @@ class _AdminPricingPageState extends State<AdminPricingPage> {
     }
   }
 
-  // ───────── UI helpers ─────────
+  /* ─────────────────────────  UI HELPERS  ───────────────────────── */
   Widget _buildSectionTitle(String title) => Padding(
     padding: const EdgeInsets.only(top: 20, bottom: 6),
     child: Text(title,
         style: TextStyle(
-            fontWeight: FontWeight.bold, fontSize: 17, color: primaryColor)),
+            fontWeight: FontWeight.bold,
+            fontSize: 17,
+            color: primaryColor)),
   );
 
-  Widget _buildPriceField(String label, TextEditingController controller) =>
+  Widget _buildPriceField(
+      String label, TextEditingController controller) =>
       Padding(
         padding: const EdgeInsets.symmetric(vertical: 8),
         child: TextField(
@@ -204,13 +215,15 @@ class _AdminPricingPageState extends State<AdminPricingPage> {
     child: TextField(
       controller: controller,
       maxLines: 2,
-      style: const TextStyle(fontStyle: FontStyle.italic, color: Colors.grey),
+      style:
+      const TextStyle(fontStyle: FontStyle.italic, color: Colors.grey),
       decoration: InputDecoration(
         labelText: 'Note',
         labelStyle: const TextStyle(color: Colors.grey),
         filled: true,
         fillColor: Colors.grey.shade200,
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+        border:
+        OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
         focusedBorder: OutlineInputBorder(
           borderSide: BorderSide(color: Colors.grey.shade400, width: 2),
           borderRadius: BorderRadius.circular(12),
@@ -219,26 +232,28 @@ class _AdminPricingPageState extends State<AdminPricingPage> {
     ),
   );
 
-  // ───────── Dispose ─────────
+  /* ─────────────────────────  DISPOSE  ───────────────────────── */
   @override
   void dispose() {
-    for (var c in _controllers.values) c.dispose();
+    for (final c in _controllers.values) c.dispose();
     _noteWashController.dispose();
     _noteDryController.dispose();
     _noteSingleController.dispose();
     _notePressController.dispose();
     _noteWashDryPressController.dispose();
+    _noteShoesBagController.dispose();
     super.dispose();
   }
 
-  // ───────── Build ─────────
+  /* ─────────────────────────  BUILD  ───────────────────────── */
   @override
   Widget build(BuildContext context) => Scaffold(
     backgroundColor: const Color(0xFFECF0F3),
     appBar: AppBar(
       backgroundColor: primaryColor,
       title: const Text('Pricing Management',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          style:
+          TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
       iconTheme: const IconThemeData(color: Colors.white),
     ),
     body: _isLoading
@@ -258,15 +273,18 @@ class _AdminPricingPageState extends State<AdminPricingPage> {
                 _buildPriceField('Dry', _controllers['Dry']!),
                 _buildNoteEditor(_noteDryController),
 
-                _buildSectionTitle('Single/Queen Size (per piece | regular wash)'),
-                _buildPriceField('Single/Queen Size (per piece | regular wash)',
-                    _controllers['Single/Queen Size (per piece | regular wash)']!),
+                _buildSectionTitle(
+                    'Single/Queen Size (per piece | regular wash)'),
+                _buildPriceField(
+                    'Single/Queen Size (per piece | regular wash)',
+                    _controllers[
+                    'Single/Queen Size (per piece | regular wash)']!),
                 _buildNoteEditor(_noteSingleController),
 
                 _buildSectionTitle('Wash, Dry & Press (per kg)'),
                 _buildPriceField('Wash, Dry & Press (per kg)',
                     _controllers['Wash, Dry & Press (per kg)']!),
-                _buildNoteEditor(_noteWashDryPressController), // NEW
+                _buildNoteEditor(_noteWashDryPressController),
 
                 _buildSectionTitle('Press Only (per kg)'),
                 _buildPriceField('Press Only (per kg)',
@@ -276,6 +294,7 @@ class _AdminPricingPageState extends State<AdminPricingPage> {
                 _buildSectionTitle('Shoes/Bag/Helmet Cleaning'),
                 _buildPriceField('Shoes/Bag/Helmet Cleaning',
                     _controllers['Shoes/Bag/Helmet Cleaning']!),
+                _buildNoteEditor(_noteShoesBagController),
 
                 _buildSectionTitle('Delivery / Pickup Fee'),
                 _buildPriceField('Delivery/Pickup Fee',

@@ -254,8 +254,13 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (context) =>
-                                  const accessoryCleaningPage()),
+                              builder: (context) => accessoryCleaningPage(
+                                    fullName: widget.fullName,
+                                    address: widget.address,
+                                    contact: widget.contact,
+                                    email: widget.email,
+                                  ),
+                          ),
                         );
                       }),
                     ],

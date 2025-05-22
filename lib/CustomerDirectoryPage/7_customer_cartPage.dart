@@ -25,7 +25,6 @@ class CartPage extends StatefulWidget {
 class _CartPageState extends State<CartPage> {
   final Map<String, bool> _checked = {};
 
-  /* ───────────────────── Logout Confirmation ───────────────────── */
   Future<bool> _confirmLogout(BuildContext context) async {
     final res = await showDialog<bool>(
       context: context,
@@ -42,7 +41,6 @@ class _CartPageState extends State<CartPage> {
     return res == true;
   }
 
-  /* ───────────────────── Delete Confirmation ───────────────────── */
   Future<bool> _confirmDelete(BuildContext context) async {
     final res = await showDialog<bool>(
       context: context,
@@ -58,7 +56,6 @@ class _CartPageState extends State<CartPage> {
     return res == true;
   }
 
-  /* ───────────────────── Helper: total of checked items ───────────────────── */
   double _selectedTotal(Iterable<QueryDocumentSnapshot> docs) {
     double sum = 0;
     for (final d in docs) {
@@ -69,11 +66,8 @@ class _CartPageState extends State<CartPage> {
     return sum;
   }
 
-  /* ───────────────────── Firestore helpers ───────────────────── */
-  Future<void> _deleteDoc(String docId) async => FirebaseFirestore.instance
-      .collection('cart_customers')
-      .doc(docId)
-      .delete();
+  Future<void> _deleteDoc(String docId) async =>
+      FirebaseFirestore.instance.collection('cart_customers').doc(docId).delete();
 
   Future<void> _deleteSelected(Iterable<QueryDocumentSnapshot> docs) async {
     final batch = FirebaseFirestore.instance.batch();
@@ -84,7 +78,6 @@ class _CartPageState extends State<CartPage> {
     _checked.clear();
   }
 
-  /* ─────────────────────────── Styled Alert ─────────────────────────── */
   AlertDialog _styledAlert({
     required IconData icon,
     required Color iconColor,
@@ -126,7 +119,6 @@ class _CartPageState extends State<CartPage> {
     );
   }
 
-  /* ───────────────────────────── Build ──────────────────────────── */
   @override
   Widget build(BuildContext context) {
     return PopScope(
@@ -144,7 +136,6 @@ class _CartPageState extends State<CartPage> {
         body: SafeArea(
           child: Column(
             children: [
-              // Header
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
@@ -154,13 +145,10 @@ class _CartPageState extends State<CartPage> {
                     Icon(Icons.shopping_cart, color: Colors.white),
                     SizedBox(width: 8),
                     Text('Your Laundry Cart',
-                        style:
-                        TextStyle(color: Colors.white, fontSize: 25, fontWeight: FontWeight.bold)),
+                        style: TextStyle(color: Colors.white, fontSize: 25, fontWeight: FontWeight.bold)),
                   ],
                 ),
               ),
-
-              // Cart list
               Expanded(
                 child: StreamBuilder<QuerySnapshot>(
                   stream: FirebaseFirestore.instance
@@ -189,56 +177,74 @@ class _CartPageState extends State<CartPage> {
                       itemCount: docs.length,
                       itemBuilder: (_, i) {
                         final d = docs[i];
+                        final docId = d.id;
                         final service = d['serviceType'] ?? 'Service';
                         final total = (d['totalPrice'] ?? 0).toDouble();
+                        final typeOfLaundry = d['typeOfLaundry'] as List? ?? [];
+                        final numberOfBulkyItems = d['numberOfBulkyItems'] as Map? ?? {};
+
+                        String formatBulkyItems(Map itemsMap) {
+                          return itemsMap.entries
+                              .map((e) => '${e.value}x ${e.key}')
+                              .join(', ');
+                        }
+
                         final preview = [
-                          if (d['typeOfLaundry'] != null)
-                            (d['typeOfLaundry'] as List).join(', '),
-                          if (d['bulkyItems'] != null && (d['bulkyItems'] as List).isNotEmpty)
-                            (d['bulkyItems'] as List).join(', ')
+                          if (typeOfLaundry.isNotEmpty) typeOfLaundry.join(', '),
+                          if (numberOfBulkyItems.isNotEmpty)
+                            formatBulkyItems(numberOfBulkyItems.cast<String, dynamic>())
                         ].join(' · ');
 
                         return Card(
                           color: Colors.grey[200],
                           elevation: 2,
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                          child: ListTile(
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                            leading: Checkbox(
-                              value: _checked[d.id] ?? false,
-                              activeColor: const Color(0xFF04D26F),
-                              onChanged: (v) => setState(() => _checked[d.id] = v ?? false),
-                            ),
-                            title: Text(service,
-                                style:
-                                const TextStyle(fontWeight: FontWeight.bold, color: Colors.black87)),
-                            subtitle: Text(preview,
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(color: Colors.black54)),
-                            trailing: Wrap(
-                              crossAxisAlignment: WrapCrossAlignment.center,
-                              spacing: 8,
+                          margin: const EdgeInsets.only(bottom: 12),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('₱ ${total.toStringAsFixed(2)}',
-                                    style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 16,
-                                        color: Colors.black87)),
-                                TextButton(
-                                  style: TextButton.styleFrom(
-                                    backgroundColor: const Color(0xFFE57373),
-                                    foregroundColor: Colors.white,
-                                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                                    shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(8)),
-                                  ),
-                                  child: const Text('Delete'),
-                                  onPressed: () async {
-                                    if (await _confirmDelete(context)) {
-                                      await _deleteDoc(d.id);
-                                    }
-                                  },
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    Checkbox(
+                                      value: _checked[docId] ?? false,
+                                      activeColor: const Color(0xFF04D26F),
+                                      onChanged: (v) => setState(() => _checked[docId] = v ?? false),
+                                    ),
+                                    Expanded(
+                                      child: Text(service,
+                                          style: const TextStyle(
+                                              fontWeight: FontWeight.bold, color: Colors.black87)),
+                                    ),
+                                    Text('₱ ${total.toStringAsFixed(2)}',
+                                        style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 16,
+                                            color: Colors.black87)),
+                                    const SizedBox(width: 8),
+                                    TextButton(
+                                      style: TextButton.styleFrom(
+                                        backgroundColor: const Color(0xFFE57373),
+                                        foregroundColor: Colors.white,
+                                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                                        shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(8)),
+                                      ),
+                                      child: const Text('Delete'),
+                                      onPressed: () async {
+                                        if (await _confirmDelete(context)) {
+                                          await _deleteDoc(docId);
+                                        }
+                                      },
+                                    ),
+                                  ],
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.only(left: 16, right: 8, bottom: 8),
+                                  child: Text(preview,
+                                      style: const TextStyle(color: Colors.black54, fontSize: 14)),
                                 ),
                               ],
                             ),
@@ -249,8 +255,6 @@ class _CartPageState extends State<CartPage> {
                   },
                 ),
               ),
-
-              // Select-all & total & actions
               StreamBuilder<QuerySnapshot>(
                 stream: FirebaseFirestore.instance
                     .collection('cart_customers')
@@ -324,8 +328,6 @@ class _CartPageState extends State<CartPage> {
             ],
           ),
         ),
-
-        // Bottom nav
         bottomNavigationBar: BottomNavigationBar(
           backgroundColor: const Color(0xFF04D26F),
           selectedItemColor: Colors.white,
