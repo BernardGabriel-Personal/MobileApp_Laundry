@@ -386,24 +386,41 @@ class _washCleaningPageState extends State<washCleaningPage> {
   Widget _buildCarefulNoteField() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: TextField(
-        controller: noteController,
-        decoration: InputDecoration(
-          labelText: 'Personalized Request',
-          hintText: 'e.g., Handle with care, delicate fabric, etc',
-          filled: true,
-          fillColor: Colors.grey[200],
-          border: const OutlineInputBorder(
-            borderRadius: BorderRadius.all(Radius.circular(10)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          TextField(
+            controller: noteController,
+            decoration: InputDecoration(
+              labelText: 'Personalized Request',
+              hintText: 'e.g., Handle with care, delicate fabric, etc',
+              filled: true,
+              fillColor: Colors.grey[200],
+              border: const OutlineInputBorder(
+                borderRadius: BorderRadius.all(Radius.circular(10)),
+              ),
+              focusedBorder: const OutlineInputBorder(
+                borderSide: BorderSide(color: Color(0xFF04D26F)),
+                borderRadius: BorderRadius.all(Radius.circular(10)),
+              ),
+            ),
           ),
-          focusedBorder: const OutlineInputBorder(
-            borderSide: BorderSide(color: const Color(0xFF04D26F)),
-            borderRadius: BorderRadius.all(Radius.circular(10)),
+          const SizedBox(height: 15),
+          const Text(
+            'Finalized pricing will be shown in your invoice after weighing at our shop. Extra charges may apply for over-sized, delicate, or special-care items.',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 12,
+              color: Colors.black87,
+              fontWeight: FontWeight.w500,
+              height: 1.4,
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
+
 
   Widget _buildActionButtons() {
     return Padding(

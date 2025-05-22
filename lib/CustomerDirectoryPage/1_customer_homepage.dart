@@ -234,7 +234,13 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (context) => const ironingPage()),
+                              builder: (context) => ironingPage(
+                                fullName: widget.fullName,
+                                address: widget.address,
+                                contact: widget.contact,
+                                email: widget.email,
+                              ),
+                          ),
                         );
                       }),
                       _buildDashboardTile(

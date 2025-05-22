@@ -30,6 +30,7 @@ class _AdminPricingPageState extends State<AdminPricingPage> {
   final TextEditingController _noteWashController = TextEditingController();
   final TextEditingController _noteDryController = TextEditingController();
   final TextEditingController _noteSingleController = TextEditingController();
+  final TextEditingController _notePressController = TextEditingController();
 
   final String _documentId = "pricing";
   bool _isLoading = true;
@@ -65,6 +66,7 @@ class _AdminPricingPageState extends State<AdminPricingPage> {
         _noteWashController.text = data['washNote'] ?? '';
         _noteDryController.text = data['dryNote'] ?? '';
         _noteSingleController.text = data['noteSingle'] ?? '';
+        _notePressController.text = data['pressNote'] ?? '';
       }
     } catch (e) {
       debugPrint('Error loading pricing: $e');
@@ -128,21 +130,22 @@ class _AdminPricingPageState extends State<AdminPricingPage> {
       'wash': int.tryParse(_controllers['Wash']!.text.trim()) ?? 0,
       'dry': int.tryParse(_controllers['Dry']!.text.trim()) ?? 0,
       'singleQueen': int.tryParse(
-              _controllers['Single/Queen Size (per piece)']!.text.trim()) ??
+          _controllers['Single/Queen Size (per piece)']!.text.trim()) ??
           0,
       'washDryPress': int.tryParse(
-              _controllers['Wash, Dry & Press (per kg)']!.text.trim()) ??
+          _controllers['Wash, Dry & Press (per kg)']!.text.trim()) ??
           0,
       'pressOnly':
-          int.tryParse(_controllers['Press Only (per kg)']!.text.trim()) ?? 0,
+      int.tryParse(_controllers['Press Only (per kg)']!.text.trim()) ?? 0,
       'shoesBagHelmet': int.tryParse(
-              _controllers['Shoes/Bag/Helmet Cleaning']!.text.trim()) ??
+          _controllers['Shoes/Bag/Helmet Cleaning']!.text.trim()) ??
           0,
       'deliveryPickupFee':
-          int.tryParse(_controllers['Delivery/Pickup Fee']!.text.trim()) ?? 0,
+      int.tryParse(_controllers['Delivery/Pickup Fee']!.text.trim()) ?? 0,
       'washNote': _noteWashController.text.trim(),
       'dryNote': _noteDryController.text.trim(),
       'noteSingle': _noteSingleController.text.trim(),
+      'pressNote': _notePressController.text.trim(),
       'employeeId': widget.employeeId,
       'timestamp': FieldValue.serverTimestamp(),
     };
@@ -164,7 +167,7 @@ class _AdminPricingPageState extends State<AdminPricingPage> {
           behavior: SnackBarBehavior.floating,
           margin: const EdgeInsets.symmetric(horizontal: 40, vertical: 20),
           shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
       );
     } catch (e) {
@@ -250,6 +253,7 @@ class _AdminPricingPageState extends State<AdminPricingPage> {
     _noteWashController.dispose();
     _noteDryController.dispose();
     _noteSingleController.dispose();
+    _notePressController.dispose();
     super.dispose();
   }
 
@@ -268,62 +272,63 @@ class _AdminPricingPageState extends State<AdminPricingPage> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          children: [
+            Expanded(
+              child: ListView(
                 children: [
-                  Expanded(
-                    child: ListView(
-                      children: [
-                        _buildSectionTitle('Wash'),
-                        _buildPriceField('Wash', _controllers['Wash']!),
-                        _buildNoteEditor(_noteWashController),
-                        _buildSectionTitle('Dry'),
-                        _buildPriceField('Dry', _controllers['Dry']!),
-                        _buildNoteEditor(_noteDryController),
-                        _buildSectionTitle('Single/Queen Size (per piece)'),
-                        _buildPriceField('Single/Queen Size (per piece)',
-                            _controllers['Single/Queen Size (per piece)']!),
-                        _buildNoteEditor(_noteSingleController),
-                        _buildSectionTitle('Wash, Dry & Press (per kg)'),
-                        _buildPriceField('Wash, Dry & Press (per kg)',
-                            _controllers['Wash, Dry & Press (per kg)']!),
-                        _buildSectionTitle('Press Only (per kg)'),
-                        _buildPriceField('Press Only (per kg)',
-                            _controllers['Press Only (per kg)']!),
-                        _buildSectionTitle('Shoes/Bag/Helmet Cleaning'),
-                        _buildPriceField('Shoes/Bag/Helmet Cleaning',
-                            _controllers['Shoes/Bag/Helmet Cleaning']!),
-                        _buildSectionTitle('Delivery / Pickup Fee'),
-                        _buildPriceField('Delivery/Pickup Fee',
-                            _controllers['Delivery/Pickup Fee']!),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: _confirmAndSavePricing,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: successColor,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: const Text(
-                        'Save Notes & Prices',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
-                      ),
-                    ),
-                  ),
+                  _buildSectionTitle('Wash'),
+                  _buildPriceField('Wash', _controllers['Wash']!),
+                  _buildNoteEditor(_noteWashController),
+                  _buildSectionTitle('Dry'),
+                  _buildPriceField('Dry', _controllers['Dry']!),
+                  _buildNoteEditor(_noteDryController),
+                  _buildSectionTitle('Single/Queen Size (per piece)'),
+                  _buildPriceField('Single/Queen Size (per piece)',
+                      _controllers['Single/Queen Size (per piece)']!),
+                  _buildNoteEditor(_noteSingleController),
+                  _buildSectionTitle('Wash, Dry & Press (per kg)'),
+                  _buildPriceField('Wash, Dry & Press (per kg)',
+                      _controllers['Wash, Dry & Press (per kg)']!),
+                  _buildSectionTitle('Press Only (per kg)'),
+                  _buildPriceField('Press Only (per kg)',
+                      _controllers['Press Only (per kg)']!),
+                  _buildNoteEditor(_notePressController),
+                  _buildSectionTitle('Shoes/Bag/Helmet Cleaning'),
+                  _buildPriceField('Shoes/Bag/Helmet Cleaning',
+                      _controllers['Shoes/Bag/Helmet Cleaning']!),
+                  _buildSectionTitle('Delivery / Pickup Fee'),
+                  _buildPriceField('Delivery/Pickup Fee',
+                      _controllers['Delivery/Pickup Fee']!),
                 ],
               ),
             ),
+            const SizedBox(height: 10),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _confirmAndSavePricing,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: successColor,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: const Text(
+                  'Save Notes & Prices',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
