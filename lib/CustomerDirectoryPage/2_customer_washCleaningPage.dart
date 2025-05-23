@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '9_customer_orderingPage.dart';
 
 class washCleaningPage extends StatefulWidget {
   final String fullName;
@@ -26,7 +27,12 @@ class _washCleaningPageState extends State<washCleaningPage> {
   ];
 
   final List<String> beddingItems = [
-    'Beddings', 'Curtains', 'Blanket', 'Comforter', 'Fleece', 'Quilt',
+    'Beddings',
+    'Curtains',
+    'Blanket',
+    'Comforter',
+    'Fleece',
+    'Quilt',
   ];
 
   // ────────────────────────────── STATE MAPS ──────────────────────────────
@@ -59,9 +65,7 @@ class _washCleaningPageState extends State<washCleaningPage> {
     required List<String> laundry,
     required Map<String, int> bulky,
   }) {
-    final bool hasLaundry = laundry.isNotEmpty;
-    final bool hasBulky = bulky.isNotEmpty;
-    return hasLaundry || hasBulky;
+    return laundry.isNotEmpty || bulky.isNotEmpty;
   }
 
   void _showValidationDialog() {
@@ -77,7 +81,7 @@ class _washCleaningPageState extends State<washCleaningPage> {
           ],
         ),
         content: const Text(
-          'Please pick at least one regular laundry type or bulky item before adding to cart.',
+          'Please pick at least one regular laundry type or bulky item before continuing.',
           style: TextStyle(fontSize: 14),
         ),
         actions: [
@@ -104,8 +108,10 @@ class _washCleaningPageState extends State<washCleaningPage> {
       backgroundColor: const Color(0xFFECF0F3),
       appBar: AppBar(
         backgroundColor: const Color(0xFF04D26F),
-        title: const Text('Wash Cleaning',
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        title: const Text(
+          'Wash Cleaning',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
         iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: SingleChildScrollView(
@@ -146,15 +152,18 @@ class _washCleaningPageState extends State<washCleaningPage> {
             const Icon(Icons.local_laundry_service,
                 size: 50, color: const Color(0xFF170CFE)),
             const SizedBox(width: 16),
-            Expanded(
+            const Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: const [
-                  Text('Wash Cleaning',
-                      style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                          color: const Color(0xFF170CFE))),
+                children: [
+                  Text(
+                    'Wash Cleaning',
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: const Color(0xFF170CFE),
+                    ),
+                  ),
                   SizedBox(height: 4),
                   Text(
                     'Standard washing and drying service for everyday clothes. Free fold included.',
@@ -169,6 +178,7 @@ class _washCleaningPageState extends State<washCleaningPage> {
     );
   }
 
+  // ───────────────────────── PRICING SECTION ─────────────────────────
   Widget _buildPricingSection() {
     return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
       stream: FirebaseFirestore.instance
@@ -188,9 +198,13 @@ class _washCleaningPageState extends State<washCleaningPage> {
             double.tryParse(data['wash']?.toString() ?? '0') ?? 0;
         final double singleQueenUnit =
             double.tryParse(data['singleQueen']?.toString() ?? '0') ?? 0;
-        final washNote = data['washNote']?.toString() ?? '';
+        final String washNote = data['washNote']?.toString() ?? '';
 
-        final total = washBase + _getSelectedBeddingTotal(singleQueenUnit);
+        final bool hasRegular = selectedRegularLaundryTypes.values.any((v) => v) ||
+            (othersSelected && othersText.trim().isNotEmpty);
+
+        final double bulkyTotal = _getSelectedBeddingTotal(singleQueenUnit);
+        final double total = bulkyTotal + (hasRegular ? washBase : 0);
 
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -199,17 +213,21 @@ class _washCleaningPageState extends State<washCleaningPage> {
             children: [
               Row(
                 children: [
-                  const Text('TOTAL = ',
-                      style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black54)),
+                  const Text(
+                    'TOTAL = ',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black54,
+                    ),
+                  ),
                   Expanded(
                     child: IgnorePointer(
                       child: TextField(
                         readOnly: true,
-                        controller:
-                        TextEditingController(text: '₱ ${total.toStringAsFixed(2)}'),
+                        controller: TextEditingController(
+                          text: '₱ ${total.toStringAsFixed(2)}',
+                        ),
                         style: const TextStyle(color: Colors.black),
                         decoration: InputDecoration(
                           filled: true,
@@ -218,7 +236,9 @@ class _washCleaningPageState extends State<washCleaningPage> {
                             borderRadius: BorderRadius.all(Radius.circular(10)),
                           ),
                           contentPadding: const EdgeInsets.symmetric(
-                              vertical: 8, horizontal: 12),
+                            vertical: 8,
+                            horizontal: 12,
+                          ),
                         ),
                       ),
                     ),
@@ -226,8 +246,10 @@ class _washCleaningPageState extends State<washCleaningPage> {
                 ],
               ),
               const SizedBox(height: 6),
-              Text(washNote,
-                  style: const TextStyle(fontSize: 12, color: Colors.black54)),
+              Text(
+                washNote,
+                style: const TextStyle(fontSize: 12, color: Colors.black54),
+              ),
             ],
           ),
         );
@@ -254,13 +276,16 @@ class _washCleaningPageState extends State<washCleaningPage> {
               child: Scrollbar(
                 child: ListView(
                   children: [
-                    ...regularLaundryTypes.map((type) => _miniCheckboxTile(
-                      label: type,
-                      value: selectedRegularLaundryTypes[type],
-                      onChanged: (val) => setState(
-                              () => selectedRegularLaundryTypes[type] =
-                              val ?? false),
-                    )),
+                    ...regularLaundryTypes.map(
+                          (type) => _miniCheckboxTile(
+                        label: type,
+                        value: selectedRegularLaundryTypes[type],
+                        onChanged: (val) => setState(
+                              () =>
+                          selectedRegularLaundryTypes[type] = val ?? false,
+                        ),
+                      ),
+                    ),
                     _miniCheckboxTile(
                       label: 'Others',
                       value: othersSelected,
@@ -280,11 +305,10 @@ class _washCleaningPageState extends State<washCleaningPage> {
                             hintText: 'Please specify',
                             border: OutlineInputBorder(),
                             isDense: true,
-                            contentPadding: EdgeInsets.symmetric(
-                                vertical: 8, horizontal: 12),
+                            contentPadding:
+                            EdgeInsets.symmetric(vertical: 8, horizontal: 12),
                           ),
-                          onChanged: (val) =>
-                              setState(() => othersText = val),
+                          onChanged: (val) => setState(() => othersText = val),
                         ),
                       ),
                   ],
@@ -312,8 +336,9 @@ class _washCleaningPageState extends State<washCleaningPage> {
             final data = snapshot.data?.data() ?? {};
             final double singleQueenUnit =
                 double.tryParse(data['singleQueen']?.toString() ?? '0') ?? 0;
-            final singleQueenText =
-            data['singleQueen'] != null ? data['singleQueen'].toString() : '—';
+            final singleQueenText = data['singleQueen'] != null
+                ? data['singleQueen'].toString()
+                : '—';
 
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -324,52 +349,56 @@ class _washCleaningPageState extends State<washCleaningPage> {
                       fontSize: 14, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 10),
-                ...beddingItems.map((item) => Column(
-                  children: [
-                    _miniCheckboxTile(
-                      label: item,
-                      value: selectedBeddingItems[item],
-                      onChanged: (val) {
-                        setState(() {
-                          selectedBeddingItems[item] = val ?? false;
-                          if (val == true && beddingQuantities[item] == 0) {
-                            beddingQuantities[item] = 1;
-                          }
-                        });
-                      },
-                    ),
-                    if (selectedBeddingItems[item] == true)
-                      Padding(
-                        padding: const EdgeInsets.only(left: 40, bottom: 8),
-                        child: Row(
-                          children: [
-                            IconButton(
-                              icon: const Icon(Icons.remove_circle_outline),
-                              onPressed: () {
-                                setState(() {
-                                  if (beddingQuantities[item]! > 1) {
-                                    beddingQuantities[item] =
-                                        beddingQuantities[item]! - 1;
-                                  }
-                                });
-                              },
-                            ),
-                            Text(beddingQuantities[item].toString(),
-                                style: const TextStyle(fontSize: 16)),
-                            IconButton(
-                              icon: const Icon(Icons.add_circle_outline),
-                              onPressed: () {
-                                setState(() {
-                                  beddingQuantities[item] =
-                                      beddingQuantities[item]! + 1;
-                                });
-                              },
-                            ),
-                          ],
-                        ),
+                ...beddingItems.map(
+                      (item) => Column(
+                    children: [
+                      _miniCheckboxTile(
+                        label: item,
+                        value: selectedBeddingItems[item],
+                        onChanged: (val) {
+                          setState(() {
+                            selectedBeddingItems[item] = val ?? false;
+                            if (val == true && beddingQuantities[item] == 0) {
+                              beddingQuantities[item] = 1;
+                            }
+                          });
+                        },
                       ),
-                  ],
-                )),
+                      if (selectedBeddingItems[item] == true)
+                        Padding(
+                          padding: const EdgeInsets.only(left: 40, bottom: 8),
+                          child: Row(
+                            children: [
+                              IconButton(
+                                icon: const Icon(Icons.remove_circle_outline),
+                                onPressed: () {
+                                  setState(() {
+                                    if (beddingQuantities[item]! > 1) {
+                                      beddingQuantities[item] =
+                                          beddingQuantities[item]! - 1;
+                                    }
+                                  });
+                                },
+                              ),
+                              Text(
+                                beddingQuantities[item].toString(),
+                                style: const TextStyle(fontSize: 16),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.add_circle_outline),
+                                onPressed: () {
+                                  setState(() {
+                                    beddingQuantities[item] =
+                                        beddingQuantities[item]! + 1;
+                                  });
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
                 const SizedBox(height: 4),
                 Text(
                   'Selected bulky items total: ₱${_getSelectedBeddingTotal(singleQueenUnit).toStringAsFixed(2)}',
@@ -400,14 +429,15 @@ class _washCleaningPageState extends State<washCleaningPage> {
                 borderRadius: BorderRadius.all(Radius.circular(10)),
               ),
               focusedBorder: const OutlineInputBorder(
-                borderSide: BorderSide(color: Color(0xFF04D26F)),
+                borderSide: BorderSide(color: const Color(0xFF04D26F)),
                 borderRadius: BorderRadius.all(Radius.circular(10)),
               ),
             ),
           ),
           const SizedBox(height: 15),
           const Text(
-            'Finalized pricing will be shown in your invoice after weighing at our shop. Extra charges may apply for over-sized, delicate, or special-care items.',
+            'Finalized pricing will be shown in your invoice after weighing at our shop. '
+                'Extra charges may apply for over-sized, delicate, or special-care items.',
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 12,
@@ -421,7 +451,6 @@ class _washCleaningPageState extends State<washCleaningPage> {
     );
   }
 
-
   Widget _buildActionButtons() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -433,27 +462,33 @@ class _washCleaningPageState extends State<washCleaningPage> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFFFFD700),
                 padding: const EdgeInsets.symmetric(vertical: 20),
-                shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
               icon: const Icon(Icons.shopping_cart, color: Colors.black),
-              label: const Text('Add to Cart',
-                  style: TextStyle(color: Colors.black)),
+              label: const Text(
+                'Add to Cart',
+                style: TextStyle(color: Colors.black),
+              ),
             ),
           ),
           const SizedBox(width: 10),
           Expanded(
             child: ElevatedButton.icon(
-              onPressed: () {},
+              onPressed: _handleOrderNow,           // ← NEW
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF04D26F),
                 padding: const EdgeInsets.symmetric(vertical: 20),
-                shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
               icon: const Icon(Icons.check_circle, color: Colors.white),
-              label: const Text('Order Now',
-                  style: TextStyle(color: Colors.white)),
+              label: const Text(
+                'Order Now',
+                style: TextStyle(color: Colors.white),
+              ),
             ),
           ),
         ],
@@ -461,7 +496,68 @@ class _washCleaningPageState extends State<washCleaningPage> {
     );
   }
 
-  // ────────────────────────────── FIRESTORE SAVE ──────────────────────────────
+  // ─────────────────────────── ORDER NOW FLOW ───────────────────────────
+  Future<void> _handleOrderNow() async {
+    // 1. Pull latest pricing so totals are correct.
+    final pricingSnap = await FirebaseFirestore.instance
+        .collection('pricing_management')
+        .doc('pricing')
+        .get();
+    final pricing = pricingSnap.data() ?? {};
+    final double washBase =
+        double.tryParse(pricing['wash']?.toString() ?? '0') ?? 0;
+    final double singleQueenUnit =
+        double.tryParse(pricing['singleQueen']?.toString() ?? '0') ?? 0;
+
+    // 2. Gather selections.
+    final List<String> typeOfLaundry = selectedRegularLaundryTypes.entries
+        .where((e) => e.value)
+        .map((e) => e.key)
+        .toList();
+    if (othersSelected && othersText.trim().isNotEmpty) {
+      typeOfLaundry.add('Others: ${othersText.trim()}');
+    }
+
+    final Map<String, int> bulkyCounts = {};
+    selectedBeddingItems.forEach((item, selected) {
+      if (selected) bulkyCounts[item] = beddingQuantities[item]!;
+    });
+
+    // 3. Validate.
+    if (!_hasAnySelection(laundry: typeOfLaundry, bulky: bulkyCounts)) {
+      _showValidationDialog();
+      return;
+    }
+
+    // 4. Compute totals.
+    final double priceOfBulkyItems = bulkyCounts.entries.fold<double>(
+        0.0, (sum, e) => sum + (e.value * singleQueenUnit));
+    final double totalPrice =
+        priceOfBulkyItems + (typeOfLaundry.isNotEmpty ? washBase : 0);
+
+    // 5. Navigate to summary page (no DB write).
+    if (!mounted) return;
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => OrderingPage(
+          fullName: widget.fullName,
+          address: widget.address,
+          email: widget.email,
+          contact: widget.contact,
+          serviceType: 'Wash Cleaning',
+          typeOfLaundry: typeOfLaundry,
+          bulkyItems: bulkyCounts,
+          washBase: washBase,                // pass as washBase
+          priceOfBulkyItems: priceOfBulkyItems,
+          totalPrice: totalPrice,
+          personalRequest: noteController.text.trim(),
+        ),
+      ),
+    );
+  }
+
+  // ─────────────────────────── FIRESTORE ADD TO CART ───────────────────────────
   Future<void> _handleAddToCart() async {
     // 1. Pull latest pricing so we compute with current values.
     final pricingSnap = await FirebaseFirestore.instance
@@ -497,17 +593,18 @@ class _washCleaningPageState extends State<washCleaningPage> {
     // 4. Compute totals.
     final double priceOfBulkyItems = bulkyCounts.entries.fold<double>(
         0, (sum, e) => sum + (e.value * singleQueenUnit));
-    final double totalPrice = washBase + priceOfBulkyItems;
+    final double totalPrice =
+        priceOfBulkyItems + (typeOfLaundry.isNotEmpty ? washBase : 0);
 
     // 5. Write to Firestore.
     try {
       await FirebaseFirestore.instance.collection('cart_customers').add({
         'email': widget.email,
-        'contact':widget.contact,
-        'serviceType': 'Wash Cleaning', // Hard-coded type of service
-        'typeOfLaundry': typeOfLaundry,           // List<String>
-        'bulkyItems': bulkyCounts.keys.toList(),  // List<String>
-        'numberOfBulkyItems': bulkyCounts,        // Map<String,int>
+        'contact': widget.contact,
+        'serviceType': 'Wash Cleaning',
+        'typeOfLaundry': typeOfLaundry,
+        'bulkyItems': bulkyCounts.keys.toList(),
+        'numberOfBulkyItems': bulkyCounts,
         'priceOfBulkyItems': priceOfBulkyItems,
         'personalRequest': noteController.text.trim(),
         'totalPrice': totalPrice,
@@ -519,7 +616,9 @@ class _washCleaningPageState extends State<washCleaningPage> {
           SnackBar(
             behavior: SnackBarBehavior.floating,
             backgroundColor: const Color(0xFF04D26F),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
             content: Row(
               children: const [
                 Icon(Icons.check_circle_outline, color: Colors.white),
@@ -532,7 +631,7 @@ class _washCleaningPageState extends State<washCleaningPage> {
                 ),
               ],
             ),
-            duration: Duration(seconds: 2),
+            duration: const Duration(seconds: 2),
           ),
         );
       }
@@ -542,7 +641,9 @@ class _washCleaningPageState extends State<washCleaningPage> {
           SnackBar(
             behavior: SnackBarBehavior.floating,
             backgroundColor: const Color(0xFFE57373),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
             content: Row(
               children: [
                 const Icon(Icons.error_outline, color: Colors.white),
@@ -564,7 +665,7 @@ class _washCleaningPageState extends State<washCleaningPage> {
     }
   }
 
-  // ────────────────────────────── SMALL HELPERS ──────────────────────────────
+  // ───────────────────────── SMALL HELPERS ─────────────────────────
   BoxDecoration _boxDecoration() => BoxDecoration(
     color: Colors.grey[200],
     borderRadius: BorderRadius.circular(10),
