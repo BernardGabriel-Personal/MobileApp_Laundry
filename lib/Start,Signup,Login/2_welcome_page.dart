@@ -373,6 +373,61 @@ class _AnimatedDialogState extends State<AnimatedDialog> {
                 ),
               ),
               const SizedBox(height: 24),
+
+              const Text(
+                'Privacy Policy',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'We collect account info, order data, and limited device details to deliver our laundry services efficiently. '
+                    'Your data is shared only with authorized staff and payment processors, and is never sold. '
+                    'You have the right to access, correct, or delete your information under the Data Privacy Act of 2012.',
+                style: TextStyle(fontSize: 14, height: 1.5),
+              ),
+              const SizedBox(height: 16),
+
+              const Text(
+                'Terms of Service',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'By using this app, you agree to follow branch-specific service availability and dynamic pricing. '
+                    'Services are only available within Dasmariñas, Cavite, Philippines and on Android devices. '
+                    'Misuse, fraud, or policy violations may lead to account suspension/deletion.',
+                style: TextStyle(fontSize: 14, height: 1.5),
+              ),
+              const SizedBox(height: 16),
+
+              const Text(
+                'Contact Us',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'If you have any questions, concerns, requests or feedback, feel free to email us at:',
+                style: TextStyle(fontSize: 14, height: 1.5),
+              ),
+              const SizedBox(height: 4),
+              const Text(
+                'bernardgabriel151@gmail.com\nmiguel23manuntag@gmail.com\ntomtan096@gmail.com',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.blue,
+                  decoration: TextDecoration.underline,
+                ),
+              ),
+              const SizedBox(height: 24),
               Align(
                 alignment: Alignment.center,
                 child: ElevatedButton(

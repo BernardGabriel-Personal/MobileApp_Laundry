@@ -202,8 +202,8 @@ class _AdminHomePageState extends State<AdminHomePage> {
                         );
                       }),
                       _buildDashboardTile(Icons.library_books, 'Log Book', () {}),
-                      _buildDashboardTile(Icons.bar_chart, 'Analytics', () {}),
-                      _buildDashboardTile(Icons.verified_user, 'Accounts', () {}),
+                      // _buildDashboardTile(Icons.bar_chart, 'Analytics', () {}),
+                      _buildDashboardTile(Icons.announcement, 'Announcements', () {}),
                     ],
                   ),
                 ),
