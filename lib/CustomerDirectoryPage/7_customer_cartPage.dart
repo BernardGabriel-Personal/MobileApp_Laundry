@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../Start,Signup,Login/2_welcome_page.dart'; // logout → HomeScreen
 import '1_customer_homepage.dart';
 import '8_customer_profilePage.dart';
+import '9_customer_orderingPage.dart'; // Import OrderingPage
 
 class CartPage extends StatefulWidget {
   final String fullName;
@@ -184,9 +185,7 @@ class _CartPageState extends State<CartPage> {
                         final numberOfBulkyItems = d['numberOfBulkyItems'] as Map? ?? {};
 
                         String formatBulkyItems(Map itemsMap) {
-                          return itemsMap.entries
-                              .map((e) => '${e.value}x ${e.key}')
-                              .join(', ');
+                          return itemsMap.entries.map((e) => '${e.value}x ${e.key}').join(', ');
                         }
 
                         final preview = [
@@ -215,22 +214,17 @@ class _CartPageState extends State<CartPage> {
                                     ),
                                     Expanded(
                                       child: Text(service,
-                                          style: const TextStyle(
-                                              fontWeight: FontWeight.bold, color: Colors.black87)),
+                                          style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black87)),
                                     ),
                                     Text('₱ ${total.toStringAsFixed(2)}',
-                                        style: const TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 16,
-                                            color: Colors.black87)),
+                                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                                     const SizedBox(width: 8),
                                     TextButton(
                                       style: TextButton.styleFrom(
                                         backgroundColor: const Color(0xFFE57373),
                                         foregroundColor: Colors.white,
                                         padding: const EdgeInsets.symmetric(horizontal: 12),
-                                        shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(8)),
+                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                                       ),
                                       child: const Text('Delete'),
                                       onPressed: () async {
@@ -267,6 +261,8 @@ class _CartPageState extends State<CartPage> {
                   final totalSel = _selectedTotal(docs);
                   final hasChecked = totalSel > 0;
 
+                  final selectedDocs = docs.where((d) => _checked[d.id] == true).toList();
+
                   return Padding(
                     padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
                     child: Column(
@@ -299,8 +295,7 @@ class _CartPageState extends State<CartPage> {
                             ),
                             const SizedBox(width: 8),
                             Text('Total: ₱ ${totalSel.toStringAsFixed(2)}',
-                                style: const TextStyle(
-                                    fontWeight: FontWeight.bold, fontSize: 16)),
+                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                           ],
                         ),
                         const SizedBox(height: 6),
@@ -312,12 +307,26 @@ class _CartPageState extends State<CartPage> {
                               padding: const EdgeInsets.symmetric(vertical: 14),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                             ),
-                            onPressed: hasChecked ? () {} : null,
+                            onPressed: hasChecked
+                                ? () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => OrderingPage(
+                                    fullName: widget.fullName,
+                                    address: widget.address,
+                                    contact: widget.contact,
+                                    email: widget.email,
+                                    selectedItems: selectedDocs,
+                                    totalPrice: totalSel,
+                                  ),
+                                ),
+                              );
+                            }
+                                : null,
                             child: const Text('Check Out',
                                 style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white)),
+                                    fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
                           ),
                         ),
                       ],
