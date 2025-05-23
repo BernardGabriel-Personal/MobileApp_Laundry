@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '9_customer_orderingPage.dart';
 
 class washDryPressPage extends StatefulWidget {
   final String fullName;
@@ -53,7 +54,7 @@ class _washDryPressPageState extends State<washDryPressPage> {
           ],
         ),
         content: const Text(
-          'Please pick at least one item before adding to cart.',
+          'Please pick at least one item before continuing.',
           style: TextStyle(fontSize: 14),
         ),
         actions: [
@@ -61,7 +62,9 @@ class _washDryPressPageState extends State<washDryPressPage> {
             style: TextButton.styleFrom(
               backgroundColor: const Color(0xFFE57373),
               foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
             ),
             onPressed: () => Navigator.pop(context),
             child: const Text('OK'),
@@ -78,8 +81,10 @@ class _washDryPressPageState extends State<washDryPressPage> {
       backgroundColor: const Color(0xFFECF0F3),
       appBar: AppBar(
         backgroundColor: const Color(0xFF04D26F),
-        title: const Text('Wash, Dry & Press Service',
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        title: const Text(
+          'Wash, Dry & Press Service',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
         iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: SingleChildScrollView(
@@ -114,18 +119,19 @@ class _washDryPressPageState extends State<washDryPressPage> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(Icons.inventory,
-              size: 50, color: Color(0xFF170CFE)),
+          const Icon(Icons.inventory, size: 50, color: Color(0xFF170CFE)),
           const SizedBox(width: 16),
-          Expanded(
+          const Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
-                Text('Wash, Dry & Press',
-                    style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF170CFE))),
+              children: [
+                Text(
+                  'Wash, Dry & Press',
+                  style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF170CFE)),
+                ),
                 SizedBox(height: 4),
                 Text(
                   'Complete laundry service including washing, drying, and professional pressing. Free fold included.',
@@ -139,7 +145,8 @@ class _washDryPressPageState extends State<washDryPressPage> {
     ),
   );
 
-  Widget _buildPricingSection() => StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+  Widget _buildPricingSection() => StreamBuilder<
+      DocumentSnapshot<Map<String, dynamic>>>(
     stream: FirebaseFirestore.instance
         .collection('pricing_management')
         .doc('pricing')
@@ -163,11 +170,13 @@ class _washDryPressPageState extends State<washDryPressPage> {
           children: [
             Row(
               children: [
-                const Text('TOTAL = ',
-                    style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black54)),
+                const Text(
+                  'TOTAL = ',
+                  style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black54),
+                ),
                 Expanded(
                   child: IgnorePointer(
                     child: TextField(
@@ -179,8 +188,9 @@ class _washDryPressPageState extends State<washDryPressPage> {
                         filled: true,
                         fillColor: Colors.grey[300],
                         border: const OutlineInputBorder(
-                            borderRadius:
-                            BorderRadius.all(Radius.circular(10))),
+                          borderRadius:
+                          BorderRadius.all(Radius.circular(10)),
+                        ),
                         contentPadding: const EdgeInsets.symmetric(
                             vertical: 8, horizontal: 12),
                       ),
@@ -215,12 +225,14 @@ class _washDryPressPageState extends State<washDryPressPage> {
             child: Scrollbar(
               child: ListView(
                 children: [
-                  ...itemTypes.map((type) => _miniCheckboxTile(
-                    label: type,
-                    value: selectedItems[type],
-                    onChanged: (v) =>
-                        setState(() => selectedItems[type] = v ?? false),
-                  )),
+                  ...itemTypes.map(
+                        (type) => _miniCheckboxTile(
+                      label: type,
+                      value: selectedItems[type],
+                      onChanged: (v) =>
+                          setState(() => selectedItems[type] = v ?? false),
+                    ),
+                  ),
                   _miniCheckboxTile(
                     label: 'Others',
                     value: othersSelected,
@@ -277,7 +289,8 @@ class _washDryPressPageState extends State<washDryPressPage> {
         ),
         const SizedBox(height: 15),
         const Text(
-          'Finalized pricing will be shown in your invoice after weighing at our shop. Extra charges may apply for over-sized, delicate, or special-care items.',
+          'Finalized pricing will be shown in your invoice after weighing at our shop. '
+              'Extra charges may apply for over-sized, delicate, or special-care items.',
           textAlign: TextAlign.center,
           style: TextStyle(
               fontSize: 12,
@@ -309,7 +322,7 @@ class _washDryPressPageState extends State<washDryPressPage> {
         const SizedBox(width: 10),
         Expanded(
           child: ElevatedButton.icon(
-            onPressed: () {/* optional Order-Now flow */},
+            onPressed: _handleOrderNow,
             style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF04D26F),
                 padding: const EdgeInsets.symmetric(vertical: 20),
@@ -326,7 +339,6 @@ class _washDryPressPageState extends State<washDryPressPage> {
 
 /* ─────────────────────────── ADD-TO-CART ─────────────────────────── */
   Future<void> _handleAddToCart() async {
-    // get current Wash-Dry-Press price
     final snap = await FirebaseFirestore.instance
         .collection('pricing_management')
         .doc('pricing')
@@ -334,14 +346,7 @@ class _washDryPressPageState extends State<washDryPressPage> {
     final double servicePrice =
         double.tryParse(snap.data()?['washDryPress']?.toString() ?? '0') ?? 0;
 
-    // gather items
-    final List<String> items = selectedItems.entries
-        .where((e) => e.value)
-        .map((e) => e.key)
-        .toList();
-    if (othersSelected && othersText.trim().isNotEmpty) {
-      items.add('Others: ${othersText.trim()}');
-    }
+    final List<String> items = _gatherSelectedItems();
     if (!_hasAnySelection(items)) {
       _showValidationDialog();
       return;
@@ -367,8 +372,7 @@ class _washDryPressPageState extends State<washDryPressPage> {
         SnackBar(
           behavior: SnackBarBehavior.floating,
           backgroundColor: const Color(0xFF04D26F),
-          shape:
-          RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           content: Row(
             children: const [
               Icon(Icons.check_circle_outline, color: Colors.white),
@@ -387,8 +391,7 @@ class _washDryPressPageState extends State<washDryPressPage> {
         SnackBar(
           behavior: SnackBarBehavior.floating,
           backgroundColor: const Color(0xFFE57373),
-          shape:
-          RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           content: Row(
             children: [
               const Icon(Icons.error_outline, color: Colors.white),
@@ -406,7 +409,54 @@ class _washDryPressPageState extends State<washDryPressPage> {
     }
   }
 
-/* ─────────────────────────── COMMON HELPERS ─────────────────────────── */
+/* ─────────────────────────── ORDER-NOW ─────────────────────────── */
+  Future<void> _handleOrderNow() async {
+    final snap = await FirebaseFirestore.instance
+        .collection('pricing_management')
+        .doc('pricing')
+        .get();
+    final double servicePrice =
+        double.tryParse(snap.data()?['washDryPress']?.toString() ?? '0') ?? 0;
+
+    final List<String> items = _gatherSelectedItems();
+    if (!_hasAnySelection(items)) {
+      _showValidationDialog();
+      return;
+    }
+
+    if (!mounted) return;
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => OrderingPage(
+          fullName: widget.fullName,
+          address: widget.address,
+          email: widget.email,
+          contact: widget.contact,
+          serviceType: 'Wash, Dry & Press',
+          typeOfLaundry: items,
+          bulkyItems: const {},        // none for this service
+          washBase: servicePrice,      // treat as base price
+          priceOfBulkyItems: 0,
+          totalPrice: servicePrice,
+          personalRequest: noteController.text.trim(),
+        ),
+      ),
+    );
+  }
+
+/* ─────────────────────────── HELPERS ─────────────────────────── */
+  List<String> _gatherSelectedItems() {
+    final List<String> items = selectedItems.entries
+        .where((e) => e.value)
+        .map((e) => e.key)
+        .toList();
+    if (othersSelected && othersText.trim().isNotEmpty) {
+      items.add('Others: ${othersText.trim()}');
+    }
+    return items;
+  }
+
   BoxDecoration _boxDecoration() => BoxDecoration(
     color: Colors.grey[200],
     borderRadius: BorderRadius.circular(10),

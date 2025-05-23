@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '9_customer_orderingPage.dart';
 
 class accessoryCleaningPage extends StatefulWidget {
   final String fullName;
@@ -20,7 +21,7 @@ class accessoryCleaningPage extends StatefulWidget {
 }
 
 class _accessoryCleaningPageState extends State<accessoryCleaningPage> {
-  /* ─────────────────────────  DATA  ───────────────────────── */
+/* ─────────────────────────  DATA  ───────────────────────── */
   final List<String> accessoryItems = ['Shoes', 'Bag', 'Helmet'];
 
   late final Map<String, bool> selectedAccessory;
@@ -35,7 +36,7 @@ class _accessoryCleaningPageState extends State<accessoryCleaningPage> {
     accessoryQuantity = {for (var i in accessoryItems) i: 1};
   }
 
-  /* ─────────────────────────  HELPERS  ───────────────────────── */
+/* ─────────────────────────  HELPERS  ───────────────────────── */
   double _getSelectedTotal(double unitPrice) {
     double total = 0;
     selectedAccessory.forEach((item, sel) {
@@ -53,13 +54,13 @@ class _accessoryCleaningPageState extends State<accessoryCleaningPage> {
         backgroundColor: const Color(0xFFD9D9D9),
         title: Row(
           children: const [
-            Icon(Icons.error_outline, color: const Color(0xFFE57373), size: 28),
+            Icon(Icons.error_outline, color: Color(0xFFE57373), size: 28),
             SizedBox(width: 10),
             Text('Nothing selected', style: TextStyle(fontSize: 18)),
           ],
         ),
         content: const Text(
-          'Please pick at least one item before adding to cart.',
+          'Please pick at least one item before continuing.',
           style: TextStyle(fontSize: 14),
         ),
         actions: [
@@ -68,7 +69,8 @@ class _accessoryCleaningPageState extends State<accessoryCleaningPage> {
               foregroundColor: Colors.white,
               backgroundColor: const Color(0xFFE57373),
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8)),
+                borderRadius: BorderRadius.circular(8),
+              ),
             ),
             onPressed: () => Navigator.pop(context),
             child: const Text('OK'),
@@ -78,7 +80,7 @@ class _accessoryCleaningPageState extends State<accessoryCleaningPage> {
     );
   }
 
-  /* ─────────────────────────  UI  ───────────────────────── */
+/* ─────────────────────────  UI  ───────────────────────── */
   @override
   Widget build(BuildContext context) => Scaffold(
     backgroundColor: const Color(0xFFECF0F3),
@@ -108,7 +110,7 @@ class _accessoryCleaningPageState extends State<accessoryCleaningPage> {
     ),
   );
 
-  /* ---------- HEADER ---------- */
+/* ---------- HEADER ---------- */
   Widget _buildHeaderCard() => Padding(
     padding: const EdgeInsets.symmetric(horizontal: 20),
     child: Container(
@@ -145,7 +147,7 @@ class _accessoryCleaningPageState extends State<accessoryCleaningPage> {
     ),
   );
 
-  /* ---------- PRICING ---------- */
+/* ---------- PRICING ---------- */
   Widget _buildPricingSection() => StreamBuilder<
       DocumentSnapshot<Map<String, dynamic>>>(
     stream: FirebaseFirestore.instance
@@ -210,7 +212,7 @@ class _accessoryCleaningPageState extends State<accessoryCleaningPage> {
     },
   );
 
-  /* ---------- ACCESSORY SECTION ---------- */
+/* ---------- ACCESSORY SECTION ---------- */
   Widget _buildAccessorySection() => Padding(
     padding: const EdgeInsets.symmetric(horizontal: 20),
     child: Container(
@@ -241,15 +243,16 @@ class _accessoryCleaningPageState extends State<accessoryCleaningPage> {
                       onChanged: (v) {
                         setState(() {
                           selectedAccessory[item] = v ?? false;
-                          if (v == true && accessoryQuantity[item] == 0) {
+                          if (v == true &&
+                              accessoryQuantity[item] == 0) {
                             accessoryQuantity[item] = 1;
                           }
                         });
                       }),
                   if (selectedAccessory[item] == true)
                     Padding(
-                      padding:
-                      const EdgeInsets.only(left: 40, bottom: 8),
+                      padding: const EdgeInsets.only(
+                          left: 40, bottom: 8),
                       child: Row(
                         children: [
                           IconButton(
@@ -292,7 +295,7 @@ class _accessoryCleaningPageState extends State<accessoryCleaningPage> {
     ),
   );
 
-  /* ---------- PERSONAL REQUEST ---------- */
+/* ---------- PERSONAL REQUEST ---------- */
   Widget _buildPersonalNote() => Padding(
     padding: const EdgeInsets.symmetric(horizontal: 20),
     child: Column(
@@ -308,13 +311,14 @@ class _accessoryCleaningPageState extends State<accessoryCleaningPage> {
             border: const OutlineInputBorder(
                 borderRadius: BorderRadius.all(Radius.circular(10))),
             focusedBorder: const OutlineInputBorder(
-                borderSide: BorderSide(color: const Color(0xFF04D26F)),
+                borderSide: BorderSide(color: Color(0xFF04D26F)),
                 borderRadius: BorderRadius.all(Radius.circular(10))),
           ),
         ),
         const SizedBox(height: 15),
         const Text(
-          'Finalized pricing appears on your invoice after inspection. Extra charges may apply for oversized or special-care items.',
+          'Finalized pricing appears on your invoice after inspection. '
+              'Extra charges may apply for oversized or special-care items.',
           textAlign: TextAlign.center,
           style: TextStyle(
               fontSize: 12,
@@ -326,7 +330,7 @@ class _accessoryCleaningPageState extends State<accessoryCleaningPage> {
     ),
   );
 
-  /* ---------- BUTTONS ---------- */
+/* ---------- BUTTONS ---------- */
   Widget _buildActionButtons() => Padding(
     padding: const EdgeInsets.symmetric(horizontal: 20),
     child: Row(
@@ -347,7 +351,7 @@ class _accessoryCleaningPageState extends State<accessoryCleaningPage> {
         const SizedBox(width: 10),
         Expanded(
           child: ElevatedButton.icon(
-            onPressed: () {},
+            onPressed: _handleOrderNow,
             style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF04D26F),
                 padding: const EdgeInsets.symmetric(vertical: 20),
@@ -362,7 +366,7 @@ class _accessoryCleaningPageState extends State<accessoryCleaningPage> {
     ),
   );
 
-  /* ─────────────────────────  ADD-TO-CART  ───────────────────────── */
+/* ─────────────────────────  ADD-TO-CART  ───────────────────────── */
   Future<void> _handleAddToCart() async {
     final priceSnap = await FirebaseFirestore.instance
         .collection('pricing_management')
@@ -372,11 +376,7 @@ class _accessoryCleaningPageState extends State<accessoryCleaningPage> {
         double.tryParse(priceSnap.data()?['shoesBagHelmet']?.toString() ?? '0') ??
             0;
 
-    final Map<String, int> counts = {};
-    selectedAccessory.forEach((item, sel) {
-      if (sel) counts[item] = accessoryQuantity[item]!;
-    });
-
+    final counts = _gatherCounts();
     if (!_hasAnySelection(counts)) {
       _showValidationDialog();
       return;
@@ -390,7 +390,7 @@ class _accessoryCleaningPageState extends State<accessoryCleaningPage> {
         'email': widget.email,
         'contact': widget.contact,
         'serviceType': 'Accessory Cleaning',
-        'typeOfLaundry': [], // keep schema
+        'typeOfLaundry': [],
         'bulkyItems': counts.keys.toList(),
         'numberOfBulkyItems': counts,
         'priceOfBulkyItems': totalPrice,
@@ -411,8 +411,9 @@ class _accessoryCleaningPageState extends State<accessoryCleaningPage> {
               Icon(Icons.check_circle_outline, color: Colors.white),
               SizedBox(width: 12),
               Expanded(
-                  child: Text('Added to cart!',
-                      style: TextStyle(color: Colors.white, fontSize: 16))),
+                child: Text('Added to cart!',
+                    style: TextStyle(color: Colors.white, fontSize: 16)),
+              ),
             ],
           ),
           duration: const Duration(seconds: 2),
@@ -432,8 +433,9 @@ class _accessoryCleaningPageState extends State<accessoryCleaningPage> {
               const SizedBox(width: 12),
               Expanded(
                   child: Text('Unable to add to cart: $e',
-                      style:
-                      const TextStyle(color: Colors.white, fontSize: 14))),
+                      style: const TextStyle(color: Colors.white, fontSize: 14),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis)),
             ],
           ),
           duration: const Duration(seconds: 3),
@@ -442,7 +444,55 @@ class _accessoryCleaningPageState extends State<accessoryCleaningPage> {
     }
   }
 
-  /* ─────────────────────────  SMALL HELPERS  ───────────────────────── */
+/* ─────────────────────────  ORDER NOW  ───────────────────────── */
+  Future<void> _handleOrderNow() async {
+    final priceSnap = await FirebaseFirestore.instance
+        .collection('pricing_management')
+        .doc('pricing')
+        .get();
+    final double unitPrice =
+        double.tryParse(priceSnap.data()?['shoesBagHelmet']?.toString() ?? '0') ??
+            0;
+
+    final counts = _gatherCounts();
+    if (!_hasAnySelection(counts)) {
+      _showValidationDialog();
+      return;
+    }
+
+    final double totalPrice =
+    counts.entries.fold(0, (s, e) => s + (e.value * unitPrice));
+
+    if (!mounted) return;
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => OrderingPage(
+          fullName: widget.fullName,
+          address: widget.address,
+          email: widget.email,
+          contact: widget.contact,
+          serviceType: 'Accessory Cleaning',
+          typeOfLaundry: const [],
+          bulkyItems: counts,
+          washBase: 0,                // no base charge
+          priceOfBulkyItems: totalPrice,
+          totalPrice: totalPrice,
+          personalRequest: noteController.text.trim(),
+        ),
+      ),
+    );
+  }
+
+/* ─────────────────────────  INTERNAL  ───────────────────────── */
+  Map<String, int> _gatherCounts() {
+    final Map<String, int> counts = {};
+    selectedAccessory.forEach((item, sel) {
+      if (sel) counts[item] = accessoryQuantity[item]!;
+    });
+    return counts;
+  }
+
   BoxDecoration _boxDecoration() => BoxDecoration(
     color: Colors.grey[200],
     borderRadius: BorderRadius.circular(10),

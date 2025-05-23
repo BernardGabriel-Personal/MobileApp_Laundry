@@ -8,10 +8,10 @@ class OrderingPage extends StatelessWidget {
   final String contact;
 
   final String serviceType;
-  final List<String> typeOfLaundry;           // Regular laundry selections
+  final List<String> typeOfLaundry;           // Regular-laundry selections
   final Map<String, int> bulkyItems;          // { itemName : quantity }
-  final double? washBase;                     // Provided by Wash-Cleaning page
-  final double? dryBase;                    // Provided by Dry-Cleaning page
+  final double? washBase;                     // (may be null)
+  final double? dryBase;                      // (may be null)
   final double priceOfBulkyItems;             // Total price of bulky items
   final double totalPrice;                    // Grand total
   final String personalRequest;               // Note / special instructions
@@ -25,18 +25,18 @@ class OrderingPage extends StatelessWidget {
     required this.serviceType,
     required this.typeOfLaundry,
     required this.bulkyItems,
-    this.dryBase,                            // optional, but one of the two…
     this.washBase,
+    this.dryBase,
     required this.priceOfBulkyItems,
     required this.totalPrice,
     required this.personalRequest,
-  })  : assert(
-  dryBase != null || washBase != null,
-  'Either basePrice or washBase must be provided.'),
-        super(key: key);
+  }) : super(key: key);
 
-  // Convenient getter to unify whichever price was passed.
-  double get _base => dryBase ?? washBase ?? 0;
+  double get _base {
+    final bool hasRegularLaundry = typeOfLaundry.isNotEmpty;
+    if (!hasRegularLaundry) return 0;
+    return washBase ?? dryBase ?? 0;
+  }
 
   // ───────────────────────── BUILD ─────────────────────────
   @override
@@ -64,7 +64,7 @@ class OrderingPage extends StatelessWidget {
                 children: [
                   _infoRow('Service', serviceType),
                   _infoRow('Base Price', '₱ ${_base.toStringAsFixed(2)}'),
-                  _infoRow('Bulky Items Price',
+                  _infoRow('Bulky Items / Accessory Price',
                       '₱ ${priceOfBulkyItems.toStringAsFixed(2)}'),
                   const Divider(),
                   _infoRow('Total', '₱ ${totalPrice.toStringAsFixed(2)}',
@@ -74,7 +74,7 @@ class OrderingPage extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             _sectionCard(
-              title: 'Regular Laundry',
+              title: 'Regular Laundry Items',
               child: typeOfLaundry.isNotEmpty
                   ? Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -86,7 +86,7 @@ class OrderingPage extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             _sectionCard(
-              title: 'Bulky Items',
+              title: 'Bulky Items / Accessories',
               child: bulkyItems.isNotEmpty
                   ? Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -122,20 +122,38 @@ class OrderingPage extends StatelessWidget {
         color: Colors.grey[300],
         borderRadius: BorderRadius.circular(12),
       ),
-      child: Column(
+      child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(fullName,
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 4),
-          Text(email),
-          Text(contact),
-          const SizedBox(height: 4),
-          Text(address, maxLines: 2, overflow: TextOverflow.ellipsis),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  fullName,
+                  style: const TextStyle(
+                      fontSize: 22, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 4),
+                Text("• $email"),
+                const SizedBox(height: 4),
+                Text("• $contact"),
+                const SizedBox(height: 4),
+                Text(
+                  "• $address",
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+          const Icon(Icons.person, size: 75, color: Colors.black54),
         ],
       ),
     );
   }
+
+
 
   Widget _sectionCard({required String title, required Widget child}) {
     return Container(
@@ -150,7 +168,8 @@ class OrderingPage extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(title,
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              style:
+              const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
           child,
         ],
@@ -170,8 +189,8 @@ class OrderingPage extends StatelessWidget {
             child: Text(
               value,
               textAlign: TextAlign.right,
-              style:
-              TextStyle(fontWeight: bold ? FontWeight.bold : FontWeight.w400),
+              style: TextStyle(
+                  fontWeight: bold ? FontWeight.bold : FontWeight.w400),
             ),
           ),
         ],
@@ -195,8 +214,8 @@ class OrderingPage extends StatelessWidget {
             SnackBar(
               behavior: SnackBarBehavior.floating,
               backgroundColor: const Color(0xFF04D26F),
-              shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
               content: Row(
                 children: const [
                   Icon(Icons.check_circle_outline, color: Colors.white),
@@ -214,7 +233,8 @@ class OrderingPage extends StatelessWidget {
           );
         },
         icon: const Icon(Icons.shopping_bag, color: Colors.white),
-        label: const Text('Place Order', style: TextStyle(color: Colors.white)),
+        label: const Text('Place Order',
+            style: TextStyle(color: Colors.white)),
       ),
     );
   }
