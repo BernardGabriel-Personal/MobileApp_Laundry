@@ -1,14 +1,15 @@
+// ignore_for_file: deprecated_member_use
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import '1_owner_homepage.dart';
 import '../Start,Signup,Login/2_welcome_page.dart';
-// ignore_for_file: deprecated_member_use
 
 class OwnerProfilePage extends StatefulWidget {
   const OwnerProfilePage({super.key});
 
   @override
-  _OwnerProfilePageState createState() => _OwnerProfilePageState();
+  State<OwnerProfilePage> createState() => _OwnerProfilePageState();
 }
 
 class _OwnerProfilePageState extends State<OwnerProfilePage> {
@@ -16,7 +17,7 @@ class _OwnerProfilePageState extends State<OwnerProfilePage> {
   final TextEditingController _nameController = TextEditingController();
   Map<String, int> branchEmployeeCounts = {};
 
-  List<String> branches = [
+  final List<String> branches = [
     'Santa Cristina',
     'Santa Fe',
     'Area E',
@@ -31,21 +32,24 @@ class _OwnerProfilePageState extends State<OwnerProfilePage> {
   }
 
   Future<void> _fetchEmployeeCounts() async {
-    final snapshot = await FirebaseFirestore.instance.collection('approved_admin').get();
+    final snapshot =
+    await FirebaseFirestore.instance.collection('approved_admin').get();
 
-    Map<String, int> counts = {};
+    final counts = <String, int>{};
     for (var branch in branches) {
-      counts[branch] = snapshot.docs.where((doc) => doc['branch'] == branch).length;
+      counts[branch] =
+          snapshot.docs.where((doc) => doc['branch'] == branch).length;
     }
 
-    setState(() {
-      branchEmployeeCounts = counts;
-    });
+    setState(() => branchEmployeeCounts = counts);
   }
 
   Future<void> _fetchOwnerName() async {
     try {
-      final doc = await FirebaseFirestore.instance.collection('owner').doc('profile').get();
+      final doc = await FirebaseFirestore.instance
+          .collection('owner')
+          .doc('profile')
+          .get();
       if (doc.exists && doc.data()!.containsKey('fullName')) {
         _nameController.text = doc['fullName'];
       }
@@ -55,33 +59,159 @@ class _OwnerProfilePageState extends State<OwnerProfilePage> {
   }
 
   Future<void> _saveProfile() async {
-    try {
-      if (_nameController.text.trim().isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Full name cannot be empty')),
-        );
-        return;
-      }
+    if (_nameController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Full name cannot be empty'),
+          backgroundColor: const Color(0xFF04D26F),
+        ),
+      );
+      return;
+    }
 
-      await FirebaseFirestore.instance.collection('owner').doc('profile').set({
-        'fullName': _nameController.text.trim(),
-      }, SetOptions(merge: true));
+    try {
+      await FirebaseFirestore.instance.collection('owner').doc('profile').set(
+        {'fullName': _nameController.text.trim()},
+        SetOptions(merge: true),
+      );
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Profile updated successfully!')),
+        const SnackBar(
+          content: Text('Profile updated successfully!'),
+          backgroundColor: const Color(0xFF04D26F),
+        ),
       );
     } catch (e) {
       debugPrint('Error saving profile: $e');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error saving profile: $e')),
+        SnackBar(
+          content: Text('Error saving profile: $e'),
+          backgroundColor: const Color(0xFF04D26F),
+        ),
       );
     }
   }
 
-  Future<bool> _onWillPop() async {
-    final shouldLogout = await _showLogoutConfirmation(context);
-    return shouldLogout;
+  Future<void> _changePasswordDialog() async {
+    final pwCtrl = TextEditingController();
+    final confirmCtrl = TextEditingController();
+    final formKey = GlobalKey<FormState>();
+    bool obscurePw = true;
+    bool obscureConfirm = true;
+
+    await showDialog(
+      context: context,
+      builder: (_) => StatefulBuilder(
+        builder: (_, setState) => AlertDialog(
+          backgroundColor: const Color(0xFFD9D9D9),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: const Row(
+            children: [
+              Icon(Icons.lock_outline, color: const Color(0xFF04D26F), size: 28),
+              SizedBox(width: 10),
+              Text('Change Password', style: TextStyle(fontSize: 18)),
+            ],
+          ),
+          content: Form(
+            key: formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextFormField(
+                  controller: pwCtrl,
+                  obscureText: obscurePw,
+                  decoration: InputDecoration(
+                    labelText: 'Type New Password',
+                    border: const OutlineInputBorder(),
+                    suffixIcon: IconButton(
+                      icon: Icon(obscurePw ? Icons.visibility_off : Icons.visibility),
+                      onPressed: () => setState(() => obscurePw = !obscurePw),
+                    ),
+                  ),
+                  validator: (v) {
+                    if (v == null || v.isEmpty) return 'Password cannot be empty';
+                    if (v.length < 6) return 'Password must be at least 6 characters';
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: confirmCtrl,
+                  obscureText: obscureConfirm,
+                  decoration: InputDecoration(
+                    labelText: 'Re-type New Password',
+                    border: const OutlineInputBorder(),
+                    suffixIcon: IconButton(
+                      icon: Icon(obscureConfirm ? Icons.visibility_off : Icons.visibility),
+                      onPressed: () => setState(() => obscureConfirm = !obscureConfirm),
+                    ),
+                  ),
+                  validator: (v) {
+                    if (v != pwCtrl.text) return 'Passwords do not match';
+                    return null;
+                  },
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.white,
+                backgroundColor: Colors.grey,
+              ),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.white,
+                backgroundColor: const Color(0xFF04D26F),
+              ),
+              onPressed: () async {
+                if (!(formKey.currentState?.validate() ?? false)) return;
+
+                try {
+                  final user = FirebaseAuth.instance.currentUser;
+                  if (user == null) throw 'No authenticated user';
+                  await user.updatePassword(pwCtrl.text);
+
+                  if (mounted) {
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Password changed successfully!'),
+                        backgroundColor: const Color(0xFF04D26F),
+                      ),
+                    );
+                  }
+                } on FirebaseAuthException catch (e) {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Auth error: ${e.message}'),
+                      backgroundColor: const Color(0xFF04D26F),
+                    ),
+                  );
+                } catch (e) {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Error: $e'),
+                      backgroundColor: const Color(0xFF04D26F),
+                    ),
+                  );
+                }
+              },
+              child: const Text('Save'),
+            ),
+          ],
+        ),
+      ),
+    );
   }
+
+  Future<bool> _onWillPop() async => await _showLogoutConfirmation(context);
 
   @override
   Widget build(BuildContext context) {
@@ -112,34 +242,48 @@ class _OwnerProfilePageState extends State<OwnerProfilePage> {
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(12),
-                    boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 6)],
+                    boxShadow: const [
+                      BoxShadow(color: Colors.black26, blurRadius: 6)
+                    ],
                   ),
-                  child: Row(
+                  child: Column(
                     children: [
-                      Expanded(
-                        child: TextFormField(
-                          controller: _nameController,
-                          decoration: const InputDecoration(
-                            labelText: 'Full Name',
-                            border: OutlineInputBorder(),
-                            prefixIcon: Icon(Icons.person_outline),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: TextFormField(
+                              controller: _nameController,
+                              decoration: const InputDecoration(
+                                labelText: 'Full Name',
+                                border: OutlineInputBorder(),
+                                prefixIcon: Icon(Icons.person_outline),
+                              ),
+                              validator: (v) =>
+                              v == null || v.trim().isEmpty ? 'Please enter your full name' : null,
+                            ),
                           ),
-                          validator: (value) {
-                            if (value == null || value.trim().isEmpty) {
-                              return 'Please enter your full name';
-                            }
-                            return null;
-                          },
-                        ),
+                          const SizedBox(width: 10),
+                          IconButton(
+                            icon: const Icon(Icons.save, color: const Color(0xFF04D26F)),
+                            onPressed: () {
+                              if (_formKey.currentState?.validate() ?? false) {
+                                _saveProfile();
+                              }
+                            },
+                          ),
+                        ],
                       ),
-                      const SizedBox(width: 10),
-                      IconButton(
-                        icon: const Icon(Icons.save, color: const Color(0xFF04D26F)),
-                        onPressed: () {
-                          if (_formKey.currentState?.validate() ?? false) {
-                            _saveProfile();
-                          }
-                        },
+                      const SizedBox(height: 16),
+                      TextButton(
+                        onPressed: _changePasswordDialog,
+                        style: TextButton.styleFrom(
+                          backgroundColor: const Color(0xFF04D26F),
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(30)),
+                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                        ),
+                        child: const Text('Change Password', style: TextStyle(fontWeight: FontWeight.bold)),
                       ),
                     ],
                   ),
@@ -187,24 +331,18 @@ class _OwnerProfilePageState extends State<OwnerProfilePage> {
             children: [
               IconButton(
                 icon: const Icon(Icons.logout, color: Colors.white, size: 30),
-                onPressed: () {
-                  _showLogoutConfirmation(context);
-                },
+                onPressed: () => _showLogoutConfirmation(context),
               ),
               IconButton(
                 icon: const Icon(Icons.home, color: Colors.white, size: 30),
-                onPressed: () {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (_) => const OwnerHomePage()),
-                  );
-                },
+                onPressed: () => Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (_) => const OwnerHomePage()),
+                ),
               ),
-              IconButton(
-                icon: const Icon(Icons.person, color: Colors.white, size: 30),
-                onPressed: () {
-                  // Already on profile page
-                },
+              const IconButton(
+                icon: Icon(Icons.person, color: Colors.white, size: 30),
+                onPressed: null,
               ),
             ],
           ),
@@ -214,9 +352,9 @@ class _OwnerProfilePageState extends State<OwnerProfilePage> {
   }
 
   Future<bool> _showLogoutConfirmation(BuildContext context) async {
-    final shouldLogout = await showDialog<bool>(
+    final res = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (_) => AlertDialog(
         backgroundColor: const Color(0xFFF6E9D4),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: const Row(
@@ -253,10 +391,11 @@ class _OwnerProfilePageState extends State<OwnerProfilePage> {
       ),
     );
 
-    if (shouldLogout == true) {
+    if (res == true && mounted) {
+      await FirebaseAuth.instance.signOut();
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const HomeScreen()),
+        MaterialPageRoute(builder: (_) => const HomeScreen()),
       );
     }
     return false;
