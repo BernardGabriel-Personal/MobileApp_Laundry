@@ -325,7 +325,11 @@ class _OwnerHomePageState extends State<OwnerHomePage> {
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (_) => const OwnerProfilePage()),
+                    PageRouteBuilder(
+                      pageBuilder: (_, __, ___) => const OwnerProfilePage(),
+                      transitionDuration: Duration.zero,
+                      reverseTransitionDuration: Duration.zero,
+                    ),
                   );
                 },
               ),

@@ -337,7 +337,11 @@ class _OwnerProfilePageState extends State<OwnerProfilePage> {
                 icon: const Icon(Icons.home, color: Colors.white, size: 30),
                 onPressed: () => Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(builder: (_) => const OwnerHomePage()),
+                  PageRouteBuilder(
+                    pageBuilder: (_, __, ___) => const OwnerHomePage(),
+                    transitionDuration: Duration.zero,
+                    reverseTransitionDuration: Duration.zero,
+                  ),
                 ),
               ),
               const IconButton(
