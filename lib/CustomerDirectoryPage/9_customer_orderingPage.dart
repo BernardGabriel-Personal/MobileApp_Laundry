@@ -69,6 +69,23 @@ class _OrderingPageState extends State<OrderingPage> {
   bool _ironPressingAvailable = false;
   bool _accessoryCleaningAvailable = false;
 
+  /* ───────── Order Method & Payment ───────── */
+  final List<String> _orderMethods = [
+    'Home Pickup & Shop Delivery',
+    'Self Drop-off & Shop Delivery',
+    'Home Pickup & Self-Pickup',
+  ];
+  final Map<String, String> _orderMethodNotes = {
+    'Home Pickup & Shop Delivery':
+    'The laundry shop sends staff to collect clothes from the customer\'s doorstep and delivers the cleaned laundry back to the customer.',
+    'Self Drop-off & Shop Delivery':
+    'The customer drops off the laundry at the shop and the shop delivers it back once cleaned.',
+    'Home Pickup & Self-Pickup':
+    'The laundry shop picks up the clothes from the customer\'s home and the customer picks them up from the shop once cleaned.',
+  };
+  String? _selectedOrderMethod;
+  static const String _modeOfPayment = 'Cash on Delivery / Cash on Self-Pickup';
+
   /* ───────── helpers for SINGLE service ───────── */
   double get _singleBase {
     if (widget.typeOfLaundry == null || widget.typeOfLaundry!.isEmpty) return 0;
@@ -100,12 +117,16 @@ class _OrderingPageState extends State<OrderingPage> {
             else
               _singleServiceCard(),
             const SizedBox(height: 20),
-            _branchDropdown(), // ← branch selector
+            _branchDropdown(),
             if (_selectedBranch != null) ...[
               const SizedBox(height: 20),
               _detergentSelection(),
               const SizedBox(height: 20),
-              _serviceAvailabilitySection(), // ← NEW SECTION
+              _serviceAvailabilitySection(),
+              const SizedBox(height: 20),
+              _orderMethodSection(),                 // ← modified
+              const SizedBox(height: 20),
+              _modeOfPaymentSection(),
             ],
             const SizedBox(height: 30),
             _placeOrderButton(context),
@@ -116,91 +137,88 @@ class _OrderingPageState extends State<OrderingPage> {
   }
 
   /* ─────────  HEADER WITH USER INFO ───────── */
-  Widget _summaryHeader() =>
-      Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.grey[300],
-          borderRadius: BorderRadius.circular(12),
+  Widget _summaryHeader() => Container(
+    width: double.infinity,
+    padding: const EdgeInsets.all(16),
+    decoration: BoxDecoration(
+      color: Colors.grey[300],
+      borderRadius: BorderRadius.circular(12),
+    ),
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(widget.fullName,
+                  style: const TextStyle(
+                      fontSize: 22, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 4),
+              Text('• ${widget.email}'),
+              const SizedBox(height: 4),
+              Text('• ${widget.contact}'),
+              const SizedBox(height: 4),
+              Text('• ${widget.address}',
+                  maxLines: 2, overflow: TextOverflow.ellipsis),
+            ],
+          ),
         ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(widget.fullName,
-                      style: const TextStyle(
-                          fontSize: 22, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 4),
-                  Text('• ${widget.email}'),
-                  const SizedBox(height: 4),
-                  Text('• ${widget.contact}'),
-                  const SizedBox(height: 4),
-                  Text('• ${widget.address}',
-                      maxLines: 2, overflow: TextOverflow.ellipsis),
-                ],
-              ),
-            ),
-            const Icon(Icons.person, color: Colors.black54, size: 75),
-          ],
-        ),
-      );
+        const Icon(Icons.person, color: Colors.black54, size: 75),
+      ],
+    ),
+  );
 
   /* ─────────  SINGLE-SERVICE CARD ───────── */
-  Widget _singleServiceCard() =>
-      _sectionCard(
-        title: 'Service Details',
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _infoRow('Service', widget.serviceType ?? ''),
-            _infoRow('Base Price', '₱ ${_singleBase.toStringAsFixed(2)}'),
-            _infoRow('Bulky / Accessory Price',
-                '₱ ${(widget.priceOfBulkyItems ?? 0).toStringAsFixed(2)}'),
-            const Divider(),
-            _infoRow('Total', '₱ ${widget.totalPrice.toStringAsFixed(2)}',
-                bold: true),
-            const SizedBox(height: 12),
-            _infoRow(
-                'Regular Laundry Items',
-                (widget.typeOfLaundry != null &&
-                    widget.typeOfLaundry!.isNotEmpty)
-                    ? widget.typeOfLaundry!.join(', ')
-                    : 'None'),
-            _infoRow(
-                'Bulky / Accessories',
-                (widget.bulkyItems != null && widget.bulkyItems!.isNotEmpty)
-                    ? widget.bulkyItems!.entries
-                    .map((e) =>
-                '${e.key} – ${e.value} pc${e.value > 1 ? 's' : ''}')
-                    .join(', ')
-                    : 'None'),
-            const SizedBox(height: 12),
-            _infoRow('Personalized Request',
-                widget.personalRequest?.isNotEmpty == true
-                    ? widget.personalRequest!
-                    : '—'),
-          ],
-        ),
-      );
+  Widget _singleServiceCard() => _sectionCard(
+    title: 'Service Details',
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _infoRow('Service', widget.serviceType ?? ''),
+        _infoRow('Base Price', '₱ ${_singleBase.toStringAsFixed(2)}'),
+        _infoRow('Bulky / Accessory Price',
+            '₱ ${(widget.priceOfBulkyItems ?? 0).toStringAsFixed(2)}'),
+        const Divider(),
+        _infoRow('Total', '₱ ${widget.totalPrice.toStringAsFixed(2)}',
+            bold: true),
+        const SizedBox(height: 12),
+        _infoRow(
+            'Regular Laundry Items',
+            (widget.typeOfLaundry != null &&
+                widget.typeOfLaundry!.isNotEmpty)
+                ? widget.typeOfLaundry!.join(', ')
+                : 'None'),
+        _infoRow(
+            'Bulky / Accessories',
+            (widget.bulkyItems != null && widget.bulkyItems!.isNotEmpty)
+                ? widget.bulkyItems!.entries
+                .map((e) =>
+            '${e.key} – ${e.value} pc${e.value > 1 ? 's' : ''}')
+                .join(', ')
+                : 'None'),
+        const SizedBox(height: 12),
+        _infoRow('Personalized Request',
+            widget.personalRequest?.isNotEmpty == true
+                ? widget.personalRequest!
+                : '—'),
+      ],
+    ),
+  );
 
   /* ─────────  MULTI-SERVICE CARD ───────── */
-  Widget _multiServiceCard() =>
-      _sectionCard(
-        title: 'Selected Services',
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            ...widget.selectedItems!.map(_buildServiceDetail).toList(),
-            const Divider(height: 32),
-            _infoRow('Grand Total', '₱ ${widget.totalPrice.toStringAsFixed(2)}',
-                bold: true),
-          ],
-        ),
-      );
+  Widget _multiServiceCard() => _sectionCard(
+    title: 'Selected Services',
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        ...widget.selectedItems!.map(_buildServiceDetail).toList(),
+        const Divider(height: 32),
+        _infoRow('Grand Total', '₱ ${widget.totalPrice.toStringAsFixed(2)}',
+            bold: true),
+      ],
+    ),
+  );
 
   /* Builds the full detail for *one* service */
   Widget _buildServiceDetail(QueryDocumentSnapshot doc) {
@@ -215,13 +233,12 @@ class _OrderingPageState extends State<OrderingPage> {
     final total = (d['totalPrice'] ?? 0).toDouble();
     final personal = (d['personalRequest'] ?? '').toString();
 
-    String _fmtBulky(Map<String, dynamic> m) =>
-        m.isEmpty
-            ? 'None'
-            : m.entries
-            .map((e) =>
-        '${e.key} – ${e.value} pc${e.value > 1 ? "s" : ""}')
-            .join(', ');
+    String _fmtBulky(Map<String, dynamic> m) => m.isEmpty
+        ? 'None'
+        : m.entries
+        .map((e) =>
+    '${e.key} – ${e.value} pc${e.value > 1 ? "s" : ""}')
+        .join(', ');
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
@@ -253,95 +270,93 @@ class _OrderingPageState extends State<OrderingPage> {
   }
 
   /* ─────────  BRANCH DROPDOWN ───────── */
-  Widget _branchDropdown() =>
-      _sectionCard(
-        title: 'Select 5-Stars Laundry Branch',
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: const [
-                Icon(Icons.info_outline, color: Color(0xFFFFD700), size: 20),
-                SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    'Choose a laundry branch nearest to your home address.',
-                    style: TextStyle(
-                      color: Colors.grey,
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+  Widget _branchDropdown() => _sectionCard(
+    title: 'Select 5-Stars Laundry Branch',
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: const [
+            Icon(Icons.info_outline, color: Color(0xFFFFD700), size: 20),
+            SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                'Choose a laundry branch nearest to your home address.',
+                style: TextStyle(
+                  color: Colors.grey,
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
                 ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            SizedBox(
-              width: double.infinity,
-              child: DropdownButtonFormField<String>(
-                isExpanded: true,
-                value: _selectedBranch,
-                hint: const Text('Choose a branch'),
-                decoration: InputDecoration(
-                  contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16, vertical: 14),
-                  filled: true,
-                  fillColor: Colors.white,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                items: _branches
-                    .map((branch) =>
-                    DropdownMenuItem(
-                      value: branch,
-                      child: Text(
-                        branch,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(fontSize: 13),
-                      ),
-                    ))
-                    .toList(),
-                onChanged: (value) {
-                  setState(() {
-                    _selectedBranch = value;
-                    _availableDetergents = [];
-                    _selectedDetergents = [];
-                    _ironPressingAvailable = false;
-                    _accessoryCleaningAvailable = false;
-                  });
-                  if (value != null) _fetchAvailableDetergents(value);
-                },
               ),
             ),
           ],
         ),
-      );
+        const SizedBox(height: 8),
+        SizedBox(
+          width: double.infinity,
+          child: DropdownButtonFormField<String>(
+            isExpanded: true,
+            value: _selectedBranch,
+            hint: const Text('Choose a branch'),
+            decoration: InputDecoration(
+              contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16, vertical: 14),
+              filled: true,
+              fillColor: Colors.white,
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: Colors.grey), // Normal border color
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: Color(0xFF04D26F), width: 2), // Focused border color & thickness
+              ),
+            ),
+            items: _branches
+                .map((branch) => DropdownMenuItem(
+              value: branch,
+              child: Text(
+                branch,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontSize: 13),
+              ),
+            ))
+                .toList(),
+            onChanged: (value) {
+              setState(() {
+                _selectedBranch = value;
+                _availableDetergents = [];
+                _selectedDetergents = [];
+                _ironPressingAvailable = false;
+                _accessoryCleaningAvailable = false;
+                _selectedOrderMethod = null;
+              });
+              if (value != null) _fetchAvailableDetergents(value);
+            },
+          ),
+        ),
+      ],
+    ),
+  );
 
   /* ─────────  DETECT & LIST Detergents + Service Availability ───────── */
   void _fetchAvailableDetergents(String branch) async {
-    final branchName = branch
-        .split(' (')
-        .first; // branch name only
+    final branchName = branch.split(' (').first;
 
-    // Detergents that are in stock
     final detSnap = await FirebaseFirestore.instance
         .collection('detergent_management')
         .where('branch', isEqualTo: branchName)
         .where('availability', isEqualTo: 'Yes')
         .get();
 
-    // Service-availability flags
     final serviceDoc = await FirebaseFirestore.instance
         .collection('detergent_management')
         .doc('${branchName}_service_availability')
         .get();
 
     setState(() {
-      _availableDetergents =
-          detSnap.docs.map((doc) => doc.data()).toList();
-
+      _availableDetergents = detSnap.docs.map((doc) => doc.data()).toList();
       _ironPressingAvailable =
           (serviceDoc.data()?['ironPressingAvailability'] ?? 'No') == 'Yes';
       _accessoryCleaningAvailable =
@@ -410,27 +425,27 @@ class _OrderingPageState extends State<OrderingPage> {
   }
 
   /* ─────────  SERVICE AVAILABILITY SECTION  ───────── */
-  Widget _availabilityRow(String label, bool available) =>
-      Row(
-        children: [
-          Icon(
-            available ? Icons.check_circle : Icons.cancel,
-            color:
-            available ? const Color(0xFF04D26F) : const Color(0xFFE57373),
-            size: 20,
-          ),
-          const SizedBox(width: 6),
-          Text(
-            '$label: ${available ? 'Available' : 'Not available'}',
-            style: TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.w600,
-              color:
-              available ? const Color(0xFF04D26F) : const Color(0xFFE57373),
-            ),
-          ),
-        ],
-      );
+  Widget _availabilityRow(String label, bool available) => Row(
+    children: [
+      Icon(
+        available ? Icons.check_circle : Icons.cancel,
+        color:
+        available ? const Color(0xFF04D26F) : const Color(0xFFE57373),
+        size: 20,
+      ),
+      const SizedBox(width: 6),
+      Text(
+        '$label: ${available ? 'Available' : 'Not available'}',
+        style: TextStyle(
+          fontSize: 15,
+          fontWeight: FontWeight.w600,
+          color: available
+              ? const Color(0xFF04D26F)
+              : const Color(0xFFE57373),
+        ),
+      ),
+    ],
+  );
 
   Widget _serviceAvailabilitySection() {
     final nothingAvailable =
@@ -465,6 +480,102 @@ class _OrderingPageState extends State<OrderingPage> {
     );
   }
 
+  /* ───────── ORDER METHOD SECTION (modified) ───────── */
+  Widget _orderMethodSection() => _sectionCard(
+    title: 'Order Method',
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        ..._orderMethods.map(
+              (m) => RadioListTile<String>(
+            value: m,
+            groupValue: _selectedOrderMethod,
+            dense: true,
+            activeColor: const Color(0xFF04D26F),
+            title: Text(m, style: const TextStyle(fontSize: 14)),
+            onChanged: (val) => setState(() => _selectedOrderMethod = val),
+          ),
+        ),
+        if (_selectedOrderMethod != null) ...[
+          const SizedBox(height: 6),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(
+                Icons.info_outline,
+                color: Color(0xFFFFD700),
+                size: 18,
+              ),
+              SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  _orderMethodNotes[_selectedOrderMethod!]!,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontStyle: FontStyle.italic,
+                    color: Colors.grey,
+                  ),
+                ),
+              ),
+            ],
+          )
+        ],
+      ],
+    ),
+  );
+
+  /* ───────── MODE OF PAYMENT SECTION (unchanged) ───────── */
+  Widget _modeOfPaymentSection() => _sectionCard(
+    title: 'Mode of Payment',
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(
+              Icons.payment,
+              color: const Color(0xFF04D26F),
+              size: 20,
+            ),
+            SizedBox(width: 6),
+            Text(
+              _modeOfPayment,
+              style: const TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF04D26F),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 6),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: const [
+            Icon(
+              Icons.info_outline,
+              color: Color(0xFFFFD700),
+              size: 18,
+            ),
+            SizedBox(width: 6),
+            Expanded(
+              child: Text(
+                'Finalized pricing will be shown in your INVOICE after weighing at our shop. '
+                    'Extra charges may apply for over-sized, delicate, or special-care items.',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontStyle: FontStyle.italic,
+                  color: Colors.grey,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    ),
+  );
+
+
   /* ───────── SERVICE-AVAILABILITY HELPERS ───────── */
   bool _needsIron(String? service) =>
       service?.toLowerCase().contains('iron') ?? false;
@@ -473,13 +584,11 @@ class _OrderingPageState extends State<OrderingPage> {
       service?.toLowerCase().contains('accessory') ?? false;
 
   bool _allRequestedServicesAvailable() {
-    // single-service order
     if (!_isMultiOrder) {
       return (!_needsIron(widget.serviceType) || _ironPressingAvailable) &&
           (!_needsAccessory(widget.serviceType) || _accessoryCleaningAvailable);
     }
 
-    // cart / multi-service
     for (final doc in widget.selectedItems!) {
       final svc = (doc.data() as Map<String, dynamic>)['serviceType'] ?? '';
       if (_needsIron(svc) && !_ironPressingAvailable) return false;
@@ -510,32 +619,34 @@ class _OrderingPageState extends State<OrderingPage> {
         ),
       );
 
-  Widget _infoRow(String label, String value, {bool bold = false}) =>
-      Padding(
-        padding: const EdgeInsets.symmetric(vertical: 2),
-        child: Row(
-          children: [
-            Text('$label: ',
-                style: TextStyle(
-                    fontWeight: bold ? FontWeight.bold : FontWeight.w600)),
-            Expanded(
-              child: Text(value,
-                  textAlign: TextAlign.right,
-                  style: TextStyle(
-                      fontWeight: bold ? FontWeight.bold : FontWeight.w400)),
-            ),
-          ],
+  Widget _infoRow(String label, String value, {bool bold = false}) => Padding(
+    padding: const EdgeInsets.symmetric(vertical: 2),
+    child: Row(
+      children: [
+        Text('$label: ',
+            style: TextStyle(
+                fontWeight: bold ? FontWeight.bold : FontWeight.w600)),
+        Expanded(
+          child: Text(value,
+              textAlign: TextAlign.right,
+              style: TextStyle(
+                  fontWeight: bold ? FontWeight.bold : FontWeight.w400)),
         ),
-      );
+      ],
+    ),
+  );
 
-  /* ─────────  PLACE ORDER ( Demo / now respects service availability) ───────── */
+  /* ─────────  PLACE ORDER (unchanged logic) ───────── */
   Widget _placeOrderButton(BuildContext context) {
     final bool noDetergents = _availableDetergents.isEmpty;
     final bool servicesUnavailable = !_allRequestedServicesAvailable();
-    final bool canPlace = !noDetergents && !servicesUnavailable;
+    final bool methodNotChosen = _selectedOrderMethod == null;
+    final bool canPlace =
+        !noDetergents && !servicesUnavailable && !methodNotChosen;
 
     String _disabledMsg() {
       if (_selectedBranch == null) return 'Please select a laundry branch.';
+      if (methodNotChosen) return 'Please select an order method.';
       if (noDetergents) {
         return 'No detergents/softeners are in stock for this branch.';
       }
@@ -548,8 +659,8 @@ class _OrderingPageState extends State<OrderingPage> {
         style: ElevatedButton.styleFrom(
           backgroundColor: canPlace ? const Color(0xFF04D26F) : Colors.grey,
           padding: const EdgeInsets.symmetric(vertical: 18),
-          shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12)),
+          shape:
+          RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
         onPressed: canPlace
             ? () {
@@ -566,8 +677,10 @@ class _OrderingPageState extends State<OrderingPage> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      'Order placed at $_selectedBranch!\nPreferred: ${_selectedDetergents
-                          .join(', ')}',
+                      'Order placed at $_selectedBranch!\n'
+                          'Method: $_selectedOrderMethod\n'
+                          'Payment: $_modeOfPayment\n'
+                          'Preferred: ${_selectedDetergents.join(', ')}',
                       style: const TextStyle(
                           color: Colors.white, fontSize: 16),
                     ),
