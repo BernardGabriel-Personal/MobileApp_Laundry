@@ -65,6 +65,10 @@ class _OrderingPageState extends State<OrderingPage> {
   List<Map<String, dynamic>> _availableDetergents = [];
   List<String> _selectedDetergents = [];
 
+  /* ───────── Service Availability ───────── */
+  bool _ironPressingAvailable = false;
+  bool _accessoryCleaningAvailable = false;
+
   /* ───────── helpers for SINGLE service ───────── */
   double get _singleBase {
     if (widget.typeOfLaundry == null || widget.typeOfLaundry!.isEmpty) return 0;
@@ -100,6 +104,8 @@ class _OrderingPageState extends State<OrderingPage> {
             if (_selectedBranch != null) ...[
               const SizedBox(height: 20),
               _detergentSelection(),
+              const SizedBox(height: 20),
+              _serviceAvailabilitySection(), // ← NEW SECTION
             ],
             const SizedBox(height: 30),
             _placeOrderButton(context),
@@ -110,88 +116,91 @@ class _OrderingPageState extends State<OrderingPage> {
   }
 
   /* ─────────  HEADER WITH USER INFO ───────── */
-  Widget _summaryHeader() => Container(
-    width: double.infinity,
-    padding: const EdgeInsets.all(16),
-    decoration: BoxDecoration(
-      color: Colors.grey[300],
-      borderRadius: BorderRadius.circular(12),
-    ),
-    child: Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(widget.fullName,
-                  style: const TextStyle(
-                      fontSize: 22, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 4),
-              Text('• ${widget.email}'),
-              const SizedBox(height: 4),
-              Text('• ${widget.contact}'),
-              const SizedBox(height: 4),
-              Text('• ${widget.address}',
-                  maxLines: 2, overflow: TextOverflow.ellipsis),
-            ],
-          ),
+  Widget _summaryHeader() =>
+      Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.grey[300],
+          borderRadius: BorderRadius.circular(12),
         ),
-        const Icon(Icons.person, color: Colors.black54, size: 75),
-      ],
-    ),
-  );
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(widget.fullName,
+                      style: const TextStyle(
+                          fontSize: 22, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 4),
+                  Text('• ${widget.email}'),
+                  const SizedBox(height: 4),
+                  Text('• ${widget.contact}'),
+                  const SizedBox(height: 4),
+                  Text('• ${widget.address}',
+                      maxLines: 2, overflow: TextOverflow.ellipsis),
+                ],
+              ),
+            ),
+            const Icon(Icons.person, color: Colors.black54, size: 75),
+          ],
+        ),
+      );
 
   /* ─────────  SINGLE-SERVICE CARD ───────── */
-  Widget _singleServiceCard() => _sectionCard(
-    title: 'Service Details',
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _infoRow('Service', widget.serviceType ?? ''),
-        _infoRow('Base Price', '₱ ${_singleBase.toStringAsFixed(2)}'),
-        _infoRow('Bulky / Accessory Price',
-            '₱ ${(widget.priceOfBulkyItems ?? 0).toStringAsFixed(2)}'),
-        const Divider(),
-        _infoRow('Total', '₱ ${widget.totalPrice.toStringAsFixed(2)}',
-            bold: true),
-        const SizedBox(height: 12),
-        _infoRow(
-            'Regular Laundry Items',
-            (widget.typeOfLaundry != null &&
-                widget.typeOfLaundry!.isNotEmpty)
-                ? widget.typeOfLaundry!.join(', ')
-                : 'None'),
-        _infoRow(
-            'Bulky / Accessories',
-            (widget.bulkyItems != null && widget.bulkyItems!.isNotEmpty)
-                ? widget.bulkyItems!.entries
-                .map((e) =>
-            '${e.key} – ${e.value} pc${e.value > 1 ? 's' : ''}')
-                .join(', ')
-                : 'None'),
-        const SizedBox(height: 12),
-        _infoRow('Personalized Request',
-            widget.personalRequest?.isNotEmpty == true
-                ? widget.personalRequest!
-                : '—'),
-      ],
-    ),
-  );
+  Widget _singleServiceCard() =>
+      _sectionCard(
+        title: 'Service Details',
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _infoRow('Service', widget.serviceType ?? ''),
+            _infoRow('Base Price', '₱ ${_singleBase.toStringAsFixed(2)}'),
+            _infoRow('Bulky / Accessory Price',
+                '₱ ${(widget.priceOfBulkyItems ?? 0).toStringAsFixed(2)}'),
+            const Divider(),
+            _infoRow('Total', '₱ ${widget.totalPrice.toStringAsFixed(2)}',
+                bold: true),
+            const SizedBox(height: 12),
+            _infoRow(
+                'Regular Laundry Items',
+                (widget.typeOfLaundry != null &&
+                    widget.typeOfLaundry!.isNotEmpty)
+                    ? widget.typeOfLaundry!.join(', ')
+                    : 'None'),
+            _infoRow(
+                'Bulky / Accessories',
+                (widget.bulkyItems != null && widget.bulkyItems!.isNotEmpty)
+                    ? widget.bulkyItems!.entries
+                    .map((e) =>
+                '${e.key} – ${e.value} pc${e.value > 1 ? 's' : ''}')
+                    .join(', ')
+                    : 'None'),
+            const SizedBox(height: 12),
+            _infoRow('Personalized Request',
+                widget.personalRequest?.isNotEmpty == true
+                    ? widget.personalRequest!
+                    : '—'),
+          ],
+        ),
+      );
 
   /* ─────────  MULTI-SERVICE CARD ───────── */
-  Widget _multiServiceCard() => _sectionCard(
-    title: 'Selected Services',
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        ...widget.selectedItems!.map(_buildServiceDetail).toList(),
-        const Divider(height: 32),
-        _infoRow('Grand Total', '₱ ${widget.totalPrice.toStringAsFixed(2)}',
-            bold: true),
-      ],
-    ),
-  );
+  Widget _multiServiceCard() =>
+      _sectionCard(
+        title: 'Selected Services',
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ...widget.selectedItems!.map(_buildServiceDetail).toList(),
+            const Divider(height: 32),
+            _infoRow('Grand Total', '₱ ${widget.totalPrice.toStringAsFixed(2)}',
+                bold: true),
+          ],
+        ),
+      );
 
   /* Builds the full detail for *one* service */
   Widget _buildServiceDetail(QueryDocumentSnapshot doc) {
@@ -206,12 +215,13 @@ class _OrderingPageState extends State<OrderingPage> {
     final total = (d['totalPrice'] ?? 0).toDouble();
     final personal = (d['personalRequest'] ?? '').toString();
 
-    String _fmtBulky(Map<String, dynamic> m) => m.isEmpty
-        ? 'None'
-        : m.entries
-        .map((e) =>
-    '${e.key} – ${e.value} pc${e.value > 1 ? "s" : ""}')
-        .join(', ');
+    String _fmtBulky(Map<String, dynamic> m) =>
+        m.isEmpty
+            ? 'None'
+            : m.entries
+            .map((e) =>
+        '${e.key} – ${e.value} pc${e.value > 1 ? "s" : ""}')
+            .join(', ');
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
@@ -243,80 +253,100 @@ class _OrderingPageState extends State<OrderingPage> {
   }
 
   /* ─────────  BRANCH DROPDOWN ───────── */
-  Widget _branchDropdown() => _sectionCard(
-    title: 'Select 5-Stars Laundry Branch',
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: const [
-            Icon(Icons.info_outline, color: Color(0xFFFFD700), size: 20),
-            SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                'Choose a laundry branch nearest to your home address.',
-                style: TextStyle(
-                  color: Colors.grey,
-                  fontSize: 15,
-                  fontWeight: FontWeight.bold,
+  Widget _branchDropdown() =>
+      _sectionCard(
+        title: 'Select 5-Stars Laundry Branch',
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: const [
+                Icon(Icons.info_outline, color: Color(0xFFFFD700), size: 20),
+                SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Choose a laundry branch nearest to your home address.',
+                    style: TextStyle(
+                      color: Colors.grey,
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            SizedBox(
+              width: double.infinity,
+              child: DropdownButtonFormField<String>(
+                isExpanded: true,
+                value: _selectedBranch,
+                hint: const Text('Choose a branch'),
+                decoration: InputDecoration(
+                  contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16, vertical: 14),
+                  filled: true,
+                  fillColor: Colors.white,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                items: _branches
+                    .map((branch) =>
+                    DropdownMenuItem(
+                      value: branch,
+                      child: Text(
+                        branch,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(fontSize: 13),
+                      ),
+                    ))
+                    .toList(),
+                onChanged: (value) {
+                  setState(() {
+                    _selectedBranch = value;
+                    _availableDetergents = [];
+                    _selectedDetergents = [];
+                    _ironPressingAvailable = false;
+                    _accessoryCleaningAvailable = false;
+                  });
+                  if (value != null) _fetchAvailableDetergents(value);
+                },
               ),
             ),
           ],
         ),
-        const SizedBox(height: 8),
-        SizedBox(
-          width: double.infinity,
-          child: DropdownButtonFormField<String>(
-            isExpanded: true,
-            value: _selectedBranch,
-            hint: const Text('Choose a branch'),
-            decoration: InputDecoration(
-              contentPadding:
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-              filled: true,
-              fillColor: Colors.white,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            items: _branches
-                .map((branch) => DropdownMenuItem(
-              value: branch,
-              child: Text(
-                branch,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontSize: 13),
-              ),
-            ))
-                .toList(),
-            onChanged: (value) {
-              setState(() {
-                _selectedBranch = value;
-                _availableDetergents = [];
-                _selectedDetergents = [];
-              });
-              if (value != null) _fetchAvailableDetergents(value);
-            },
-          ),
-        ),
-      ],
-    ),
-  );
+      );
 
-  /* ─────────  DETECT & LIST Detergents ───────── */
+  /* ─────────  DETECT & LIST Detergents + Service Availability ───────── */
   void _fetchAvailableDetergents(String branch) async {
-    final snapshot = await FirebaseFirestore.instance
+    final branchName = branch
+        .split(' (')
+        .first; // branch name only
+
+    // Detergents that are in stock
+    final detSnap = await FirebaseFirestore.instance
         .collection('detergent_management')
-        .where('branch', isEqualTo: branch.split(' (').first) // branch name only
+        .where('branch', isEqualTo: branchName)
         .where('availability', isEqualTo: 'Yes')
         .get();
 
+    // Service-availability flags
+    final serviceDoc = await FirebaseFirestore.instance
+        .collection('detergent_management')
+        .doc('${branchName}_service_availability')
+        .get();
+
     setState(() {
-      _availableDetergents = snapshot.docs
-          .map((doc) => doc.data())
-          .toList();
+      _availableDetergents =
+          detSnap.docs.map((doc) => doc.data()).toList();
+
+      _ironPressingAvailable =
+          (serviceDoc.data()?['ironPressingAvailability'] ?? 'No') == 'Yes';
+      _accessoryCleaningAvailable =
+          (serviceDoc.data()?['accessoryCleaningAvailability'] ?? 'No') ==
+              'Yes';
     });
   }
 
@@ -329,12 +359,12 @@ class _OrderingPageState extends State<OrderingPage> {
           child: Center(
             child: Text(
               'No stock available for the selected branch. Please check for any announcement or contact 5-Stars Laundromat.',
+              textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.w600,
-                color: const Color(0xFFE57373),
+                color: Color(0xFFE57373),
               ),
-              textAlign: TextAlign.center,
             ),
           ),
         ),
@@ -344,7 +374,7 @@ class _OrderingPageState extends State<OrderingPage> {
     return _sectionCard(
       title: 'Preferred Detergents / Softeners / Cleaning Agents',
       child: SizedBox(
-        height: 135, // adjust height as needed
+        height: 135,
         child: Scrollbar(
           thumbVisibility: true,
           child: SingleChildScrollView(
@@ -379,6 +409,85 @@ class _OrderingPageState extends State<OrderingPage> {
     );
   }
 
+  /* ─────────  SERVICE AVAILABILITY SECTION  ───────── */
+  Widget _availabilityRow(String label, bool available) =>
+      Row(
+        children: [
+          Icon(
+            available ? Icons.check_circle : Icons.cancel,
+            color:
+            available ? const Color(0xFF04D26F) : const Color(0xFFE57373),
+            size: 20,
+          ),
+          const SizedBox(width: 6),
+          Text(
+            '$label: ${available ? 'Available' : 'Not available'}',
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
+              color:
+              available ? const Color(0xFF04D26F) : const Color(0xFFE57373),
+            ),
+          ),
+        ],
+      );
+
+  Widget _serviceAvailabilitySection() {
+    final nothingAvailable =
+        !_ironPressingAvailable && !_accessoryCleaningAvailable;
+
+    return _sectionCard(
+      title: 'Service Availability',
+      child: nothingAvailable
+          ? const Padding(
+        padding: EdgeInsets.symmetric(vertical: 20),
+        child: Center(
+          child: Text(
+            'Service not available for the selected branch. Please check for any announcement or contact 5-Stars Laundromat.',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFFE57373),
+            ),
+          ),
+        ),
+      )
+          : Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _availabilityRow('Iron Pressing', _ironPressingAvailable),
+          const SizedBox(height: 8),
+          _availabilityRow(
+              'Accessory Cleaning', _accessoryCleaningAvailable),
+        ],
+      ),
+    );
+  }
+
+  /* ───────── SERVICE-AVAILABILITY HELPERS ───────── */
+  bool _needsIron(String? service) =>
+      service?.toLowerCase().contains('iron') ?? false;
+
+  bool _needsAccessory(String? service) =>
+      service?.toLowerCase().contains('accessory') ?? false;
+
+  bool _allRequestedServicesAvailable() {
+    // single-service order
+    if (!_isMultiOrder) {
+      return (!_needsIron(widget.serviceType) || _ironPressingAvailable) &&
+          (!_needsAccessory(widget.serviceType) || _accessoryCleaningAvailable);
+    }
+
+    // cart / multi-service
+    for (final doc in widget.selectedItems!) {
+      final svc = (doc.data() as Map<String, dynamic>)['serviceType'] ?? '';
+      if (_needsIron(svc) && !_ironPressingAvailable) return false;
+      if (_needsAccessory(svc) && !_accessoryCleaningAvailable) return false;
+    }
+    return true;
+  }
+
   /* ─────────  GENERIC BUILDING BLOCKS ───────── */
   Widget _sectionCard({required String title, required Widget child}) =>
       Container(
@@ -401,62 +510,66 @@ class _OrderingPageState extends State<OrderingPage> {
         ),
       );
 
-  Widget _infoRow(String label, String value, {bool bold = false}) => Padding(
-    padding: const EdgeInsets.symmetric(vertical: 2),
-    child: Row(
-      children: [
-        Text('$label: ',
-            style: TextStyle(
-                fontWeight: bold ? FontWeight.bold : FontWeight.w600)),
-        Expanded(
-          child: Text(value,
-              textAlign: TextAlign.right,
-              style: TextStyle(
-                  fontWeight: bold ? FontWeight.bold : FontWeight.w400)),
+  Widget _infoRow(String label, String value, {bool bold = false}) =>
+      Padding(
+        padding: const EdgeInsets.symmetric(vertical: 2),
+        child: Row(
+          children: [
+            Text('$label: ',
+                style: TextStyle(
+                    fontWeight: bold ? FontWeight.bold : FontWeight.w600)),
+            Expanded(
+              child: Text(value,
+                  textAlign: TextAlign.right,
+                  style: TextStyle(
+                      fontWeight: bold ? FontWeight.bold : FontWeight.w400)),
+            ),
+          ],
         ),
-      ],
-    ),
-  );
+      );
 
-  /* ─────────  PLACE ORDER (demo) ───────── */
+  /* ─────────  PLACE ORDER ( Demo / now respects service availability) ───────── */
   Widget _placeOrderButton(BuildContext context) {
-    final bool isOutOfStock = _availableDetergents.isEmpty;
+    final bool noDetergents = _availableDetergents.isEmpty;
+    final bool servicesUnavailable = !_allRequestedServicesAvailable();
+    final bool canPlace = !noDetergents && !servicesUnavailable;
+
+    String _disabledMsg() {
+      if (_selectedBranch == null) return 'Please select a laundry branch.';
+      if (noDetergents) {
+        return 'No detergents/softeners are in stock for this branch.';
+      }
+      return 'Selected service(s) not available for this branch.';
+    }
 
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton.icon(
         style: ElevatedButton.styleFrom(
-          backgroundColor: isOutOfStock
-              ? Colors.grey // Grey background when disabled
-              : const Color(0xFF04D26F),
+          backgroundColor: canPlace ? const Color(0xFF04D26F) : Colors.grey,
           padding: const EdgeInsets.symmetric(vertical: 18),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12)),
         ),
-        onPressed: isOutOfStock
-            ? null // disables the button when no stock
-            : () {
-          if (_selectedBranch == null) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Please select a laundry branch.'),
-                backgroundColor: Colors.redAccent,
-              ),
-            );
-            return;
-          }
+        onPressed: canPlace
+            ? () {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               behavior: SnackBarBehavior.floating,
               backgroundColor: const Color(0xFF04D26F),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
               content: Row(
                 children: [
-                  const Icon(Icons.check_circle_outline, color: Colors.white),
+                  const Icon(Icons.check_circle_outline,
+                      color: Colors.white),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      'Order placed at $_selectedBranch!\nPreferred: ${_selectedDetergents.join(', ')}',
-                      style: const TextStyle(color: Colors.white, fontSize: 16),
+                      'Order placed at $_selectedBranch!\nPreferred: ${_selectedDetergents
+                          .join(', ')}',
+                      style: const TextStyle(
+                          color: Colors.white, fontSize: 16),
                     ),
                   ),
                 ],
@@ -464,9 +577,18 @@ class _OrderingPageState extends State<OrderingPage> {
               duration: const Duration(seconds: 2),
             ),
           );
+        }
+            : () {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(_disabledMsg()),
+              backgroundColor: Colors.redAccent,
+            ),
+          );
         },
         icon: const Icon(Icons.shopping_bag, color: Colors.white),
-        label: const Text('Place Order', style: TextStyle(color: Colors.white)),
+        label:
+        const Text('Place Order', style: TextStyle(color: Colors.white)),
       ),
     );
   }

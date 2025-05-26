@@ -16,12 +16,15 @@ class AdminDetergentPage extends StatefulWidget {
 }
 
 class _AdminDetergentPageState extends State<AdminDetergentPage> {
+  /* ────────────────────────────  DETERGENT FORM  ────────────────────────── */
   final TextEditingController _typeController = TextEditingController();
   String? _selectedAvailability;
-
   final List<String> _availabilityOptions = ['Yes', 'No'];
+
+  /* ────────────────────────────  STYLES / COLORS  ───────────────────────── */
   final Color highlightColor = const Color(0xFF04D26F);
 
+  /* ─────────────────────  DETERGENT FORM SUBMIT (unchanged)  ────────────── */
   Future<void> _submitForm() async {
     final String type = _typeController.text.trim();
     final String? availability = _selectedAvailability;
@@ -53,18 +56,82 @@ class _AdminDetergentPageState extends State<AdminDetergentPage> {
     _showCustomSnackBar('Item added successfully!', isError: false);
 
     _typeController.clear();
-    setState(() {
-      _selectedAvailability = null;
-    });
+    setState(() => _selectedAvailability = null);
   }
 
+  /* ─────────────  TOGGLE SERVICE (IRON / ACCESSORY) AVAILABILITY  ───────── */
+  Future<void> _toggleServiceAvailability(
+      String fieldKey, String currentValue) async {
+    final newValue = (currentValue == 'Yes') ? 'No' : 'Yes';
+
+    await FirebaseFirestore.instance
+        .collection('detergent_management')
+        .doc('${widget.branch}_service_availability')
+        .set({
+      fieldKey: newValue,
+      'branch': widget.branch,
+      'employeeId': widget.employeeId,
+      'timestamp_${fieldKey}': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
+  }
+
+  /* ────────────────  TOGGLE DETERGENT/SOFTENER AVAILABILITY  ────────────── */
+  Future<void> _updateAvailability(String docId, dynamic currentValue) async {
+    final newValue =
+    (currentValue == true || currentValue == 'Yes') ? 'No' : 'Yes';
+    await FirebaseFirestore.instance
+        .collection('detergent_management')
+        .doc(docId)
+        .update({'availability': newValue});
+  }
+
+  /* ───────────────────────────  CARD BUILDER  ───────────────────────────── */
+  Widget _buildServiceCard(
+      String label, String fieldKey, String currentValue) {
+    final availability = (currentValue == 'Yes') ? 'Yes' : 'No';
+    return Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      elevation: 3,
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      child: ListTile(
+        title: Text(label),
+        subtitle: Text('Branch: ${widget.branch}'),
+        trailing: GestureDetector(
+          onTap: () => _toggleServiceAvailability(fieldKey, availability),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: availability == 'Yes'
+                  ? const Color(0xFF04D26F)
+                  : const Color(0xFFE57373),
+              borderRadius: BorderRadius.circular(8),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Text(
+              availability,
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /* ─────────────────────────────  SNACKBAR  ─────────────────────────────── */
   void _showCustomSnackBar(String message, {required bool isError}) {
     final snackBar = SnackBar(
-      content: Text(
-        message,
-        textAlign: TextAlign.center,
-        style: const TextStyle(fontWeight: FontWeight.bold),
-      ),
+      content: Text(message,
+          textAlign: TextAlign.center,
+          style: const TextStyle(fontWeight: FontWeight.bold)),
       backgroundColor: isError ? const Color(0xFFE57373) : highlightColor,
       behavior: SnackBarBehavior.floating,
       margin: const EdgeInsets.symmetric(horizontal: 40, vertical: 20),
@@ -74,15 +141,7 @@ class _AdminDetergentPageState extends State<AdminDetergentPage> {
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
 
-  Future<void> _updateAvailability(String docId, dynamic currentValue) async {
-    final newValue =
-        (currentValue == true || currentValue == 'Yes') ? 'No' : 'Yes';
-    await FirebaseFirestore.instance
-        .collection('detergent_management')
-        .doc(docId)
-        .update({'availability': newValue});
-  }
-
+  /* ───────────────────────────────  BUILD  ──────────────────────────────── */
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -90,19 +149,16 @@ class _AdminDetergentPageState extends State<AdminDetergentPage> {
       appBar: AppBar(
         backgroundColor: const Color(0xFF170CFE),
         title: const Text(
-          'Detergent Management',
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-          ),
+          'Detergent / Service Management',
+          style:
+          TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
         iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: Theme(
         data: Theme.of(context).copyWith(
-          colorScheme: Theme.of(context).colorScheme.copyWith(
-                primary: highlightColor,
-              ),
+          colorScheme:
+          Theme.of(context).colorScheme.copyWith(primary: highlightColor),
         ),
         child: Padding(
           padding: const EdgeInsets.all(20),
@@ -110,12 +166,13 @@ class _AdminDetergentPageState extends State<AdminDetergentPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                /* ──────────────────  ADD NEW DETERGENT/SOFTENER  ────────────────── */
                 const Text(
                   'ADD ITEMS',
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
-                    color: const Color(0xFF170CFE),
+                    color: Color(0xFF170CFE),
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -132,12 +189,11 @@ class _AdminDetergentPageState extends State<AdminDetergentPage> {
                   controller: _typeController,
                   decoration: InputDecoration(
                     labelText:
-                        'Laundry Detergent/Fabric Softener/Cleaning Agents',
+                    'Laundry Detergent/Fabric Softener/Cleaning Agents',
                     filled: true,
                     fillColor: Colors.white,
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
+                        borderRadius: BorderRadius.circular(12)),
                     focusedBorder: OutlineInputBorder(
                       borderSide: BorderSide(color: highlightColor, width: 2),
                       borderRadius: BorderRadius.circular(12),
@@ -148,23 +204,17 @@ class _AdminDetergentPageState extends State<AdminDetergentPage> {
                 DropdownButtonFormField<String>(
                   value: _selectedAvailability,
                   items: _availabilityOptions
-                      .map((status) => DropdownMenuItem(
-                            value: status,
-                            child: Text(status),
-                          ))
+                      .map((status) =>
+                      DropdownMenuItem(value: status, child: Text(status)))
                       .toList(),
-                  onChanged: (value) {
-                    setState(() {
-                      _selectedAvailability = value;
-                    });
-                  },
+                  onChanged: (value) =>
+                      setState(() => _selectedAvailability = value),
                   decoration: InputDecoration(
                     labelText: 'Availability',
                     filled: true,
                     fillColor: Colors.white,
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
+                        borderRadius: BorderRadius.circular(12)),
                     focusedBorder: OutlineInputBorder(
                       borderSide: BorderSide(color: highlightColor, width: 2),
                       borderRadius: BorderRadius.circular(12),
@@ -180,22 +230,76 @@ class _AdminDetergentPageState extends State<AdminDetergentPage> {
                       backgroundColor: highlightColor,
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
+                          borderRadius: BorderRadius.circular(12)),
                     ),
                     child: const Text(
                       'Add Detergent/Softener',
                       style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold),
                     ),
                   ),
                 ),
+
+                /* ──────────────────────────  DIVIDER  ───────────────────────── */
+                const SizedBox(height: 30),
+                const Divider(thickness: 2),
+
+                /* ─────────────  SERVICE AVAILABILITY (IRON & ACCESSORY)  ─────────── */
+                const SizedBox(height: 10),
+                const Text(
+                  'SERVICE AVAILABILITY',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF170CFE),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                const Text(
+                  'Manage service availability per-branch\n- Tap the badge to toggle Yes / No',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey,
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                StreamBuilder<DocumentSnapshot>(
+                  stream: FirebaseFirestore.instance
+                      .collection('detergent_management')
+                      .doc('${widget.branch}_service_availability')
+                      .snapshots(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+
+                    final data = snapshot.data?.data() as Map<String, dynamic>?;
+
+                    final ironAvail =
+                        data?['ironPressingAvailability'] ?? 'No';
+                    final accessoryAvail =
+                        data?['accessoryCleaningAvailability'] ?? 'No';
+
+                    return Column(
+                      children: [
+                        _buildServiceCard('Iron Pressing',
+                            'ironPressingAvailability', ironAvail),
+                        _buildServiceCard('Accessory Cleaning',
+                            'accessoryCleaningAvailability', accessoryAvail),
+                      ],
+                    );
+                  },
+                ),
+
+                /* ──────────────────────────  DIVIDER  ───────────────────────── */
                 const SizedBox(height: 30),
                 const Divider(thickness: 2),
                 const SizedBox(height: 10),
+
+                /* ───────────────  EXISTING DETERGENT/SOFTENER CARDS  ────────────── */
                 const Text(
                   'EXISTING ITEMS',
                   style: TextStyle(
@@ -206,7 +310,7 @@ class _AdminDetergentPageState extends State<AdminDetergentPage> {
                 ),
                 const SizedBox(height: 4),
                 const Text(
-                  'Detergents, Softeners, Other Cleaning Agents',
+                  'Detergents, Softeners, Other Cleaning Agents\n- Tap the badge to toggle Yes / No',
                   style: TextStyle(
                     fontSize: 14,
                     color: Colors.grey,
@@ -242,29 +346,36 @@ class _AdminDetergentPageState extends State<AdminDetergentPage> {
                       physics: const NeverScrollableScrollPhysics(),
                       itemCount: docs.length,
                       itemBuilder: (context, index) {
-                        final data = docs[index].data() as Map<String, dynamic>;
+                        final data =
+                        docs[index].data() as Map<String, dynamic>;
                         final docId = docs[index].id;
                         final detergentName = data['detergentSoftener'] ?? '';
-                        final employeeId = data['employeeId'] ?? '';
+                        final branchName = data['branch'] ?? '';
+                        final addedBy      = data['employeeId'] ?? '';
                         final rawAvailability = data['availability'];
                         final availability = (rawAvailability == true ||
-                                rawAvailability == 'Yes')
+                            rawAvailability == 'Yes')
                             ? 'Yes'
                             : 'No';
 
                         return Card(
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
+                              borderRadius: BorderRadius.circular(12)),
                           elevation: 3,
                           margin: const EdgeInsets.symmetric(vertical: 8),
                           child: ListTile(
                             title: Text(detergentName),
-                            subtitle: Text('Added by: ID - $employeeId'),
+                            subtitle: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Branch: $branchName'),
+                                Text('Added by ID: $addedBy', style: const TextStyle(fontSize: 12)),
+                              ],
+                            ),
+
                             trailing: GestureDetector(
-                              onTap: () {
-                                _updateAvailability(docId, availability);
-                              },
+                              onTap: () =>
+                                  _updateAvailability(docId, availability),
                               child: Container(
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 12, vertical: 8),
@@ -284,9 +395,8 @@ class _AdminDetergentPageState extends State<AdminDetergentPage> {
                                 child: Text(
                                   availability,
                                   style: const TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold),
                                 ),
                               ),
                             ),
@@ -295,7 +405,7 @@ class _AdminDetergentPageState extends State<AdminDetergentPage> {
                       },
                     );
                   },
-                )
+                ),
               ],
             ),
           ),

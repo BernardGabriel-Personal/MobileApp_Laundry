@@ -178,7 +178,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
                     crossAxisSpacing: 12,
                     mainAxisSpacing: 12,
                     children: [
-                      _buildDashboardTile(Icons.local_laundry_service, 'Detergent', () {
+                      _buildDashboardTile(Icons.local_laundry_service, 'Detergent / Service Management', () {
                         Navigator.push(
                           context,
                           MaterialPageRoute(builder: (context) => AdminDetergentPage(
@@ -187,7 +187,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
                           )),
                         );
                       }),
-                      _buildDashboardTile(Icons.attach_money, 'Pricing', () {
+                      _buildDashboardTile(Icons.attach_money, 'Pricing Management', () {
                         Navigator.push(
                           context,
                           MaterialPageRoute(builder: (context) => AdminPricingPage(
