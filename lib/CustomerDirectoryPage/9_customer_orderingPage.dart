@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+// import '10_customer_schedulesPage.dart';
 
 class OrderingPage extends StatefulWidget {
   /* ───────── USER INFO (always required) ───────── */
@@ -86,6 +87,9 @@ class _OrderingPageState extends State<OrderingPage> {
   String? _selectedOrderMethod;
   static const String _modeOfPayment = 'Cash on Delivery / Cash on Self-Pickup';
 
+  /* simple loading flag so user can’t double-tap */
+  bool _saving = false;
+
   /* ───────── helpers for SINGLE service ───────── */
   double get _singleBase {
     if (widget.typeOfLaundry == null || widget.typeOfLaundry!.isEmpty) return 0;
@@ -94,6 +98,60 @@ class _OrderingPageState extends State<OrderingPage> {
 
   bool get _isMultiOrder =>
       widget.selectedItems != null && widget.selectedItems!.isNotEmpty;
+
+  /* ───────── ORDER-ID GENERATOR ───────── */
+  String _generateOrderId() {
+    final now = DateTime.now();
+    final ts = '${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}'
+        '${now.hour.toString().padLeft(2, '0')}${now.minute.toString().padLeft(2, '0')}';
+    final suffix =
+    now.microsecondsSinceEpoch.remainder(100000).toString().padLeft(5, '0');
+    return 'ORD$ts$suffix';
+  }
+
+  /* ───────── SAVE ORDER TO FIRESTORE ───────── */
+  Future<String> _saveOrder() async {
+    final orderId = _generateOrderId();
+
+    final List<Map<String, dynamic>> items = _isMultiOrder
+        ? widget.selectedItems!
+        .map((d) => Map<String, dynamic>.from(d.data() as Map))
+        .toList()
+        : [
+      {
+        'serviceType': widget.serviceType,
+        'typeOfLaundry': widget.typeOfLaundry,
+        'bulkyItems': widget.bulkyItems,
+        'washBase': widget.washBase,
+        'dryBase': widget.dryBase,
+        'priceOfBulkyItems': widget.priceOfBulkyItems,
+        'personalRequest': widget.personalRequest,
+        'totalPrice': widget.totalPrice,
+      }
+    ];
+
+    final orderData = {
+      'orderId': orderId,
+      'fullName': widget.fullName,
+      'address': widget.address,
+      'email': widget.email,
+      'contact': widget.contact,
+      'branch': _selectedBranch,
+      'orderMethod': _selectedOrderMethod,
+      'paymentMethod': _modeOfPayment,
+      'preferredDetergents': _selectedDetergents,
+      'grandTotal': widget.totalPrice,
+      'items': items,
+      'status': 'pending',
+      'timestamp': FieldValue.serverTimestamp(),
+    };
+
+    await FirebaseFirestore.instance
+        .collection('customer_orders')
+        .add(orderData);
+
+    return orderId;
+  }
 
   /* ───────── BUILD ───────── */
   @override
@@ -124,7 +182,7 @@ class _OrderingPageState extends State<OrderingPage> {
               const SizedBox(height: 20),
               _serviceAvailabilitySection(),
               const SizedBox(height: 20),
-              _orderMethodSection(),                 // ← modified
+              _orderMethodSection(),
               const SizedBox(height: 20),
               _modeOfPaymentSection(),
             ],
@@ -636,13 +694,13 @@ class _OrderingPageState extends State<OrderingPage> {
     ),
   );
 
-  /* ─────────  PLACE ORDER (unchanged logic) ───────── */
+  /* ─────────  PLACE ORDER BUTTON ───────── */
   Widget _placeOrderButton(BuildContext context) {
     final bool noDetergents = _availableDetergents.isEmpty;
     final bool servicesUnavailable = !_allRequestedServicesAvailable();
     final bool methodNotChosen = _selectedOrderMethod == null;
     final bool canPlace =
-        !noDetergents && !servicesUnavailable && !methodNotChosen;
+        !noDetergents && !servicesUnavailable && !methodNotChosen && !_saving;
 
     String _disabledMsg() {
       if (_selectedBranch == null) return 'Please select a laundry branch.';
@@ -659,37 +717,50 @@ class _OrderingPageState extends State<OrderingPage> {
         style: ElevatedButton.styleFrom(
           backgroundColor: canPlace ? const Color(0xFF04D26F) : Colors.grey,
           padding: const EdgeInsets.symmetric(vertical: 18),
-          shape:
-          RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
         onPressed: canPlace
-            ? () {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              behavior: SnackBarBehavior.floating,
-              backgroundColor: const Color(0xFF04D26F),
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
-              content: Row(
-                children: [
-                  const Icon(Icons.check_circle_outline,
-                      color: Colors.white),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      'Order placed at $_selectedBranch!\n'
-                          'Method: $_selectedOrderMethod\n'
-                          'Payment: $_modeOfPayment\n'
-                          'Preferred: ${_selectedDetergents.join(', ')}',
-                      style: const TextStyle(
-                          color: Colors.white, fontSize: 16),
+            ? () async {
+          setState(() => _saving = true);
+          try {
+            final orderId = await _saveOrder();
+
+            if (!mounted) return;
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                behavior: SnackBarBehavior.floating,
+                backgroundColor: const Color(0xFF04D26F),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
+                content: Row(
+                  children: [
+                    const Icon(Icons.check_circle_outline, color: Colors.white),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'Order #$orderId placed successfully!',
+                        style: const TextStyle(color: Colors.white, fontSize: 16),
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
+                duration: const Duration(seconds: 8),
               ),
-              duration: const Duration(seconds: 2),
-            ),
-          );
+            );
+
+            Navigator.pop(context, true);
+          } catch (e) {
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Error saving order: $e'),
+                  backgroundColor: Colors.redAccent,
+                ),
+              );
+            }
+          } finally {
+            if (mounted) setState(() => _saving = false);
+          }
         }
             : () {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -700,8 +771,7 @@ class _OrderingPageState extends State<OrderingPage> {
           );
         },
         icon: const Icon(Icons.shopping_bag, color: Colors.white),
-        label:
-        const Text('Place Order', style: TextStyle(color: Colors.white)),
+        label: const Text('Place Order', style: TextStyle(color: Colors.white)),
       ),
     );
   }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../Start,Signup,Login/2_welcome_page.dart'; // logout → HomeScreen
 import '1_customer_homepage.dart';
 import '8_customer_profilePage.dart';
@@ -24,6 +25,7 @@ class scheduledOrderPage extends StatefulWidget {
 }
 
 class _scheduledOrderPageState extends State<scheduledOrderPage> {
+/* ───────── CONFIRM LOG-OUT ───────── */
   Future<bool> _confirmLogout(BuildContext context) async {
     final res = await showDialog<bool>(
       context: context,
@@ -31,7 +33,8 @@ class _scheduledOrderPageState extends State<scheduledOrderPage> {
         icon: Icons.error_outline,
         iconColor: const Color(0xFFE57373),
         title: 'Are you leaving?',
-        message: 'Are you sure you want to log out? You can always log back in at any time.',
+        message:
+        'Are you sure you want to log out? You can always log back in at any time.',
         okLabel: 'Logout',
         cancelLabel: 'Cancel',
       ),
@@ -80,6 +83,138 @@ class _scheduledOrderPageState extends State<scheduledOrderPage> {
     );
   }
 
+/* ───────── ORDER DETAIL DIALOG (with improved bulky parsing) ───────── */
+  void _showOrderDetails(Map<String, dynamic> data) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        backgroundColor: Colors.grey[100],
+        title: Row(
+          children: [
+            const Icon(Icons.description, color: Color(0xFF04D26F)),
+            const SizedBox(width: 8),
+            Text('Order #${data['orderId'] ?? ''}',
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+          ],
+        ),
+        content: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _detailRow('Branch', data['branch']),
+              _detailRow('Status', data['status']),
+              const Divider(),
+              _detailRow('Order Method', data['orderMethod']),
+              _detailRow('Payment', data['paymentMethod']),
+              _detailRow(
+                'Preferred Detergents',
+                (data['preferredDetergents'] as List<dynamic>?)?.join(', ') ?? '—',
+              ),
+              const Divider(),
+              _detailRow('Grand Total', '₱ ${data['grandTotal']}'),
+              const SizedBox(height: 10),
+              const Text('Items:',
+                  style:
+                  TextStyle(fontWeight: FontWeight.bold, color: Colors.black)),
+              const SizedBox(height: 6),
+              ...(data['items'] as List<dynamic>).map((item) {
+                final m = Map<String, dynamic>.from(item);
+
+                /* ---------- BULKY / ACCESSORY HANDLING ---------- */
+                Map<String, dynamic> bulkyMap =
+                Map<String, dynamic>.from(m['numberOfBulkyItems'] ?? {});
+
+                if (bulkyMap.isEmpty) {
+                  // 2a. Map<String,int>
+                  if (m['bulkyItems'] is Map) {
+                    bulkyMap = Map<String, dynamic>.from(m['bulkyItems']);
+                  } else if (m['bulkyItems'] is List) {
+                    // 2b. Just a List<String> (no quantity information)
+                    final lst = (m['bulkyItems'] as List).cast<dynamic>();
+                    bulkyMap = {
+                      for (var e in lst) e.toString(): 1,
+                    };
+                  }
+                }
+
+                final bulkyList = bulkyMap.isEmpty
+                    ? '—'
+                    : bulkyMap.entries
+                    .map((e) => '${e.key} – ${e.value}')
+                    .join(', ');
+
+                /* ---------- REGULAR ITEMS ---------- */
+                final laundry =
+                    (m['typeOfLaundry'] as List<dynamic>?)?.join(', ') ?? '—';
+
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 10),
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[200],
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(m['serviceType'] ?? '',
+                            style: const TextStyle(
+                                fontWeight: FontWeight.bold, fontSize: 15)),
+                        const SizedBox(height: 4),
+                        _miniRow('Regular Items', laundry.isEmpty ? '—' : laundry),
+                        _miniRow('Bulky / Accessory', bulkyList.isEmpty ? '—' : bulkyList),
+                        _miniRow(
+                          'Personal Request',
+                          (m['personalRequest'] ?? '').toString().isEmpty
+                              ? '—'
+                              : m['personalRequest'],
+                        ),
+                        _miniRow('Item Total', '₱ ${m['totalPrice'] ?? 0}'),
+                      ]),
+                );
+              }).toList(),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            style: TextButton.styleFrom(
+              backgroundColor: const Color(0xFF04D26F),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _detailRow(String label, dynamic value) => Padding(
+    padding: const EdgeInsets.symmetric(vertical: 2),
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('$label: ', style: const TextStyle(fontWeight: FontWeight.bold)),
+        Expanded(child: Text('$value')),
+      ],
+    ),
+  );
+
+  Widget _miniRow(String label, String value) => Padding(
+    padding: const EdgeInsets.symmetric(vertical: 1),
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('$label: ',
+            style: const TextStyle(fontWeight: FontWeight.w600)),
+        Expanded(child: Text(value)),
+      ],
+    ),
+  );
+
+/* ───────── BUILD ───────── */
   @override
   Widget build(BuildContext context) {
     return PopScope(
@@ -107,17 +242,61 @@ class _scheduledOrderPageState extends State<scheduledOrderPage> {
                     SizedBox(width: 8),
                     Text(
                       'Your Scheduled Order',
-                      style: TextStyle(color: Colors.white, fontSize: 25, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 25,
+                          fontWeight: FontWeight.bold),
                     ),
                   ],
                 ),
               ),
               Expanded(
-                child: Center(
-                  child: Text(
-                    'No scheduled orders yet.',
-                    style: TextStyle(fontSize: 18, color: Colors.grey[700]),
-                  ),
+                child: StreamBuilder<QuerySnapshot>(
+                  stream: FirebaseFirestore.instance
+                      .collection('customer_orders')
+                      .where('email', isEqualTo: widget.email)
+                      .orderBy('timestamp', descending: true)
+                      .snapshots(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+                    final docs = snapshot.data?.docs ?? [];
+                    if (docs.isEmpty) {
+                      return Center(
+                        child: Text(
+                          'No scheduled orders yet.',
+                          style: TextStyle(fontSize: 18, color: Colors.grey[700]),
+                        ),
+                      );
+                    }
+                    return ListView.builder(
+                      padding: const EdgeInsets.all(16),
+                      itemCount: docs.length,
+                      itemBuilder: (_, i) {
+                        final data = docs[i].data() as Map<String, dynamic>;
+                        return Card(
+                          color: Colors.grey[200],
+                          margin: const EdgeInsets.only(bottom: 12),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12)),
+                          child: ListTile(
+                            title: Text(
+                              'Order #${data['orderId'] ?? ''}',
+                              style:
+                              const TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                            subtitle: Text(
+                              '${data['branch']} • ${data['status']}',
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            trailing: const Icon(Icons.chevron_right),
+                            onTap: () => _showOrderDetails(data),
+                          ),
+                        );
+                      },
+                    );
+                  },
                 ),
               ),
             ],

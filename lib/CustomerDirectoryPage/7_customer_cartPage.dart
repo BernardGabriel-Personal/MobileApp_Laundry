@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../Start,Signup,Login/2_welcome_page.dart'; // logout → HomeScreen
+
+import '../Start,Signup,Login/2_welcome_page.dart';   // logout → HomeScreen
 import '1_customer_homepage.dart';
 import '8_customer_profilePage.dart';
-import '9_customer_orderingPage.dart'; // Import OrderingPage
+import '9_customer_orderingPage.dart';               // OrderingPage
 import '10_customer_schedulesPage.dart';
 import '11_customer_invoicePage.dart';
 
@@ -26,17 +27,18 @@ class CartPage extends StatefulWidget {
 }
 
 class _CartPageState extends State<CartPage> {
+  /* map<docId,isChecked> */
   final Map<String, bool> _checked = {};
 
-  Future<bool> _confirmLogout(BuildContext context) async {
+  /* ───────── HELPERS ───────── */
+  Future<bool> _confirmLogout(BuildContext ctx) async {
     final res = await showDialog<bool>(
-      context: context,
+      context: ctx,
       builder: (_) => _styledAlert(
         icon: Icons.error_outline,
         iconColor: const Color(0xFFE57373),
         title: 'Are you leaving?',
-        message:
-        'Are you sure you want to log out? You can always log back in at any time.',
+        message: 'Are you sure you want to log out? You can always log back in at any time.',
         okLabel: 'Logout',
         cancelLabel: 'Cancel',
       ),
@@ -44,9 +46,9 @@ class _CartPageState extends State<CartPage> {
     return res == true;
   }
 
-  Future<bool> _confirmDelete(BuildContext context) async {
+  Future<bool> _confirmDelete(BuildContext ctx) async {
     final res = await showDialog<bool>(
-      context: context,
+      context: ctx,
       builder: (_) => _styledAlert(
         icon: Icons.delete_outline,
         iconColor: const Color(0xFFE57373),
@@ -62,23 +64,18 @@ class _CartPageState extends State<CartPage> {
   double _selectedTotal(Iterable<QueryDocumentSnapshot> docs) {
     double sum = 0;
     for (final d in docs) {
-      if (_checked[d.id] == true) {
-        sum += (d['totalPrice'] ?? 0).toDouble();
-      }
+      if (_checked[d.id] == true) sum += (d['totalPrice'] ?? 0).toDouble();
     }
     return sum;
   }
 
-  Future<void> _deleteDoc(String docId) async =>
-      FirebaseFirestore.instance.collection('cart_customers').doc(docId).delete();
+  Future<void> _deleteDoc(String id) =>
+      FirebaseFirestore.instance.collection('cart_customers').doc(id).delete();
 
-  Future<void> _deleteSelected(Iterable<QueryDocumentSnapshot> docs) async {
+  Future<void> _deleteDocs(Iterable<QueryDocumentSnapshot> docs) async {
     final batch = FirebaseFirestore.instance.batch();
-    for (final d in docs) {
-      if (_checked[d.id] == true) batch.delete(d.reference);
-    }
+    for (final d in docs) batch.delete(d.reference);
     await batch.commit();
-    _checked.clear();
   }
 
   AlertDialog _styledAlert({
@@ -122,6 +119,7 @@ class _CartPageState extends State<CartPage> {
     );
   }
 
+  /* ───────── BUILD ───────── */
   @override
   Widget build(BuildContext context) {
     return PopScope(
@@ -139,6 +137,7 @@ class _CartPageState extends State<CartPage> {
         body: SafeArea(
           child: Column(
             children: [
+              /* ---------- HEADER ---------- */
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
@@ -147,11 +146,14 @@ class _CartPageState extends State<CartPage> {
                   children: const [
                     Icon(Icons.shopping_cart, color: Colors.white),
                     SizedBox(width: 8),
-                    Text('Your Laundry Cart',
-                        style: TextStyle(color: Colors.white, fontSize: 25, fontWeight: FontWeight.bold)),
+                    Text(
+                      'Your Laundry Cart',
+                      style: TextStyle(color: Colors.white, fontSize: 25, fontWeight: FontWeight.bold),
+                    ),
                   ],
                 ),
               ),
+              /* ---------- CART LIST ---------- */
               Expanded(
                 child: StreamBuilder<QuerySnapshot>(
                   stream: FirebaseFirestore.instance
@@ -165,7 +167,9 @@ class _CartPageState extends State<CartPage> {
                     }
 
                     final docs = snap.data?.docs ?? [];
-                    final ids = docs.map((e) => e.id).toSet();
+
+                    /* sync _checked map with docs */
+                    final ids = docs.map((d) => d.id).toSet();
                     _checked.removeWhere((k, _) => !ids.contains(k));
                     for (final d in docs) {
                       _checked.putIfAbsent(d.id, () => false);
@@ -176,72 +180,63 @@ class _CartPageState extends State<CartPage> {
                     }
 
                     return ListView.builder(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
                       itemCount: docs.length,
                       itemBuilder: (_, i) {
-                        final d = docs[i];
-                        final docId = d.id;
-                        final service = d['serviceType'] ?? 'Service';
-                        final total = (d['totalPrice'] ?? 0).toDouble();
-                        final typeOfLaundry = d['typeOfLaundry'] as List? ?? [];
-                        final numberOfBulkyItems = d['numberOfBulkyItems'] as Map? ?? {};
-
-                        String formatBulkyItems(Map itemsMap) {
-                          return itemsMap.entries.map((e) => '${e.value}x ${e.key}').join(', ');
-                        }
+                        final d  = docs[i];
+                        final id = d.id;
+                        final svc   = d['serviceType'] ?? 'Service';
+                        final price = (d['totalPrice'] ?? 0).toDouble();
+                        final laundry   = (d['typeOfLaundry'] as List? ?? []).join(', ');
+                        final bulkyMap  = Map<String, dynamic>.from(d['numberOfBulkyItems'] ?? <String,dynamic>{});
+                        final bulkyStr  = bulkyMap.entries.map((e) => '${e.value}x ${e.key}').join(', ');
 
                         final preview = [
-                          if (typeOfLaundry.isNotEmpty) typeOfLaundry.join(', '),
-                          if (numberOfBulkyItems.isNotEmpty)
-                            formatBulkyItems(numberOfBulkyItems.cast<String, dynamic>())
+                          if (laundry.isNotEmpty)  laundry,
+                          if (bulkyStr.isNotEmpty) bulkyStr,
                         ].join(' · ');
 
                         return Card(
                           color: Colors.grey[200],
-                          elevation: 2,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                           margin: const EdgeInsets.only(bottom: 12),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                           child: Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Row(
-                                  crossAxisAlignment: CrossAxisAlignment.center,
                                   children: [
                                     Checkbox(
-                                      value: _checked[docId] ?? false,
+                                      value: _checked[id] ?? false,
                                       activeColor: const Color(0xFF04D26F),
-                                      onChanged: (v) => setState(() => _checked[docId] = v ?? false),
+                                      onChanged: (v) => setState(() => _checked[id] = v ?? false),
                                     ),
                                     Expanded(
-                                      child: Text(service,
-                                          style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black87)),
+                                      child: Text(svc, style: const TextStyle(fontWeight: FontWeight.bold)),
                                     ),
-                                    Text('₱ ${total.toStringAsFixed(2)}',
-                                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                                    Text('₱ ${price.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.bold)),
                                     const SizedBox(width: 8),
                                     TextButton(
                                       style: TextButton.styleFrom(
                                         backgroundColor: const Color(0xFFE57373),
                                         foregroundColor: Colors.white,
-                                        padding: const EdgeInsets.symmetric(horizontal: 12),
                                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                                       ),
                                       child: const Text('Delete'),
                                       onPressed: () async {
                                         if (await _confirmDelete(context)) {
-                                          await _deleteDoc(docId);
+                                          await _deleteDoc(id);
                                         }
                                       },
                                     ),
                                   ],
                                 ),
-                                Padding(
-                                  padding: const EdgeInsets.only(left: 16, right: 8, bottom: 8),
-                                  child: Text(preview,
-                                      style: const TextStyle(color: Colors.black54, fontSize: 14)),
-                                ),
+                                if (preview.isNotEmpty)
+                                  Padding(
+                                    padding: const EdgeInsets.only(left: 16, right: 8, bottom: 8),
+                                    child: Text(preview, style: const TextStyle(color: Colors.black54)),
+                                  ),
                               ],
                             ),
                           ),
@@ -251,6 +246,7 @@ class _CartPageState extends State<CartPage> {
                   },
                 ),
               ),
+              /* ---------- TOTAL & CHECKOUT ---------- */
               StreamBuilder<QuerySnapshot>(
                 stream: FirebaseFirestore.instance
                     .collection('cart_customers')
@@ -259,14 +255,13 @@ class _CartPageState extends State<CartPage> {
                     .snapshots(),
                 builder: (_, snap) {
                   final docs = snap.data?.docs ?? [];
-                  final allSelected = docs.isNotEmpty && docs.every((d) => _checked[d.id] == true);
-                  final totalSel = _selectedTotal(docs);
+                  final totalSel   = _selectedTotal(docs);
                   final hasChecked = totalSel > 0;
-
+                  final allSelected = docs.isNotEmpty && docs.every((d) => _checked[d.id] == true);
                   final selectedDocs = docs.where((d) => _checked[d.id] == true).toList();
 
                   return Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                    padding: const EdgeInsets.only(left: 16, right: 16, bottom: 12),
                     child: Column(
                       children: [
                         Row(
@@ -286,14 +281,15 @@ class _CartPageState extends State<CartPage> {
                                 foregroundColor: Colors.white,
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                               ),
+                              child: const Text('Delete'),
                               onPressed: hasChecked
                                   ? () async {
                                 if (await _confirmDelete(context)) {
-                                  await _deleteSelected(docs);
+                                  await _deleteDocs(selectedDocs);
+                                  setState(() {}); // refresh
                                 }
                               }
                                   : null,
-                              child: const Text('Delete'),
                             ),
                             const SizedBox(width: 8),
                             Text('Total: ₱ ${totalSel.toStringAsFixed(2)}',
@@ -310,8 +306,8 @@ class _CartPageState extends State<CartPage> {
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                             ),
                             onPressed: hasChecked
-                                ? () {
-                              Navigator.push(
+                                ? () async {
+                              final result = await Navigator.push<bool>(
                                 context,
                                 MaterialPageRoute(
                                   builder: (_) => OrderingPage(
@@ -324,11 +320,17 @@ class _CartPageState extends State<CartPage> {
                                   ),
                                 ),
                               );
+
+                              if (result == true && mounted) {
+                                await _deleteDocs(selectedDocs);
+                                setState(() {});
+                              }
                             }
                                 : null,
-                            child: const Text('Check Out',
-                                style: TextStyle(
-                                    fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+                            child: const Text(
+                              'Check Out',
+                              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+                            ),
                           ),
                         ),
                       ],
@@ -339,6 +341,7 @@ class _CartPageState extends State<CartPage> {
             ],
           ),
         ),
+        /* ---------- NAVIGATION BAR ---------- */
         bottomNavigationBar: BottomNavigationBar(
           backgroundColor: const Color(0xFF04D26F),
           selectedItemColor: Colors.white,
