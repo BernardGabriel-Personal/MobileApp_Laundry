@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-// import '10_customer_schedulesPage.dart';
+import '10_customer_schedulesPage.dart';
 
 class OrderingPage extends StatefulWidget {
   /* ───────── USER INFO (always required) ───────── */
@@ -99,14 +99,12 @@ class _OrderingPageState extends State<OrderingPage> {
   bool get _isMultiOrder =>
       widget.selectedItems != null && widget.selectedItems!.isNotEmpty;
 
-  /* ───────── ORDER-ID GENERATOR ───────── */
+/* ───────── ORDER-ID GENERATOR ───────── */
   String _generateOrderId() {
     final now = DateTime.now();
-    final ts = '${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}'
-        '${now.hour.toString().padLeft(2, '0')}${now.minute.toString().padLeft(2, '0')}';
-    final suffix =
-    now.microsecondsSinceEpoch.remainder(100000).toString().padLeft(5, '0');
-    return 'ORD$ts$suffix';
+    final ts = '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+    final suffix = now.microsecondsSinceEpoch.remainder(1000).toString().padLeft(3, '0');
+    return 'ORD-$ts-$suffix';
   }
 
   /* ───────── SAVE ORDER TO FIRESTORE ───────── */
@@ -696,19 +694,29 @@ class _OrderingPageState extends State<OrderingPage> {
 
   /* ─────────  PLACE ORDER BUTTON ───────── */
   Widget _placeOrderButton(BuildContext context) {
-    final bool noDetergents = _availableDetergents.isEmpty;
+    final bool noDetergents        = _availableDetergents.isEmpty;
     final bool servicesUnavailable = !_allRequestedServicesAvailable();
-    final bool methodNotChosen = _selectedOrderMethod == null;
-    final bool canPlace =
-        !noDetergents && !servicesUnavailable && !methodNotChosen && !_saving;
+    final bool methodNotChosen     = _selectedOrderMethod == null;
+    final bool canPlace            = !noDetergents &&
+        !servicesUnavailable &&
+        !methodNotChosen &&
+        !_saving;
 
     String _disabledMsg() {
-      if (_selectedBranch == null) return 'Please select a laundry branch.';
-      if (methodNotChosen) return 'Please select an order method.';
-      if (noDetergents) {
-        return 'No detergents/softeners are in stock for this branch.';
-      }
+      if (_selectedBranch == null)  return 'Please select a laundry branch.';
+      if (methodNotChosen)          return 'Please select an order method.';
+      if (noDetergents)             return 'No detergents/softeners are in stock for this branch.';
       return 'Selected service(s) not available for this branch.';
+    }
+
+    /* delete every selected cart-document (if this order came from the cart) */
+    Future<void> _deleteCartSelections() async {
+      if (widget.selectedItems == null) return;                  // direct-booking, nothing to delete
+      final batch = FirebaseFirestore.instance.batch();
+      for (final doc in widget.selectedItems!) {
+        batch.delete(doc.reference);
+      }
+      await batch.commit();
     }
 
     return SizedBox(
@@ -719,11 +727,26 @@ class _OrderingPageState extends State<OrderingPage> {
           padding: const EdgeInsets.symmetric(vertical: 18),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
+        icon: _saving
+            ? const SizedBox(
+          width: 24,
+          height: 24,
+          child: CircularProgressIndicator(
+            color: Colors.white,
+            strokeWidth: 2,
+          ),
+        )
+            : const Icon(Icons.shopping_bag, color: Colors.white),
+        label: Text(
+          _saving ? 'Placing Order…' : 'Place Order',
+          style: const TextStyle(color: Colors.white),
+        ),
         onPressed: canPlace
             ? () async {
           setState(() => _saving = true);
           try {
             final orderId = await _saveOrder();
+            await _deleteCartSelections();
 
             if (!mounted) return;
             ScaffoldMessenger.of(context).showSnackBar(
@@ -732,6 +755,7 @@ class _OrderingPageState extends State<OrderingPage> {
                 backgroundColor: const Color(0xFF04D26F),
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12)),
+                duration: const Duration(seconds: 8),
                 content: Row(
                   children: [
                     const Icon(Icons.check_circle_outline, color: Colors.white),
@@ -744,11 +768,22 @@ class _OrderingPageState extends State<OrderingPage> {
                     ),
                   ],
                 ),
-                duration: const Duration(seconds: 8),
               ),
             );
 
-            Navigator.pop(context, true);
+            Navigator.pushReplacement(
+              context,
+              PageRouteBuilder(
+                pageBuilder: (_, __, ___) => scheduledOrderPage(
+                  fullName: widget.fullName,
+                  address: widget.address,
+                  contact: widget.contact,
+                  email:   widget.email,
+                ),
+                transitionDuration: Duration.zero,
+                reverseTransitionDuration: Duration.zero,
+              ),
+            );
           } catch (e) {
             if (mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
@@ -770,8 +805,6 @@ class _OrderingPageState extends State<OrderingPage> {
             ),
           );
         },
-        icon: const Icon(Icons.shopping_bag, color: Colors.white),
-        label: const Text('Place Order', style: TextStyle(color: Colors.white)),
       ),
     );
   }

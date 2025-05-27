@@ -93,8 +93,13 @@ class _scheduledOrderPageState extends State<scheduledOrderPage> {
           children: [
             const Icon(Icons.description, color: Color(0xFF04D26F)),
             const SizedBox(width: 8),
-            Text('Order #${data['orderId'] ?? ''}',
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+            Expanded(
+              child: Text(
+                'Order #${data['orderId'] ?? ''}',
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
           ],
         ),
         content: SingleChildScrollView(
