@@ -141,7 +141,13 @@ class _CartPageState extends State<CartPage> {
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
-                color: const Color(0xFF04D26F),
+                decoration: const BoxDecoration(
+                  color: const Color(0xFF04D26F),
+                  borderRadius: BorderRadius.only(
+                    bottomLeft: Radius.circular(24),
+                    bottomRight: Radius.circular(24),
+                  ),
+                ),
                 child: Row(
                   children: const [
                     Icon(Icons.shopping_cart, color: Colors.white),

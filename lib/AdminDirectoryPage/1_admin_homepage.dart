@@ -4,6 +4,7 @@ import '../Start,Signup,Login/2_welcome_page.dart'; // For logout redirect to Ho
 import '../AdminDirectoryPage/3_admin_detergent.dart'; // Detergent Feature
 import '../AdminDirectoryPage/4_admin_pricing.dart'; // Pricing Feature
 import '../AdminDirectoryPage/5_admin_orderManagement.dart'; // Order Management Feature
+import '6_admin_basketPage.dart';
 // Note: All services should not have navigation bottom bar, users can use the appbar back button instead for cleaner UI.
 
 class AdminHomePage extends StatefulWidget {
@@ -104,8 +105,23 @@ class _AdminHomePageState extends State<AdminHomePage> {
                     ),
                   );
                 }
+              case 1:
+                Navigator.push(
+                  context,
+                  PageRouteBuilder(
+                    pageBuilder: (context, animation, secondaryAnimation) => AdminBasketPage(
+                      fullName: widget.fullName,
+                      branch: widget.branch,
+                      employeeId: widget.employeeId,
+                      contact: widget.contact,
+                      email: widget.email,
+                    ),
+                    transitionDuration: Duration.zero, // No transition animation
+                    reverseTransitionDuration: Duration.zero,
+                  ),
+                );
                 break;
-              case 4:
+              case 3:
                 Navigator.push(
                   context,
                   PageRouteBuilder(
@@ -127,7 +143,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
             BottomNavigationBarItem(icon: Icon(Icons.logout), label: 'Logout'),
             BottomNavigationBarItem(icon: Icon(Icons.shopping_basket), label: 'Basket'),
             BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-            BottomNavigationBarItem(icon: Icon(Icons.schedule), label: 'Schedules'),
+            // BottomNavigationBarItem(icon: Icon(Icons.schedule), label: 'Schedules'),
             BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
           ],
         ),
@@ -198,7 +214,12 @@ class _AdminHomePageState extends State<AdminHomePage> {
                       _buildDashboardTile(Icons.shopping_cart, 'Order Management',() {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) =>  const AdminOrderManagementPage()),
+                          MaterialPageRoute(builder: (context) =>  AdminOrderManagementPage(
+                            employeeId: widget.employeeId,
+                            fullName: widget.fullName,
+                            branch: widget.branch,
+                            contact: widget.contact,
+                          )),
                         );
                       }),
                       _buildDashboardTile(Icons.library_books, 'Log Book', () {}),

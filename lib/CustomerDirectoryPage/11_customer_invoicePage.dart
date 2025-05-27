@@ -103,9 +103,14 @@ class _customerInvoicePageState extends State<customerInvoicePage> {
               // ─── HEADER ────────────────────────────────────────────────────
               Container(
                 width: double.infinity,
-                padding:
-                const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
-                color: const Color(0xFF04D26F),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+                decoration: const BoxDecoration(
+                  color: const Color(0xFF04D26F),
+                  borderRadius: BorderRadius.only(
+                    bottomLeft: Radius.circular(24),
+                    bottomRight: Radius.circular(24),
+                  ),
+                ),
                 child: Row(
                   children: const [
                     Icon(Icons.receipt_long, color: Colors.white),

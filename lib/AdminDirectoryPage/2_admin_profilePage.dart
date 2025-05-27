@@ -1,5 +1,6 @@
 import 'dart:convert'; // for utf8
 import 'package:crypto/crypto.dart'; // for sha256
+import 'package:five_stars_laundry/AdminDirectoryPage/6_admin_basketPage.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../AdminDirectoryPage/1_admin_homepage.dart';
@@ -225,7 +226,7 @@ class _AdminProfilePageState extends State<AdminProfilePage> {
           selectedItemColor: Colors.white,
           unselectedItemColor: Colors.white70,
           type: BottomNavigationBarType.fixed,
-          currentIndex: 4,
+          currentIndex: 3,
           onTap: (index) async {
             switch (index) {
               case 0:
@@ -239,6 +240,22 @@ class _AdminProfilePageState extends State<AdminProfilePage> {
                     ),
                   );
                 }
+                break;
+              case 1:
+                Navigator.pushReplacement(
+                  context,
+                  PageRouteBuilder(
+                    pageBuilder: (context, animation, secondaryAnimation) => AdminBasketPage(
+                      fullName: widget.fullName,
+                      branch: widget.branch,
+                      employeeId: widget.employeeId,
+                      contact: widget.contact,
+                      email: widget.email,
+                    ),
+                    transitionDuration: Duration.zero, // No transition animation
+                    reverseTransitionDuration: Duration.zero,
+                  ),
+                );
                 break;
               case 2:
                 Navigator.pushReplacement(
@@ -262,7 +279,7 @@ class _AdminProfilePageState extends State<AdminProfilePage> {
             BottomNavigationBarItem(icon: Icon(Icons.logout), label: 'Logout'),
             BottomNavigationBarItem(icon: Icon(Icons.shopping_basket), label: 'Basket'),
             BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-            BottomNavigationBarItem(icon: Icon(Icons.schedule), label: 'Schedules'),
+            // BottomNavigationBarItem(icon: Icon(Icons.schedule), label: 'Schedules'),
             BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
           ],
         ),

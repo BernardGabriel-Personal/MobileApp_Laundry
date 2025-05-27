@@ -65,7 +65,8 @@ class _scheduledOrderPageState extends State<scheduledOrderPage> {
           style: TextButton.styleFrom(
             foregroundColor: Colors.white,
             backgroundColor: Colors.grey,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           ),
           onPressed: () => Navigator.pop(context, false),
           child: Text(cancelLabel),
@@ -74,7 +75,8 @@ class _scheduledOrderPageState extends State<scheduledOrderPage> {
           style: TextButton.styleFrom(
             foregroundColor: Colors.white,
             backgroundColor: iconColor,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           ),
           onPressed: () => Navigator.pop(context, true),
           child: Text(okLabel),
@@ -83,7 +85,7 @@ class _scheduledOrderPageState extends State<scheduledOrderPage> {
     );
   }
 
-/* ───────── ORDER DETAIL DIALOG (with improved bulky parsing) ───────── */
+/* ───────── ORDER DETAIL DIALOG ───────── */
   void _showOrderDetails(Map<String, dynamic> data) {
     showDialog(
       context: context,
@@ -96,7 +98,8 @@ class _scheduledOrderPageState extends State<scheduledOrderPage> {
             Expanded(
               child: Text(
                 'Order #${data['orderId'] ?? ''}',
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                style:
+                const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                 overflow: TextOverflow.ellipsis,
               ),
             ),
@@ -108,12 +111,20 @@ class _scheduledOrderPageState extends State<scheduledOrderPage> {
             children: [
               _detailRow('Branch', data['branch']),
               _detailRow('Status', data['status']),
+              _detailRow('Staff',
+                  (data['staffName'] ?? '').toString().isEmpty ? '—' : data['staffName']),
+              _detailRow('Staff Contact',
+                  (data['staffContact'] ?? '').toString().isEmpty ? '—' : data['staffContact']),
+              _detailRow('Customer', data['fullName']),
+              _detailRow('Contact', data['contact']),
               const Divider(),
               _detailRow('Order Method', data['orderMethod']),
               _detailRow('Payment', data['paymentMethod']),
               _detailRow(
                 'Preferred Detergents',
-                (data['preferredDetergents'] as List<dynamic>?)?.join(', ') ?? '—',
+                (data['preferredDetergents'] as List<dynamic>?)
+                    ?.join(', ') ??
+                    '—',
               ),
               const Divider(),
               _detailRow('Grand Total', '₱ ${data['grandTotal']}'),
@@ -125,20 +136,15 @@ class _scheduledOrderPageState extends State<scheduledOrderPage> {
               ...(data['items'] as List<dynamic>).map((item) {
                 final m = Map<String, dynamic>.from(item);
 
-                /* ---------- BULKY / ACCESSORY HANDLING ---------- */
                 Map<String, dynamic> bulkyMap =
                 Map<String, dynamic>.from(m['numberOfBulkyItems'] ?? {});
 
                 if (bulkyMap.isEmpty) {
-                  // 2a. Map<String,int>
                   if (m['bulkyItems'] is Map) {
                     bulkyMap = Map<String, dynamic>.from(m['bulkyItems']);
                   } else if (m['bulkyItems'] is List) {
-                    // 2b. Just a List<String> (no quantity information)
                     final lst = (m['bulkyItems'] as List).cast<dynamic>();
-                    bulkyMap = {
-                      for (var e in lst) e.toString(): 1,
-                    };
+                    bulkyMap = {for (var e in lst) e.toString(): 1};
                   }
                 }
 
@@ -148,7 +154,6 @@ class _scheduledOrderPageState extends State<scheduledOrderPage> {
                     .map((e) => '${e.key} – ${e.value}')
                     .join(', ');
 
-                /* ---------- REGULAR ITEMS ---------- */
                 final laundry =
                     (m['typeOfLaundry'] as List<dynamic>?)?.join(', ') ?? '—';
 
@@ -166,8 +171,10 @@ class _scheduledOrderPageState extends State<scheduledOrderPage> {
                             style: const TextStyle(
                                 fontWeight: FontWeight.bold, fontSize: 15)),
                         const SizedBox(height: 4),
-                        _miniRow('Regular Items', laundry.isEmpty ? '—' : laundry),
-                        _miniRow('Bulky / Accessory', bulkyList.isEmpty ? '—' : bulkyList),
+                        _miniRow('Regular Items',
+                            laundry.isEmpty ? '—' : laundry),
+                        _miniRow('Bulky / Accessory',
+                            bulkyList.isEmpty ? '—' : bulkyList),
                         _miniRow(
                           'Personal Request',
                           (m['personalRequest'] ?? '').toString().isEmpty
@@ -186,7 +193,8 @@ class _scheduledOrderPageState extends State<scheduledOrderPage> {
             style: TextButton.styleFrom(
               backgroundColor: const Color(0xFF04D26F),
               foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8)),
             ),
             onPressed: () => Navigator.pop(context),
             child: const Text('Close'),
@@ -201,7 +209,8 @@ class _scheduledOrderPageState extends State<scheduledOrderPage> {
     child: Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('$label: ', style: const TextStyle(fontWeight: FontWeight.bold)),
+        Text('$label: ',
+            style: const TextStyle(fontWeight: FontWeight.bold)),
         Expanded(child: Text('$value')),
       ],
     ),
@@ -239,14 +248,21 @@ class _scheduledOrderPageState extends State<scheduledOrderPage> {
             children: [
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
-                color: const Color(0xFF04D26F),
+                padding:
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+                decoration: const BoxDecoration(
+                  color: Color(0xFF04D26F),
+                  borderRadius: BorderRadius.only(
+                    bottomLeft: Radius.circular(24),
+                    bottomRight: Radius.circular(24),
+                  ),
+                ),
                 child: Row(
                   children: const [
                     Icon(Icons.schedule, color: Colors.white),
                     SizedBox(width: 8),
                     Text(
-                      'Your Scheduled Order',
+                      'Track Your Scheduled Order',
                       style: TextStyle(
                           color: Colors.white,
                           fontSize: 25,
@@ -267,6 +283,7 @@ class _scheduledOrderPageState extends State<scheduledOrderPage> {
                       return const Center(child: CircularProgressIndicator());
                     }
                     final docs = snapshot.data?.docs ?? [];
+
                     if (docs.isEmpty) {
                       return Center(
                         child: Text(
@@ -275,31 +292,68 @@ class _scheduledOrderPageState extends State<scheduledOrderPage> {
                         ),
                       );
                     }
-                    return ListView.builder(
-                      padding: const EdgeInsets.all(16),
-                      itemCount: docs.length,
-                      itemBuilder: (_, i) {
-                        final data = docs[i].data() as Map<String, dynamic>;
-                        return Card(
-                          color: Colors.grey[200],
-                          margin: const EdgeInsets.only(bottom: 12),
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12)),
-                          child: ListTile(
-                            title: Text(
-                              'Order #${data['orderId'] ?? ''}',
-                              style:
-                              const TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                            subtitle: Text(
-                              '${data['branch']} • ${data['status']}',
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            trailing: const Icon(Icons.chevron_right),
-                            onTap: () => _showOrderDetails(data),
+
+                    // ───── Separate into processing and pending ─────
+                    final processingDocs = docs
+                        .where((d) =>
+                    (d['status'] as String).toLowerCase() ==
+                        'processing')
+                        .toList();
+                    final pendingDocs = docs
+                        .where(
+                            (d) => (d['status'] as String).toLowerCase() == 'pending')
+                        .toList();
+
+                    List<Widget> section(List<QueryDocumentSnapshot> list) {
+                      return list
+                          .map((e) => Card(
+                        color: Colors.grey[200],
+                        margin: const EdgeInsets.only(bottom: 12),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
+                        child: ListTile(
+                          title: Text(
+                            'Order #${e['orderId'] ?? ''}',
+                            style: const TextStyle(
+                                fontWeight: FontWeight.bold),
                           ),
-                        );
-                      },
+                          subtitle: Text(
+                            '${e['branch']} • ${e['status']}',
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          trailing: const Icon(Icons.chevron_right),
+                          onTap: () => _showOrderDetails(
+                              e.data() as Map<String, dynamic>),
+                        ),
+                      ))
+                          .toList();
+                    }
+
+                    return ListView(
+                      padding: const EdgeInsets.all(16),
+                      children: [
+                        // processing section on top
+                        if (processingDocs.isNotEmpty) ...[
+                          const Text('Processing',
+                              style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black)),
+                          const SizedBox(height: 8),
+                          ...section(processingDocs),
+                          const SizedBox(height: 20),
+                        ],
+                        // pending section
+                        if (pendingDocs.isNotEmpty) ...[
+                          const Text('Pending',
+                              style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black)),
+                          const SizedBox(height: 8),
+                          ...section(pendingDocs),
+                        ],
+                      ],
                     );
                   },
                 ),
@@ -378,10 +432,13 @@ class _scheduledOrderPageState extends State<scheduledOrderPage> {
             }
           },
           items: const [
-            BottomNavigationBarItem(icon: Icon(Icons.shopping_cart), label: 'Cart'),
-            BottomNavigationBarItem(icon: Icon(Icons.receipt_long), label: 'Invoice'),
+            BottomNavigationBarItem(
+                icon: Icon(Icons.shopping_cart), label: 'Cart'),
+            BottomNavigationBarItem(
+                icon: Icon(Icons.receipt_long), label: 'Invoice'),
             BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-            BottomNavigationBarItem(icon: Icon(Icons.schedule), label: 'Schedules'),
+            BottomNavigationBarItem(
+                icon: Icon(Icons.schedule), label: 'Schedules'),
             BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
           ],
         ),
