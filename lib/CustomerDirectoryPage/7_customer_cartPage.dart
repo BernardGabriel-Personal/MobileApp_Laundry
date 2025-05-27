@@ -4,6 +4,8 @@ import '../Start,Signup,Login/2_welcome_page.dart'; // logout → HomeScreen
 import '1_customer_homepage.dart';
 import '8_customer_profilePage.dart';
 import '9_customer_orderingPage.dart'; // Import OrderingPage
+import '10_customer_schedulesPage.dart';
+import '11_customer_invoicePage.dart';
 
 class CartPage extends StatefulWidget {
   final String fullName;
@@ -345,7 +347,22 @@ class _CartPageState extends State<CartPage> {
           currentIndex: 0,
           onTap: (i) {
             switch (i) {
-              case 2:
+              case 1: // Invoice
+                Navigator.pushReplacement(
+                  context,
+                  PageRouteBuilder(
+                    pageBuilder: (_, __, ___) => customerInvoicePage(
+                      fullName: widget.fullName,
+                      address: widget.address,
+                      contact: widget.contact,
+                      email: widget.email,
+                    ),
+                    transitionDuration: Duration.zero,
+                    reverseTransitionDuration: Duration.zero,
+                  ),
+                );
+                break;
+              case 2: // Home
                 Navigator.pushReplacement(
                   context,
                   PageRouteBuilder(
@@ -360,7 +377,22 @@ class _CartPageState extends State<CartPage> {
                   ),
                 );
                 break;
-              case 4:
+              case 3: // Schedules
+                Navigator.pushReplacement(
+                  context,
+                  PageRouteBuilder(
+                    pageBuilder: (_, __, ___) => scheduledOrderPage(
+                      fullName: widget.fullName,
+                      address: widget.address,
+                      contact: widget.contact,
+                      email: widget.email,
+                    ),
+                    transitionDuration: Duration.zero,
+                    reverseTransitionDuration: Duration.zero,
+                  ),
+                );
+                break;
+              case 4: // Profile
                 Navigator.push(
                   context,
                   PageRouteBuilder(

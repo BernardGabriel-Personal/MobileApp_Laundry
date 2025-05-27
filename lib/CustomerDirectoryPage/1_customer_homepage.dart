@@ -7,6 +7,8 @@ import '5_customer_ironingPage.dart';
 import '6_customer_accessoryCleaningPage.dart';
 import '7_customer_cartPage.dart';
 import '8_customer_profilePage.dart';
+import '10_customer_schedulesPage.dart';
+import '11_customer_invoicePage.dart';
 // Note: All services should not have navigation bottom bar, users can use the appbar back button instead for cleaner UI.
 
 class CustomerHomePage extends StatefulWidget {
@@ -97,7 +99,7 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
           currentIndex: 2,
           onTap: (index) async {
             switch (index) {
-              case 0:
+              case 0: // Cart
                 Navigator.push(
                   context,
                   PageRouteBuilder(
@@ -111,9 +113,38 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
                     reverseTransitionDuration: Duration.zero,
                   ),
                 );
-
                 break;
-              case 4:
+              case 1: // Invoice
+                Navigator.push(
+                  context,
+                  PageRouteBuilder(
+                    pageBuilder: (context, animation, secondaryAnimation) => customerInvoicePage(
+                      fullName: widget.fullName,
+                      address: widget.address,
+                      contact: widget.contact,
+                      email: widget.email,
+                    ),
+                    transitionDuration: Duration.zero, // No transition animation
+                    reverseTransitionDuration: Duration.zero,
+                  ),
+                );
+                break;
+              case 3: // Schedules
+                Navigator.push(
+                  context,
+                  PageRouteBuilder(
+                    pageBuilder: (context, animation, secondaryAnimation) => scheduledOrderPage(
+                      fullName: widget.fullName,
+                      address: widget.address,
+                      contact: widget.contact,
+                      email: widget.email,
+                    ),
+                    transitionDuration: Duration.zero, // No transition animation
+                    reverseTransitionDuration: Duration.zero,
+                  ),
+                );
+                break;
+              case 4: // Profile
                 Navigator.push(
                   context,
                   PageRouteBuilder(
@@ -127,7 +158,6 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
                     reverseTransitionDuration: Duration.zero,
                   ),
                 );
-
                 break;
             }
           },

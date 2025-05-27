@@ -5,6 +5,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../CustomerDirectoryPage/1_customer_homepage.dart';
 import '../CustomerDirectoryPage/7_customer_cartPage.dart';
 import '../Start,Signup,Login/2_welcome_page.dart';
+import '10_customer_schedulesPage.dart';
+import '11_customer_invoicePage.dart';
 
 class CustomerProfilePage extends StatefulWidget {
   final String fullName;
@@ -267,11 +269,41 @@ class _CustomerProfilePageState extends State<CustomerProfilePage> {
                   ),
                 );
                 break;
+              case 1: // Invoice
+                Navigator.push(
+                  context,
+                  PageRouteBuilder(
+                    pageBuilder: (context, animation, secondaryAnimation) => customerInvoicePage(
+                      fullName: widget.fullName,
+                      address: widget.address,
+                      contact: widget.contact,
+                      email: widget.email,
+                    ),
+                    transitionDuration: Duration.zero, // No transition animation
+                    reverseTransitionDuration: Duration.zero,
+                  ),
+                );
+                break;
               case 2: // Home
                 Navigator.pushReplacement(
                   context,
                   PageRouteBuilder(
                     pageBuilder: (context, animation, secondaryAnimation) => CustomerHomePage(
+                      fullName: widget.fullName,
+                      address: widget.address,
+                      contact: widget.contact,
+                      email: widget.email,
+                    ),
+                    transitionDuration: Duration.zero, // No transition animation
+                    reverseTransitionDuration: Duration.zero,
+                  ),
+                );
+                break;
+              case 3: // Schedules
+                Navigator.pushReplacement(
+                  context,
+                  PageRouteBuilder(
+                    pageBuilder: (context, animation, secondaryAnimation) => scheduledOrderPage(
                       fullName: widget.fullName,
                       address: widget.address,
                       contact: widget.contact,
