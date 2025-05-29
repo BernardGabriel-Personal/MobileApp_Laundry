@@ -28,11 +28,20 @@ class CustomerProfilePage extends StatefulWidget {
 
 class _CustomerProfilePageState extends State<CustomerProfilePage> {
   /* ────────────────────────── Helpers ────────────────────────── */
-  //Hashes a password using SHA-256 (same as your admin screen).
+  // Hashes a password using SHA-256 (same as your admin screen).
   String hashPassword(String password) {
     final bytes = utf8.encode(password);
     final digest = sha256.convert(bytes);
     return digest.toString();
+  }
+
+  // Holds the current (possibly updated) address
+  late String currentAddress;
+
+  @override
+  void initState() {
+    super.initState();
+    currentAddress = widget.address; // initialize with existing address
   }
 
   Future<bool> _confirmLogout(BuildContext context) async {
@@ -43,7 +52,7 @@ class _CustomerProfilePageState extends State<CustomerProfilePage> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Row(
           children: const [
-            Icon(Icons.error_outline, color: const Color(0xFFE57373), size: 28),
+            Icon(Icons.error_outline, color: Color(0xFFE57373), size: 28),
             SizedBox(width: 10),
             Text('Are you leaving?', style: TextStyle(fontSize: 18)),
           ],
@@ -81,7 +90,7 @@ class _CustomerProfilePageState extends State<CustomerProfilePage> {
     return shouldLogout == true;
   }
 
-  /* ─────────────────── Change-Password Dialog ─────────────────── */
+  /* ────────────────── Change-Password Dialog ────────────────── */
   Future<void> _changePasswordDialog() async {
     final _passwordController = TextEditingController();
     final _confirmController = TextEditingController();
@@ -94,11 +103,10 @@ class _CustomerProfilePageState extends State<CustomerProfilePage> {
       builder: (context) => StatefulBuilder(
         builder: (context, setState) => AlertDialog(
           backgroundColor: const Color(0xFFD9D9D9),
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           title: Row(
             children: const [
-              Icon(Icons.lock_outline, color: const Color(0xFF04D26F), size: 28),
+              Icon(Icons.lock_outline, color: Color(0xFF04D26F), size: 28),
               SizedBox(width: 10),
               Text('Change Password', style: TextStyle(fontSize: 18)),
             ],
@@ -191,7 +199,7 @@ class _CustomerProfilePageState extends State<CustomerProfilePage> {
                         .get();
 
                     final hashed =
-                        hashPassword(_passwordController.text.trim());
+                    hashPassword(_passwordController.text.trim());
 
                     for (var doc in snap.docs) {
                       await doc.reference.update({'password': hashed});
@@ -203,7 +211,7 @@ class _CustomerProfilePageState extends State<CustomerProfilePage> {
                       const SnackBar(
                         content: Center(
                             child: Text('Password updated successfully!')),
-                        backgroundColor: const Color(0xFF170CFE),
+                        backgroundColor: Color(0xFF170CFE),
                         behavior: SnackBarBehavior.floating,
                       ),
                     );
@@ -212,6 +220,117 @@ class _CustomerProfilePageState extends State<CustomerProfilePage> {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text('Failed to update password: $e'),
+                        backgroundColor: const Color(0xFFE57373),
+                      ),
+                    );
+                  }
+                }
+              },
+              child: const Text('Update'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /* ──────────────── Change-Address Dialog ──────────────── */
+  Future<void> _changeAddressDialog() async {
+    final _addressController = TextEditingController(text: currentAddress);
+    final formKey = GlobalKey<FormState>();
+
+    await showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          backgroundColor: const Color(0xFFD9D9D9),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: Row(
+            children: const [
+              Icon(Icons.home_outlined, color: Color(0xFF04D26F), size: 28),
+              SizedBox(width: 10),
+              Text('Change Address', style: TextStyle(fontSize: 18)),
+            ],
+          ),
+          content: Form(
+            key: formKey,
+            child: TextFormField(
+              controller: _addressController,
+              decoration: const InputDecoration(
+                labelText: 'Enter New Address',
+                border: OutlineInputBorder(),
+              ),
+              validator: (value) {
+                if (value == null || value.trim().isEmpty) {
+                  return 'Address cannot be empty';
+                }
+                return null;
+              },
+            ),
+          ),
+          actions: [
+            TextButton(
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.white,
+                backgroundColor: Colors.grey,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.white,
+                backgroundColor: const Color(0xFF04D26F),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              onPressed: () async {
+                if (formKey.currentState!.validate()) {
+                  final newAddress = _addressController.text.trim();
+                  try {
+                    // Update address in 'customers' collection
+                    final customerSnap = await FirebaseFirestore.instance
+                        .collection('customers')
+                        .where('email', isEqualTo: widget.email)
+                        .get();
+
+                    for (var doc in customerSnap.docs) {
+                      await doc.reference.update({'address': newAddress});
+                    }
+
+                    // Update address in 'customer_orders' collection
+                    final ordersSnap = await FirebaseFirestore.instance
+                        .collection('customer_orders')
+                        .where('email', isEqualTo: widget.email)
+                        .get();
+
+                    for (var order in ordersSnap.docs) {
+                      await order.reference.update({'address': newAddress});
+                    }
+
+                    // Update local UI state
+                    setState(() {
+                      currentAddress = newAddress;
+                    });
+
+                    Navigator.pop(context); // Close dialog
+
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Center(child: Text('Address updated successfully!')),
+                        backgroundColor: Color(0xFF04D26F),
+                        behavior: SnackBarBehavior.floating,
+                      ),
+                    );
+                  } catch (e) {
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Failed to update address: $e'),
                         backgroundColor: const Color(0xFFE57373),
                       ),
                     );
@@ -258,13 +377,14 @@ class _CustomerProfilePageState extends State<CustomerProfilePage> {
                 Navigator.push(
                   context,
                   PageRouteBuilder(
-                    pageBuilder: (context, animation, secondaryAnimation) => CartPage(
-                      fullName: widget.fullName,
-                      address: widget.address,
-                      contact: widget.contact,
-                      email: widget.email,
-                    ),
-                    transitionDuration: Duration.zero, // No transition animation
+                    pageBuilder: (context, animation, secondaryAnimation) =>
+                        CartPage(
+                          fullName: widget.fullName,
+                          address: currentAddress,
+                          contact: widget.contact,
+                          email: widget.email,
+                        ),
+                    transitionDuration: Duration.zero,
                     reverseTransitionDuration: Duration.zero,
                   ),
                 );
@@ -273,13 +393,14 @@ class _CustomerProfilePageState extends State<CustomerProfilePage> {
                 Navigator.push(
                   context,
                   PageRouteBuilder(
-                    pageBuilder: (context, animation, secondaryAnimation) => customerInvoicePage(
-                      fullName: widget.fullName,
-                      address: widget.address,
-                      contact: widget.contact,
-                      email: widget.email,
-                    ),
-                    transitionDuration: Duration.zero, // No transition animation
+                    pageBuilder: (context, animation, secondaryAnimation) =>
+                        customerInvoicePage(
+                          fullName: widget.fullName,
+                          address: currentAddress,
+                          contact: widget.contact,
+                          email: widget.email,
+                        ),
+                    transitionDuration: Duration.zero,
                     reverseTransitionDuration: Duration.zero,
                   ),
                 );
@@ -288,13 +409,14 @@ class _CustomerProfilePageState extends State<CustomerProfilePage> {
                 Navigator.pushReplacement(
                   context,
                   PageRouteBuilder(
-                    pageBuilder: (context, animation, secondaryAnimation) => CustomerHomePage(
-                      fullName: widget.fullName,
-                      address: widget.address,
-                      contact: widget.contact,
-                      email: widget.email,
-                    ),
-                    transitionDuration: Duration.zero, // No transition animation
+                    pageBuilder: (context, animation, secondaryAnimation) =>
+                        CustomerHomePage(
+                          fullName: widget.fullName,
+                          address: currentAddress,
+                          contact: widget.contact,
+                          email: widget.email,
+                        ),
+                    transitionDuration: Duration.zero,
                     reverseTransitionDuration: Duration.zero,
                   ),
                 );
@@ -303,13 +425,14 @@ class _CustomerProfilePageState extends State<CustomerProfilePage> {
                 Navigator.pushReplacement(
                   context,
                   PageRouteBuilder(
-                    pageBuilder: (context, animation, secondaryAnimation) => scheduledOrderPage(
-                      fullName: widget.fullName,
-                      address: widget.address,
-                      contact: widget.contact,
-                      email: widget.email,
-                    ),
-                    transitionDuration: Duration.zero, // No transition animation
+                    pageBuilder: (context, animation, secondaryAnimation) =>
+                        scheduledOrderPage(
+                          fullName: widget.fullName,
+                          address: currentAddress,
+                          contact: widget.contact,
+                          email: widget.email,
+                        ),
+                    transitionDuration: Duration.zero,
                     reverseTransitionDuration: Duration.zero,
                   ),
                 );
@@ -336,27 +459,26 @@ class _CustomerProfilePageState extends State<CustomerProfilePage> {
                 /* Header Section */
                 Container(
                   decoration: const BoxDecoration(
-                    color: const Color(0xFF04D26F),
+                    color: Color(0xFF04D26F),
                     borderRadius: BorderRadius.only(
                       bottomLeft: Radius.circular(24),
                       bottomRight: Radius.circular(24),
                     ),
                   ),
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 30),
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 30),
                   child: Column(
                     children: [
                       const CircleAvatar(
                         radius: 40,
-                        backgroundColor: const Color(0xFF170CFE),
-                        child:
-                            Icon(Icons.person, size: 45, color: Colors.white),
+                        backgroundColor: Color(0xFF170CFE),
+                        child: Icon(Icons.person, size: 45, color: Colors.white),
                       ),
                       const SizedBox(height: 12),
                       Text(widget.fullName,
-                          style: const TextStyle(
-                              color: Colors.white, fontSize: 22)),
-                      Text('${widget.address} | CUSTOMER',
+                          style:
+                          const TextStyle(color: Colors.white, fontSize: 22)),
+                      Text('Five Stars Laundromat | CUSTOMER',
                           style: const TextStyle(
                               color: Colors.white70, fontSize: 16)),
                     ],
@@ -368,6 +490,7 @@ class _CustomerProfilePageState extends State<CustomerProfilePage> {
                 _buildInfoTile('Contact Number', widget.contact),
                 _buildInfoTile('Email Address',
                     widget.email.isNotEmpty ? widget.email : 'N/A'),
+                _buildInfoTile('Address', currentAddress),
                 const SizedBox(height: 20),
 
                 /* Change Password Button */
@@ -392,7 +515,30 @@ class _CustomerProfilePageState extends State<CustomerProfilePage> {
                   ),
                 ),
 
-                /* ───── NEW: Logout Button ───── */
+                /* Change Address Button */
+                const SizedBox(height: 12),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 32),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF04D26F),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      onPressed: _changeAddressDialog,
+                      child: const Text(
+                        'Change Address',
+                        style: TextStyle(color: Colors.white, fontSize: 16),
+                      ),
+                    ),
+                  ),
+                ),
+
+                /* ───── Logout Button ───── */
                 const SizedBox(height: 12),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 32),
@@ -409,7 +555,6 @@ class _CustomerProfilePageState extends State<CustomerProfilePage> {
                       onPressed: () async {
                         final shouldLogout = await _confirmLogout(context);
                         if (shouldLogout) {
-                          // Navigate to your welcome / login screen
                           Navigator.pushReplacement(
                             context,
                             MaterialPageRoute(
