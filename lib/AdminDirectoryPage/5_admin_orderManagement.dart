@@ -133,7 +133,46 @@ class AdminOrderManagementPage extends StatelessWidget {
                     : '—',
               ),
               const Divider(),
-              _detailRow('Grand Total', '₱ ${data['grandTotal']}'),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Grand Total',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                  Text(
+                    '₱ ${data['grandTotal']}',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                      color: const Color(0xFF04D26F),
+                    ),
+                  ),
+                ],
+              ),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(
+                    Icons.info_outline,
+                    color: const Color(0xFFFFD700),
+                    size: 20,
+                  ),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      'Final pricing must be calculated after weighing the customer items and including any delivery or pick-up fees.',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.black54,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
               const SizedBox(height: 10),
               const Text('Items:',
                   style: TextStyle(
@@ -191,7 +230,7 @@ class AdminOrderManagementPage extends StatelessWidget {
             ],
           ),
         ),
-        actionsPadding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
+        actionsPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
         actions: [
           if ((data['status'] ?? '').toString().toLowerCase() == 'pending')
             TextButton(

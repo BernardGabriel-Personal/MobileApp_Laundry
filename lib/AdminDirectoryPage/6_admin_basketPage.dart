@@ -134,7 +134,46 @@ class _AdminBasketPageState extends State<AdminBasketPage> {
                       ?.join(', ') ??
                       '—'),
               const Divider(),
-              _detailRow('Grand Total', '₱ ${data['grandTotal']}'),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Grand Total',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                  Text(
+                    '₱ ${data['grandTotal']}',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                      color: const Color(0xFF04D26F),
+                    ),
+                  ),
+                ],
+              ),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(
+                    Icons.info_outline,
+                    color: const Color(0xFFFFD700),
+                    size: 20,
+                  ),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      'Please audit the final price to confirm the accurate weight of customer items and include any applicable delivery or pick-up fees.',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.black54,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
               const SizedBox(height: 10),
               const Text('Items:',
                   style: TextStyle(
@@ -186,12 +225,26 @@ class _AdminBasketPageState extends State<AdminBasketPage> {
               backgroundColor: const Color(0xFF170CFE),
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8)),
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            child: const Text('Audit'),
+            onPressed: () {
+            },
+          ),
+          TextButton(
+            style: TextButton.styleFrom(
+              backgroundColor: Colors.grey,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
             ),
             child: const Text('Close'),
             onPressed: () => Navigator.pop(context),
           ),
         ],
+
       ),
     );
   }
