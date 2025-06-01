@@ -250,16 +250,51 @@ class AdminOrderManagementPage extends StatelessWidget {
                     'staffContact': contact,
                   });
                   Navigator.pop(ctx);
-                  ScaffoldMessenger.of(ctx).showSnackBar(const SnackBar(
-                    content: Center(child: Text('Order accepted!')),
-                    backgroundColor: Color(0xFF170CFE),
-                    behavior: SnackBarBehavior.floating,
-                  ));
+                  ScaffoldMessenger.of(ctx).showSnackBar(
+                    SnackBar(
+                      behavior: SnackBarBehavior.floating,
+                      backgroundColor:  const Color(0xFF04D26F),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      duration: const Duration(seconds: 4),
+                      content: Row(
+                        children: const [
+                          Icon(Icons.check_circle_outline, color: Colors.white),
+                          SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              'Order accepted!',
+                              style: TextStyle(color: Colors.white, fontSize: 16),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
                 } catch (e) {
-                  ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(
-                    content: Text('Failed to accept order: $e'),
-                    backgroundColor: Colors.redAccent,
-                  ));
+                  ScaffoldMessenger.of(ctx).showSnackBar(
+                    SnackBar(
+                      behavior: SnackBarBehavior.floating,
+                      backgroundColor: const Color(0xFFE57373),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      duration: const Duration(seconds: 4),
+                      content: Row(
+                        children: [
+                          const Icon(Icons.error_outline, color: Colors.white),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              'Failed to accept order: $e',
+                              style: const TextStyle(color: Colors.white, fontSize: 16),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
                 }
               },
             ),
@@ -358,11 +393,13 @@ class AdminOrderManagementPage extends StatelessWidget {
             }).toList();
           }
 
-          return docs.isEmpty
+          return (processing.isEmpty && pending.isEmpty)
               ? Center(
-              child: Text('No orders for $branchKey yet.',
-                  style:
-                  TextStyle(fontSize: 16, color: Colors.grey[700])))
+            child: Text(
+              'No orders for $branchKey yet.',
+              style: TextStyle(fontSize: 16, color: Colors.grey[700]),
+            ),
+          )
               : ListView(
             padding: const EdgeInsets.all(16),
             children: [

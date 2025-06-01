@@ -264,7 +264,7 @@ class _customerInvoicePageState extends State<customerInvoicePage> {
 
                     /* ── Filter by status ── */
                     final completedDocs = docs
-                        .where((d) => (d['status'] as String).toLowerCase() == 'Completed')
+                        .where((d) => (d['status'] as String).toLowerCase() == 'completed')
                         .toList();
 
                     final readyDocs = docs.where((d) {
@@ -297,7 +297,7 @@ class _customerInvoicePageState extends State<customerInvoicePage> {
                       children: [
                         /* ── Completed section ── */
                         if (completedDocs.isNotEmpty) ...[
-                          const Text('Completed', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black)),
+                          const Text('Completed Laundry', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black)),
                           const SizedBox(height: 8),
                           ..._cards(completedDocs),
                           const SizedBox(height: 20),

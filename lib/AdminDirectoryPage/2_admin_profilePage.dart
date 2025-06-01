@@ -178,18 +178,49 @@ class _AdminProfilePageState extends State<AdminProfilePage> {
                       Navigator.pop(context);
 
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Center(child: Text('Password updated successfully!')),
-                          backgroundColor: const Color(0xFF04D26F),
+                        SnackBar(
                           behavior: SnackBarBehavior.floating,
+                          backgroundColor:  const Color(0xFF04D26F),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          duration: const Duration(seconds: 4),
+                          content: Row(
+                            children: const [
+                              Icon(Icons.check_circle_outline, color: Colors.white),
+                              SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  'Password updated successfully!',
+                                  style: TextStyle(color: Colors.white, fontSize: 16),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       );
                     } catch (e) {
                       Navigator.pop(context);
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content: Text('Failed to update password: $e'),
+                          behavior: SnackBarBehavior.floating,
                           backgroundColor: const Color(0xFFE57373),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          duration: const Duration(seconds: 4),
+                          content: Row(
+                            children: [
+                              const Icon(Icons.error_outline, color: Colors.white),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  'Failed to update password: $e',
+                                  style: const TextStyle(color: Colors.white, fontSize: 16),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       );
                     }

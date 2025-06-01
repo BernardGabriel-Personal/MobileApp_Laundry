@@ -163,7 +163,28 @@ class _AdminBasketPageState extends State<AdminBasketPage> {
             onPressed: () async {
               final newTotal = double.tryParse(controller.text.replaceAll(',', '').trim());
               if (newTotal == null) {
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please enter a valid number')));
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    behavior: SnackBarBehavior.floating,
+                    backgroundColor: const Color(0xFFE57373),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    duration: const Duration(seconds: 4),
+                    content: Row(
+                      children: const [
+                        Icon(Icons.error_outline, color: Colors.white),
+                        SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            'Please enter a valid number',
+                            style: TextStyle(color: Colors.white, fontSize: 16),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
                 return;
               }
 
@@ -174,19 +195,44 @@ class _AdminBasketPageState extends State<AdminBasketPage> {
                 'status': 'For delivery/pick-up',
               });
 
-              // Save a copy to the customer_invoice collection
-              final invoiceData = {
+              // Save or update the invoice in customer_invoice collection
+              final invoiceRef = FirebaseFirestore.instance
+                  .collection('customer_invoice')
+                  .doc(docSnap.id);
+
+              await invoiceRef.set({
                 ...data,
                 'grandTotal': newTotal,
                 'isAudited': true,
                 'status': 'For delivery/pick-up',
                 'invoiceTimestamp': FieldValue.serverTimestamp(),
-              };
-              await FirebaseFirestore.instance.collection('customer_invoice').add(invoiceData);
+              }, SetOptions(merge: true));
 
               if (mounted) Navigator.pop(context); // close input dialog
               if (mounted) Navigator.pop(context); // close order details dialog
-              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Grand Total successfully updated')));
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  behavior: SnackBarBehavior.floating,
+                  backgroundColor:  const Color(0xFF04D26F),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  duration: const Duration(seconds: 4),
+                  content: Row(
+                    children: const [
+                      Icon(Icons.check_circle_outline, color: Colors.white),
+                      SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          'Grand Total successfully updated!',
+                          style: TextStyle(color: Colors.white, fontSize: 16),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+
             },
           ),
         ],
@@ -197,7 +243,7 @@ class _AdminBasketPageState extends State<AdminBasketPage> {
   /* ───────── Order details dialog ───────── */
   void _showOrderDetails(DocumentSnapshot docSnap) {
     final data = docSnap.data() as Map<String, dynamic>;
-    final isCompleted = (data['status'] ?? '').toString().toLowerCase() == 'Completed';
+    final isCompleted = (data['status'] ?? '').toString().toLowerCase() == 'completed';
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
@@ -295,38 +341,60 @@ class _AdminBasketPageState extends State<AdminBasketPage> {
             onPressed: data['isAudited'] == true ? null : () => _promptAudit(docSnap),
           ),
           if (_isReadyStatus(data['status'] ?? '') && !isCompleted)
-          TextButton(
-            style: TextButton.styleFrom(
-              backgroundColor: isCompleted ? Colors.grey : const Color(0xFF04D26F),
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            TextButton(
+              style: TextButton.styleFrom(
+                backgroundColor: isCompleted ? Colors.grey : const Color(0xFF04D26F),
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              ),
+              child: const Text('completed'),
+              onPressed: isCompleted
+                  ? null
+                  : () async {
+                if (!await _confirmCompletion(context)) return;
+
+                await docSnap.reference.update({
+                  'status': 'completed',
+                  'completionTimestamp': FieldValue.serverTimestamp(),
+                });
+
+                // Save or update the invoice in customer_invoice collection
+                final invoiceRef = FirebaseFirestore.instance
+                    .collection('customer_invoice')
+                    .doc(docSnap.id);
+
+                await invoiceRef.set({
+                  ...data,
+                  'status': 'completed',
+                  'completionTimestamp': FieldValue.serverTimestamp(),
+                  'invoiceTimestamp': FieldValue.serverTimestamp(),
+                }, SetOptions(merge: true));
+
+                if (mounted) Navigator.pop(context); // close detail dialog
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    behavior: SnackBarBehavior.floating,
+                    backgroundColor:  const Color(0xFF04D26F),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    duration: const Duration(seconds: 4),
+                    content: Row(
+                      children: const [
+                        Icon(Icons.check_circle_outline, color: Colors.white),
+                        SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            'Order marked as completed!',
+                            style: TextStyle(color: Colors.white, fontSize: 16),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
             ),
-            child: const Text('Completed'),
-            onPressed: isCompleted
-                ? null
-                : () async {
-              if (!await _confirmCompletion(context)) return;
-
-              await docSnap.reference.update({
-                'status': 'Completed',
-                'completionTimestamp': FieldValue.serverTimestamp(),
-              });
-
-              // Save a copy to the customer_invoice collection
-              final invoiceData = {
-                ...data,
-                'status': 'Completed',
-                'completionTimestamp': FieldValue.serverTimestamp(),
-                'invoiceTimestamp': FieldValue.serverTimestamp(),
-              };
-              await FirebaseFirestore.instance.collection('customer_invoice').add(invoiceData);
-
-              if (mounted) Navigator.pop(context); // close detail dialog
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Order marked as completed')),
-              );
-            },
-          ),
           TextButton(
             style: TextButton.styleFrom(
               backgroundColor: Colors.grey,
@@ -348,7 +416,7 @@ class _AdminBasketPageState extends State<AdminBasketPage> {
   }
 
   bool _isCompletedStatus(String status) {
-    return status.toLowerCase() == 'Completed';
+    return status.toLowerCase() == 'completed';
   }
 
   /* ───────── UI ───────── */
@@ -458,7 +526,7 @@ class _AdminBasketPageState extends State<AdminBasketPage> {
                     }
                     final docs = snap.data?.docs ?? [];
                     if (docs.isEmpty) {
-                      return const Center(child: Text('Your basket is empty.'));
+                      return Center(child: Text('Your basket is empty.', style: TextStyle(fontSize: 18, color: Colors.grey[700])));
                     }
 
                     // Split orders into three categories
@@ -516,9 +584,9 @@ class _AdminBasketPageState extends State<AdminBasketPage> {
                     ));
 
                     if (readyDocs.isEmpty) {
-                      children.add( Padding(
+                      children.add(const Padding(
                         padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                        child: Text('No orders are ready yet.', style: TextStyle(fontSize: 18, color: Colors.grey[700])),
+                        child: Text('No orders are ready yet.'),
                       ));
                     } else {
                       children.addAll(readyDocs.map((doc) {

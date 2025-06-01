@@ -321,9 +321,20 @@ class _scheduledOrderPageState extends State<scheduledOrderPage> {
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return const Center(child: CircularProgressIndicator());
                     }
+
                     final docs = snapshot.data?.docs ?? [];
 
-                    if (docs.isEmpty) {
+                    // Filter only "processing" and "pending"
+                    final processingDocs = docs
+                        .where((d) => (d['status'] as String).toLowerCase() == 'processing')
+                        .toList();
+
+                    final pendingDocs = docs
+                        .where((d) => (d['status'] as String).toLowerCase() == 'pending')
+                        .toList();
+
+                    // If both lists are empty, show message
+                    if (processingDocs.isEmpty && pendingDocs.isEmpty) {
                       return Center(
                         child: Text(
                           'No scheduled orders yet.',
@@ -332,17 +343,7 @@ class _scheduledOrderPageState extends State<scheduledOrderPage> {
                       );
                     }
 
-                    // ───── Separate into processing and pending ─────
-                    final processingDocs = docs
-                        .where((d) =>
-                    (d['status'] as String).toLowerCase() ==
-                        'processing')
-                        .toList();
-                    final pendingDocs = docs
-                        .where(
-                            (d) => (d['status'] as String).toLowerCase() == 'pending')
-                        .toList();
-
+                    // Helper to build section
                     List<Widget> section(List<QueryDocumentSnapshot> list) {
                       return list
                           .map((e) => Card(
@@ -353,16 +354,15 @@ class _scheduledOrderPageState extends State<scheduledOrderPage> {
                         child: ListTile(
                           title: Text(
                             'Order #${e['orderId'] ?? ''}',
-                            style: const TextStyle(
-                                fontWeight: FontWeight.bold),
+                            style: const TextStyle(fontWeight: FontWeight.bold),
                           ),
                           subtitle: Text(
                             '${e['branch']} • ${e['status']}',
                             overflow: TextOverflow.ellipsis,
                           ),
                           trailing: const Icon(Icons.chevron_right),
-                          onTap: () => _showOrderDetails(
-                              e.data() as Map<String, dynamic>),
+                          onTap: () =>
+                              _showOrderDetails(e.data() as Map<String, dynamic>),
                         ),
                       ))
                           .toList();
@@ -371,27 +371,48 @@ class _scheduledOrderPageState extends State<scheduledOrderPage> {
                     return ListView(
                       padding: const EdgeInsets.all(16),
                       children: [
-                        // processing section on top
                         if (processingDocs.isNotEmpty) ...[
-                          const Text('Processing',
-                              style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.black)),
-                          const SizedBox(height: 8),
-                          ...section(processingDocs),
-                          const SizedBox(height: 20),
+                          const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 8),
+                            child: Text(
+                              'Processing',
+                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                          const Padding(
+                            padding: EdgeInsets.only(bottom: 8),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Icon(
+                                  Icons.info_outline,
+                                  color: Color(0xFFFFD700),
+                                  size: 20,
+                                ),
+                                SizedBox(width: 6),
+                                Expanded(
+                                  child: Text(
+                                    'Please expect a message from our laundry staff. \n'
+                                        'If you chose pick-up, our staff will collect your clothes. \n'
+                                        'If you selected drop-off, kindly proceed to your chosen laundry branch.',
+                                    style: TextStyle(fontSize: 14, color: Colors.grey),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                         ],
-                        // pending section
-                        if (pendingDocs.isNotEmpty) ...[
-                          const Text('Pending',
-                              style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.black)),
-                          const SizedBox(height: 8),
-                          ...section(pendingDocs),
-                        ],
+                        ...section(processingDocs),
+
+                        if (pendingDocs.isNotEmpty)
+                          const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 8),
+                            child: Text(
+                              'Pending',
+                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                        ...section(pendingDocs),
                       ],
                     );
                   },
