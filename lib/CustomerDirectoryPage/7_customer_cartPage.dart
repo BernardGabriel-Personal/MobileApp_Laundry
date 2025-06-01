@@ -182,7 +182,7 @@ class _CartPageState extends State<CartPage> {
                     }
 
                     if (docs.isEmpty) {
-                      return const Center(child: Text('Your cart is empty', style: TextStyle(fontSize: 18)));
+                      return Center(child: Text('Your cart is empty.', style: TextStyle(fontSize: 18, color: Colors.grey[700])));
                     }
 
                     return ListView.builder(

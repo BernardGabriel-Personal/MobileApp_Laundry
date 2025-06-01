@@ -332,7 +332,7 @@ class _CustomerProfilePageState extends State<CustomerProfilePage> {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
                         content: Center(child: Text('Address updated successfully!')),
-                        backgroundColor: Color(0xFF04D26F),
+                        backgroundColor:  Color(0xFF170CFE),
                         behavior: SnackBarBehavior.floating,
                       ),
                     );
