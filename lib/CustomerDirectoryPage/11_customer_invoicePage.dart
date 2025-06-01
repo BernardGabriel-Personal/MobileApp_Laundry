@@ -1,6 +1,10 @@
+// ignore_for_file: avoid_print
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../Start,Signup,Login/2_welcome_page.dart';   // logout → HomeScreen
+import 'package:pdf/widgets.dart' as pw;
+
+import '../Start,Signup,Login/2_welcome_page.dart'; // logout → HomeScreen
 import '1_customer_homepage.dart';
 import '8_customer_profilePage.dart';
 import '7_customer_cartPage.dart';
@@ -25,6 +29,143 @@ class customerInvoicePage extends StatefulWidget {
 }
 
 class _customerInvoicePageState extends State<customerInvoicePage> {
+/* ───────── PDF DOWNLOAD (no path_provider) ───────── */
+  Future<void> _downloadInvoicePDF(Map<String, dynamic> data) async {
+    try {
+      /* 1. Build the PDF */
+      final pdf = pw.Document();
+
+      pdf.addPage(
+        pw.Page(
+          build: (pw.Context _) {
+            return pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                pw.Text('Five-Stars Laundry Invoice',
+                    style: pw.TextStyle(
+                        fontSize: 24, fontWeight: pw.FontWeight.bold)),
+                pw.SizedBox(height: 12),
+                pw.Text('Order #: ${data['orderId']}'),
+                pw.Text('Status: ${data['status']}'),
+                pw.Text('Assigned Staff: ${data['staffName']}'),
+                pw.Text('Assigned Staff Contact: ${data['staffContact']}'),
+                pw.Text('Customer: ${data['fullName']}'),
+                pw.Text('Address: ${data['address']}'),
+                pw.Text('Contact: ${data['contact']}'),
+                pw.Text('Branch: ${data['branch']}'),
+                pw.Text('Order Method: ${data['orderMethod']}'),
+                pw.Text('Payment: ${data['paymentMethod']}'),
+                pw.SizedBox(height: 10),
+                pw.Text('Items:',
+                    style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                pw.SizedBox(height: 4),
+                ...((data['items'] as List<dynamic>).map<pw.Widget>((item) {
+                  final m = Map<String, dynamic>.from(item);
+                  final laundry =
+                      (m['typeOfLaundry'] as List?)?.join(', ') ?? '-';
+
+                  /* bulky items handling */
+                  Map<String, dynamic> bulkyMap =
+                  Map<String, dynamic>.from(m['numberOfBulkyItems'] ?? {});
+                  if (bulkyMap.isEmpty) {
+                    if (m['bulkyItems'] is Map) {
+                      bulkyMap = Map<String, dynamic>.from(m['bulkyItems']);
+                    } else if (m['bulkyItems'] is List) {
+                      final lst = (m['bulkyItems'] as List).cast<dynamic>();
+                      bulkyMap = {for (var e in lst) e.toString(): 1};
+                    }
+                  }
+                  final bulkyItems = bulkyMap.entries
+                      .map((e) => '${e.key} - ${e.value}')
+                      .join(', ');
+
+                  return pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.start,
+                    children: [
+                      pw.Text('${m['serviceType'] ?? ''}',
+                          style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                      pw.Text('Regular Items: $laundry'),
+                      pw.Text(
+                          'Bulky Items: ${bulkyItems.isEmpty ? '-' : bulkyItems}'),
+                      pw.Text(
+                          'Personal Request: ${m['personalRequest']?.toString().isEmpty ?? true ? '-' : m['personalRequest']}'),
+                      pw.Text('Item Total: ${m['totalPrice'] ?? 0} Pesos'),
+                      pw.SizedBox(height: 8),
+                    ],
+                  );
+                })),
+                pw.Divider(),
+                pw.Text('Grand Total: ${data['grandTotal']} Pesos',
+                    style: pw.TextStyle(
+                        fontSize: 16, fontWeight: pw.FontWeight.bold)),
+              ],
+            );
+          },
+        ),
+      );
+
+      /* 2. Choose a directory WITHOUT path_provider
+       Common user-visible folder on Android: /storage/emulated/0/Download */
+      final Directory dir = Directory('/storage/emulated/0/Download');
+
+      if (!await dir.exists()) {
+        await dir.create(recursive: true); // make sure it exists
+      }
+
+      /* 3. Write the PDF */
+      final file = File('${dir.path}/invoice_${data['orderId']}.pdf');
+      await file.writeAsBytes(await pdf.save());
+
+      if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              behavior: SnackBarBehavior.floating,
+              backgroundColor: const Color(0xFF170CFE),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
+              duration: const Duration(seconds: 8),
+              content: Row(
+                children: [
+                  const Icon(Icons.check_circle_outline, color: Colors.white),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Invoice saved to ${file.path}',
+                      style: const TextStyle(color: Colors.white, fontSize: 16),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: Colors.redAccent,
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12)),
+          duration: const Duration(seconds: 8),
+          content: Row(
+            children: [
+              const Icon(Icons.error_outline, color: Colors.white),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'Failed to save invoice',
+                  style: const TextStyle(color: Colors.white, fontSize: 16),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+      print(e);
+    }
+  }
+
+
 /* ───────── LOGOUT CONFIRMATION ───────── */
   Future<bool> _confirmLogout(BuildContext context) async {
     final res = await showDialog<bool>(
@@ -33,7 +174,8 @@ class _customerInvoicePageState extends State<customerInvoicePage> {
         icon: Icons.error_outline,
         iconColor: const Color(0xFFE57373),
         title: 'Are you leaving?',
-        message: 'Are you sure you want to log out? You can always log back in at any time.',
+        message:
+        'Are you sure you want to log out? You can always log back in at any time.',
         okLabel: 'Logout',
         cancelLabel: 'Cancel',
       ),
@@ -64,7 +206,8 @@ class _customerInvoicePageState extends State<customerInvoicePage> {
           style: TextButton.styleFrom(
             foregroundColor: Colors.white,
             backgroundColor: Colors.grey,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           ),
           onPressed: () => Navigator.pop(context, false),
           child: Text(cancelLabel),
@@ -73,7 +216,8 @@ class _customerInvoicePageState extends State<customerInvoicePage> {
           style: TextButton.styleFrom(
             foregroundColor: Colors.white,
             backgroundColor: iconColor,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           ),
           onPressed: () => Navigator.pop(context, true),
           child: Text(okLabel),
@@ -95,7 +239,8 @@ class _customerInvoicePageState extends State<customerInvoicePage> {
             Expanded(
               child: Text(
                 'Order #${data['orderId'] ?? ''}',
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                style:
+                const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                 overflow: TextOverflow.ellipsis,
               ),
             ),
@@ -107,31 +252,52 @@ class _customerInvoicePageState extends State<customerInvoicePage> {
             children: [
               _detailRow('Branch', data['branch']),
               _detailRow('Status', data['status']),
-              _detailRow('Staff', (data['staffName'] ?? '').toString().isEmpty ? '—' : data['staffName']),
-              _detailRow('Staff Contact', (data['staffContact'] ?? '').toString().isEmpty ? '—' : data['staffContact']),
+              _detailRow(
+                  'Staff',
+                  (data['staffName'] ?? '').toString().isEmpty
+                      ? '—'
+                      : data['staffName']),
+              _detailRow(
+                  'Staff Contact',
+                  (data['staffContact'] ?? '').toString().isEmpty
+                      ? '—'
+                      : data['staffContact']),
               _detailRow('Customer', data['fullName']),
               _detailRow('Customer Address', data['address']),
               _detailRow('Contact', data['contact']),
               const Divider(),
               _detailRow('Order Method', data['orderMethod']),
               _detailRow('Payment', data['paymentMethod']),
-              _detailRow('Preferred Detergents', (data['preferredDetergents'] as List<dynamic>?)?.join(', ') ?? '—'),
+              _detailRow(
+                  'Preferred Detergents',
+                  (data['preferredDetergents'] as List<dynamic>?)
+                      ?.join(', ') ??
+                      '—'),
               const Divider(),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('Grand Total', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                  Text('₱ ${data['grandTotal']}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Color(0xFF04D26F))),
+                  const Text('Grand Total',
+                      style:
+                      TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                  Text('₱ ${data['grandTotal']}',
+                      style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
+                          color: Color(0xFF04D26F))),
                 ],
               ),
               const SizedBox(height: 10),
-              const Text('Items:', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black)),
+              const Text('Items:',
+                  style:
+                  TextStyle(fontWeight: FontWeight.bold, color: Colors.black)),
               const SizedBox(height: 6),
               ...(data['items'] as List<dynamic>).map((item) {
                 final m = Map<String, dynamic>.from(item);
 
-                // Handle bulky items regardless of structure
-                Map<String, dynamic> bulkyMap = Map<String, dynamic>.from(m['numberOfBulkyItems'] ?? {});
+                /* bulky items handling */
+                Map<String, dynamic> bulkyMap =
+                Map<String, dynamic>.from(m['numberOfBulkyItems'] ?? {});
                 if (bulkyMap.isEmpty) {
                   if (m['bulkyItems'] is Map) {
                     bulkyMap = Map<String, dynamic>.from(m['bulkyItems']);
@@ -143,8 +309,11 @@ class _customerInvoicePageState extends State<customerInvoicePage> {
 
                 final bulkyList = bulkyMap.isEmpty
                     ? '—'
-                    : bulkyMap.entries.map((e) => '${e.key} – ${e.value}').join(', ');
-                final laundry = (m['typeOfLaundry'] as List<dynamic>?)?.join(', ') ?? '—';
+                    : bulkyMap.entries
+                    .map((e) => '${e.key} – ${e.value}')
+                    .join(', ');
+                final laundry =
+                    (m['typeOfLaundry'] as List<dynamic>?)?.join(', ') ?? '—';
 
                 return Container(
                   margin: const EdgeInsets.only(bottom: 10),
@@ -156,11 +325,20 @@ class _customerInvoicePageState extends State<customerInvoicePage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(m['serviceType'] ?? '', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                      Text(m['serviceType'] ?? '',
+                          style: const TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: 15)),
                       const SizedBox(height: 4),
                       _miniRow('Regular Items', laundry.isEmpty ? '—' : laundry),
-                      _miniRow('Bulky / Accessory', bulkyList.isEmpty ? '—' : bulkyList),
-                      _miniRow('Personal Request', (m['personalRequest'] ?? '').toString().isEmpty ? '—' : m['personalRequest']),
+                      _miniRow('Bulky / Accessory',
+                          bulkyList.isEmpty ? '—' : bulkyList),
+                      _miniRow(
+                          'Personal Request',
+                          (m['personalRequest'] ?? '')
+                              .toString()
+                              .isEmpty
+                              ? '—'
+                              : m['personalRequest']),
                       _miniRow('Item Total', '₱ ${m['totalPrice'] ?? 0}'),
                     ],
                   ),
@@ -172,9 +350,20 @@ class _customerInvoicePageState extends State<customerInvoicePage> {
         actions: [
           TextButton(
             style: TextButton.styleFrom(
+              backgroundColor: Colors.blue,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8)),
+            ),
+            onPressed: () => _downloadInvoicePDF(data),
+            child: const Text('Download'),
+          ),
+          TextButton(
+            style: TextButton.styleFrom(
               backgroundColor: const Color(0xFF04D26F),
               foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8)),
             ),
             onPressed: () => Navigator.pop(context),
             child: const Text('Close'),
@@ -189,7 +378,8 @@ class _customerInvoicePageState extends State<customerInvoicePage> {
     child: Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('$label: ', style: const TextStyle(fontWeight: FontWeight.bold)),
+        Text('$label: ',
+            style: const TextStyle(fontWeight: FontWeight.bold)),
         Expanded(child: Text('$value')),
       ],
     ),
@@ -200,7 +390,8 @@ class _customerInvoicePageState extends State<customerInvoicePage> {
     child: Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('$label: ', style: const TextStyle(fontWeight: FontWeight.w600)),
+        Text('$label: ',
+            style: const TextStyle(fontWeight: FontWeight.w600)),
         Expanded(child: Text(value)),
       ],
     ),
@@ -213,7 +404,8 @@ class _customerInvoicePageState extends State<customerInvoicePage> {
       canPop: false,
       onPopInvokedWithResult: (didPop, _) async {
         if (!didPop && await _confirmLogout(context)) {
-          Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const HomeScreen()));
+          Navigator.pushReplacement(
+              context, MaterialPageRoute(builder: (_) => const HomeScreen()));
         }
       },
       child: Scaffold(
@@ -224,7 +416,8 @@ class _customerInvoicePageState extends State<customerInvoicePage> {
               /* ── Header bar ── */
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+                padding:
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
                 decoration: const BoxDecoration(
                   color: Color(0xFF04D26F),
                   borderRadius: BorderRadius.only(
@@ -236,7 +429,11 @@ class _customerInvoicePageState extends State<customerInvoicePage> {
                   children: const [
                     Icon(Icons.schedule, color: Colors.white),
                     SizedBox(width: 8),
-                    Text('Your Invoices', style: TextStyle(color: Colors.white, fontSize: 25, fontWeight: FontWeight.bold)),
+                    Text('Your Invoices',
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 25,
+                            fontWeight: FontWeight.bold)),
                   ],
                 ),
               ),
@@ -258,54 +455,69 @@ class _customerInvoicePageState extends State<customerInvoicePage> {
 
                     if (docs.isEmpty) {
                       return Center(
-                        child: Text('No invoices yet.', style: TextStyle(fontSize: 18, color: Colors.grey[700])),
+                        child: Text('No invoices yet.',
+                            style: TextStyle(
+                                fontSize: 18, color: Colors.grey[700])),
                       );
                     }
 
                     /* ── Filter by status ── */
                     final completedDocs = docs
-                        .where((d) => (d['status'] as String).toLowerCase() == 'completed')
+                        .where((d) =>
+                    (d['status'] as String).toLowerCase() ==
+                        'completed')
                         .toList();
 
                     final readyDocs = docs.where((d) {
                       final status = (d['status'] as String).toLowerCase();
-                      return status.contains('delivery') || status.contains('pick');
+                      return status.contains('delivery') ||
+                          status.contains('pick');
                     }).toList();
 
-                    List<Widget> _cards(List<QueryDocumentSnapshot> list) => list.map((e) {
-                      return Card(
-                        color: Colors.grey[200],
-                        margin: const EdgeInsets.only(bottom: 12),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        child: ListTile(
-                          title: Text(
-                            'Order #${e['orderId'] ?? ''}',
-                            style: const TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          subtitle: Text(
-                            '${e['branch']} • ${e['status']}',
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          trailing: const Icon(Icons.chevron_right),
-                          onTap: () => _showOrderDetails(e.data() as Map<String, dynamic>),
-                        ),
-                      );
-                    }).toList();
+                    List<Widget> _cards(List<QueryDocumentSnapshot> list) =>
+                        list.map((e) {
+                          return Card(
+                            color: Colors.grey[200],
+                            margin: const EdgeInsets.only(bottom: 12),
+                            shape: RoundedRectangleBorder(
+                                borderRadius:
+                                BorderRadius.circular(12)),
+                            child: ListTile(
+                              title: Text(
+                                'Order #${e['orderId'] ?? ''}',
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold),
+                              ),
+                              subtitle: Text(
+                                '${e['branch']} • ${e['status']}',
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              trailing: const Icon(Icons.chevron_right),
+                              onTap: () => _showOrderDetails(
+                                  e.data() as Map<String, dynamic>),
+                            ),
+                          );
+                        }).toList();
 
                     return ListView(
                       padding: const EdgeInsets.all(16),
                       children: [
-                        /* ── Completed section ── */
                         if (completedDocs.isNotEmpty) ...[
-                          const Text('Completed Laundry', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black)),
+                          const Text('Completed Laundry',
+                              style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black)),
                           const SizedBox(height: 8),
                           ..._cards(completedDocs),
                           const SizedBox(height: 20),
                         ],
-
-                        /* ── Ready for Deliver / Pick-up section ── */
                         if (readyDocs.isNotEmpty) ...[
-                          const Text('Ready for Deliver / Customer Pick-up', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black)),
+                          const Text('Ready for Deliver / Customer Pick-up',
+                              style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black)),
                           const SizedBox(height: 8),
                           ..._cards(readyDocs),
                         ],
@@ -327,7 +539,7 @@ class _customerInvoicePageState extends State<customerInvoicePage> {
           currentIndex: 1, // Invoice tab
           onTap: (i) {
             switch (i) {
-              case 0: // Cart
+              case 0:
                 Navigator.pushReplacement(
                   context,
                   PageRouteBuilder(
@@ -342,8 +554,7 @@ class _customerInvoicePageState extends State<customerInvoicePage> {
                   ),
                 );
                 break;
-
-              case 2: // Home
+              case 2:
                 Navigator.pushReplacement(
                   context,
                   PageRouteBuilder(
@@ -358,8 +569,7 @@ class _customerInvoicePageState extends State<customerInvoicePage> {
                   ),
                 );
                 break;
-
-              case 3: // Schedules
+              case 3:
                 Navigator.pushReplacement(
                   context,
                   PageRouteBuilder(
@@ -374,8 +584,7 @@ class _customerInvoicePageState extends State<customerInvoicePage> {
                   ),
                 );
                 break;
-
-              case 4: // Profile
+              case 4:
                 Navigator.push(
                   context,
                   PageRouteBuilder(
@@ -393,10 +602,13 @@ class _customerInvoicePageState extends State<customerInvoicePage> {
             }
           },
           items: const [
-            BottomNavigationBarItem(icon: Icon(Icons.shopping_cart), label: 'Cart'),
-            BottomNavigationBarItem(icon: Icon(Icons.receipt_long), label: 'Invoice'),
+            BottomNavigationBarItem(
+                icon: Icon(Icons.shopping_cart), label: 'Cart'),
+            BottomNavigationBarItem(
+                icon: Icon(Icons.receipt_long), label: 'Invoice'),
             BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-            BottomNavigationBarItem(icon: Icon(Icons.schedule), label: 'Schedules'),
+            BottomNavigationBarItem(
+                icon: Icon(Icons.schedule), label: 'Schedules'),
             BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
           ],
         ),
