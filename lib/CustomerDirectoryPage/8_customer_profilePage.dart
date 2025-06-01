@@ -312,6 +312,16 @@ class _CustomerProfilePageState extends State<CustomerProfilePage> {
                       await order.reference.update({'address': newAddress});
                     }
 
+                    // Update address in 'customer_invoice' collection
+                    final invoiceSnap = await FirebaseFirestore.instance
+                        .collection('customer_invoice')
+                        .where('email', isEqualTo: widget.email)
+                        .get();
+
+                    for (var order in invoiceSnap.docs) {
+                      await order.reference.update({'address': newAddress});
+                    }
+
                     // Update local UI state
                     setState(() {
                       currentAddress = newAddress;
