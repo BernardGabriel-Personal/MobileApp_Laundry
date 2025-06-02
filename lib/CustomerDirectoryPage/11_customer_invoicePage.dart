@@ -41,17 +41,26 @@ class _customerInvoicePageState extends State<customerInvoicePage> {
             return pw.Column(
               crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: [
-                pw.Text('Five-Stars Laundry Invoice',
+                pw.Text('Five-Stars Laundry | Customer Invoice',
                     style: pw.TextStyle(
                         fontSize: 24, fontWeight: pw.FontWeight.bold)),
                 pw.SizedBox(height: 12),
-                pw.Text('Order #: ${data['orderId']}'),
-                pw.Text('Status: ${data['status']}'),
-                pw.Text('Assigned Staff: ${data['staffName']}'),
+                pw.Text(
+                  'Order #: ${data['orderId']}',
+                  style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+                ),
+                pw.Text(
+                  'Status: ${data['status']}',
+                  style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+                ),
+                pw.SizedBox(height: 8),
+                pw.Text('Assigned Staff Name: ${data['staffName']}'),
                 pw.Text('Assigned Staff Contact: ${data['staffContact']}'),
+                pw.SizedBox(height: 8),
                 pw.Text('Customer: ${data['fullName']}'),
                 pw.Text('Address: ${data['address']}'),
                 pw.Text('Contact: ${data['contact']}'),
+                pw.SizedBox(height: 8),
                 pw.Text('Branch: ${data['branch']}'),
                 pw.Text('Order Method: ${data['orderMethod']}'),
                 pw.Text('Payment: ${data['paymentMethod']}'),
@@ -143,7 +152,7 @@ class _customerInvoicePageState extends State<customerInvoicePage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           behavior: SnackBarBehavior.floating,
-          backgroundColor: Colors.redAccent,
+          backgroundColor: const Color(0xFFE57373),
           shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12)),
           duration: const Duration(seconds: 8),
@@ -153,7 +162,7 @@ class _customerInvoicePageState extends State<customerInvoicePage> {
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
-                  'Failed to save invoice',
+                  'Failed to save invoice. Device might not be compatible.',
                   style: const TextStyle(color: Colors.white, fontSize: 16),
                 ),
               ),
@@ -350,7 +359,7 @@ class _customerInvoicePageState extends State<customerInvoicePage> {
         actions: [
           TextButton(
             style: TextButton.styleFrom(
-              backgroundColor: Colors.blue,
+              backgroundColor: const Color(0xFF170CFE),
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8)),
