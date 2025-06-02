@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:intl/intl.dart';
+
 import '../Start,Signup,Login/2_welcome_page.dart'; // For logout redirect to HomeScreen
 import '2_customer_washCleaningPage.dart';
 import '3_customer_dryCleaningPage.dart';
@@ -9,6 +12,7 @@ import '7_customer_cartPage.dart';
 import '8_customer_profilePage.dart';
 import '10_customer_schedulesPage.dart';
 import '11_customer_invoicePage.dart';
+
 // Note: All services should not have navigation bottom bar, users can use the appbar back button instead for cleaner UI.
 
 class CustomerHomePage extends StatefulWidget {
@@ -38,7 +42,7 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
         title: Row(
           children: [
             const Icon(Icons.error_outline,
-                color: const Color(0xFFE57373), size: 28),
+                color: Color(0xFFE57373), size: 28),
             const SizedBox(width: 10),
             const Text('Are you leaving?', style: TextStyle(fontSize: 18)),
           ],
@@ -103,13 +107,14 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
                 Navigator.push(
                   context,
                   PageRouteBuilder(
-                    pageBuilder: (context, animation, secondaryAnimation) => CartPage(
-                      fullName: widget.fullName,
-                      address: widget.address,
-                      contact: widget.contact,
-                      email: widget.email,
-                    ),
-                    transitionDuration: Duration.zero, // No transition animation
+                    pageBuilder: (context, animation, secondaryAnimation) =>
+                        CartPage(
+                          fullName: widget.fullName,
+                          address: widget.address,
+                          contact: widget.contact,
+                          email: widget.email,
+                        ),
+                    transitionDuration: Duration.zero,
                     reverseTransitionDuration: Duration.zero,
                   ),
                 );
@@ -118,13 +123,14 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
                 Navigator.push(
                   context,
                   PageRouteBuilder(
-                    pageBuilder: (context, animation, secondaryAnimation) => customerInvoicePage(
-                      fullName: widget.fullName,
-                      address: widget.address,
-                      contact: widget.contact,
-                      email: widget.email,
-                    ),
-                    transitionDuration: Duration.zero, // No transition animation
+                    pageBuilder: (context, animation, secondaryAnimation) =>
+                        customerInvoicePage(
+                          fullName: widget.fullName,
+                          address: widget.address,
+                          contact: widget.contact,
+                          email: widget.email,
+                        ),
+                    transitionDuration: Duration.zero,
                     reverseTransitionDuration: Duration.zero,
                   ),
                 );
@@ -133,13 +139,14 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
                 Navigator.push(
                   context,
                   PageRouteBuilder(
-                    pageBuilder: (context, animation, secondaryAnimation) => scheduledOrderPage(
-                      fullName: widget.fullName,
-                      address: widget.address,
-                      contact: widget.contact,
-                      email: widget.email,
-                    ),
-                    transitionDuration: Duration.zero, // No transition animation
+                    pageBuilder: (context, animation, secondaryAnimation) =>
+                        scheduledOrderPage(
+                          fullName: widget.fullName,
+                          address: widget.address,
+                          contact: widget.contact,
+                          email: widget.email,
+                        ),
+                    transitionDuration: Duration.zero,
                     reverseTransitionDuration: Duration.zero,
                   ),
                 );
@@ -148,12 +155,13 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
                 Navigator.push(
                   context,
                   PageRouteBuilder(
-                    pageBuilder: (context, animation, secondaryAnimation) => CustomerProfilePage(
-                      fullName: widget.fullName,
-                      address: widget.address,
-                      contact: widget.contact,
-                      email: widget.email,
-                    ),
+                    pageBuilder: (context, animation, secondaryAnimation) =>
+                        CustomerProfilePage(
+                          fullName: widget.fullName,
+                          address: widget.address,
+                          contact: widget.contact,
+                          email: widget.email,
+                        ),
                     transitionDuration: Duration.zero,
                     reverseTransitionDuration: Duration.zero,
                   ),
@@ -191,7 +199,7 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
                         children: [
                           const CircleAvatar(
                             radius: 30,
-                            backgroundColor: const Color(0xFF170CFE),
+                            backgroundColor: Color(0xFF170CFE),
                             child: Icon(Icons.person,
                                 color: Colors.white, size: 40),
                           ),
@@ -199,7 +207,7 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
                           const Text(
                             "WELCOME!",
                             style: TextStyle(
-                              color: const Color(0xFF170CFE),
+                              color: Color(0xFF170CFE),
                               fontWeight: FontWeight.bold,
                               fontSize: 22,
                             ),
@@ -207,8 +215,8 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
                           Text(widget.fullName,
                               style: const TextStyle(
                                   color: Colors.white, fontSize: 20)),
-                          Text("Five Stars Laundromat | CUSTOMER",
-                              style: const TextStyle(
+                          const Text("Five Stars Laundromat | CUSTOMER",
+                              style: TextStyle(
                                   color: Colors.white70, fontSize: 18)),
                         ],
                       ),
@@ -235,23 +243,22 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
                                 address: widget.address,
                                 contact: widget.contact,
                                 email: widget.email,
-                              ),
-                          ),
+                              )),
                         );
                       }),
-                      _buildDashboardTile(Icons.dry_cleaning, 'Dry Cleaning', () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => dryCleaningPage(
-                                fullName: widget.fullName,
-                                address: widget.address,
-                                contact: widget.contact,
-                                email: widget.email,
-                              ),
-                          ),
-                        );
-                      }),
+                      _buildDashboardTile(Icons.dry_cleaning, 'Dry Cleaning',
+                              () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => dryCleaningPage(
+                                    fullName: widget.fullName,
+                                    address: widget.address,
+                                    contact: widget.contact,
+                                    email: widget.email,
+                                  )),
+                            );
+                          }),
                       _buildDashboardTile(
                           Icons.inventory, 'Wash, Dry & Press Service', () {
                         Navigator.push(
@@ -262,8 +269,7 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
                                 address: widget.address,
                                 contact: widget.contact,
                                 email: widget.email,
-                              ),
-                          ),
+                              )),
                         );
                       }),
                       _buildDashboardTile(Icons.iron, 'Ironing Service', () {
@@ -275,8 +281,7 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
                                 address: widget.address,
                                 contact: widget.contact,
                                 email: widget.email,
-                              ),
-                          ),
+                              )),
                         );
                       }),
                       _buildDashboardTile(
@@ -285,12 +290,11 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
                           context,
                           MaterialPageRoute(
                               builder: (context) => accessoryCleaningPage(
-                                    fullName: widget.fullName,
-                                    address: widget.address,
-                                    contact: widget.contact,
-                                    email: widget.email,
-                                  ),
-                          ),
+                                fullName: widget.fullName,
+                                address: widget.address,
+                                contact: widget.contact,
+                                email: widget.email,
+                              )),
                         );
                       }),
                     ],
@@ -302,16 +306,17 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
                   child: Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
-                      'Transaction Logs:',
+                      'Announcements:',
                       style:
-                          TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                      TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                     ),
                   ),
                 ),
                 const SizedBox(height: 8),
-                _buildActivityLog(
-                    "Log #1", "Waiting for your payment", "15:00"),
-                _buildActivityLog("Log #2", "Rider is on the way", "14:30"),
+                SizedBox(
+                  height: 250, // fixed announcement box height
+                  child: _buildAnnouncementsStream(),
+                ),
                 const SizedBox(height: 24),
               ],
             ),
@@ -320,6 +325,8 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
       ),
     );
   }
+
+  /* ─────────────────────────────  UI HELPERS  ─────────────────────────── */
 
   static Widget _buildDashboardTile(
       IconData icon, String label, VoidCallback onTap) {
@@ -333,13 +340,13 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 40, color: const Color(0xFF170CFE)),
+            Icon(icon, size: 40, color: Color(0xFF170CFE)),
             const SizedBox(height: 8),
             Text(
               label,
               textAlign: TextAlign.center,
               style: const TextStyle(
-                color: const Color(0xFF170CFE),
+                color: Color(0xFF170CFE),
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -349,7 +356,52 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
     );
   }
 
-  static Widget _buildActivityLog(String customer, String action, String time) {
+  Widget _buildAnnouncementsStream() {
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection('announcements')
+          .orderBy('timestamp', descending: true)
+          .snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        final docs = snapshot.data?.docs ?? [];
+
+        if (docs.isEmpty) {
+          return const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 4),
+            child: Text(
+              'No announcements yet.',
+              style: TextStyle(color: Colors.grey),
+            ),
+          );
+        }
+
+        return ListView.builder(
+          itemCount: docs.length,
+          itemBuilder: (context, index) {
+            final data = docs[index].data()! as Map<String, dynamic>;
+
+            final String fullName   = data['fullName'] ?? 'Unknown';
+            final String firstName  = fullName.split(' ').first;
+            final String branch     = data['branch'] ?? 'N/A';
+            final String message    = data['announcement'] ?? '';
+            final Timestamp ts      = data['timestamp'] ?? Timestamp.now();
+            final String timeString =
+            DateFormat('MMM d, yyyy • h:mm a').format(ts.toDate());
+
+            return _buildAnnouncementItem(
+                'Staff: $firstName', branch, message, timeString);
+          },
+        );
+      },
+    );
+  }
+
+  static Widget _buildAnnouncementItem(
+      String staff, String branch, String message, String time) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4),
       child: Container(
@@ -359,18 +411,29 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
           borderRadius: BorderRadius.circular(16),
         ),
         child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            CircleAvatar(
-              backgroundColor: const Color(0xFF04D26F),
+            const CircleAvatar(
+              backgroundColor: Color(0xFF170CFE),
               radius: 20,
-              child: Text(
-                customer.split(' ').last,
-                style: const TextStyle(color: Colors.white, fontSize: 12),
-              ),
+              child: Icon(Icons.person, color: Colors.white, size: 20),
             ),
             const SizedBox(width: 12),
-            Expanded(child: Text("$customer $action")),
-            Text(time, style: const TextStyle(color: Colors.black54)),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text("$staff ($branch)",
+                      style: const TextStyle(fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 4),
+                  Text(message),
+                  const SizedBox(height: 4),
+                  Text(time,
+                      style:
+                      const TextStyle(color: Colors.black54, fontSize: 12)),
+                ],
+              ),
+            ),
           ],
         ),
       ),

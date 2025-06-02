@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:intl/intl.dart';
+
 import '../AdminDirectoryPage/2_admin_profilePage.dart'; // Redirect to Profile page
-import '../Start,Signup,Login/2_welcome_page.dart'; // For logout redirect to HomeScreen
-import '../AdminDirectoryPage/3_admin_detergent.dart'; // Detergent Feature
-import '../AdminDirectoryPage/4_admin_pricing.dart'; // Pricing Feature
+import '../Start,Signup,Login/2_welcome_page.dart';      // For logout redirect to HomeScreen
+import '../AdminDirectoryPage/3_admin_detergent.dart';   // Detergent Feature
+import '../AdminDirectoryPage/4_admin_pricing.dart';     // Pricing Feature
 import '../AdminDirectoryPage/7_admin_logBookPage.dart'; // LogBook Page
 import '../AdminDirectoryPage/8_admin_announcementPage.dart'; // Announcement Page
-import '../AdminDirectoryPage/5_admin_orderManagement.dart'; // Order Management Feature
+import '../AdminDirectoryPage/5_admin_orderManagement.dart';  // Order Management Feature
 import '6_admin_basketPage.dart';
+
 // Note: All services should not have navigation bottom bar, users can use the appbar back button instead for cleaner UI.
 
 class AdminHomePage extends StatefulWidget {
@@ -37,7 +41,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
         backgroundColor: const Color(0xFFD9D9D9),
         title: Row(
           children: [
-            const Icon(Icons.error_outline, color: const Color(0xFFE57373), size: 28),
+            const Icon(Icons.error_outline, color: Color(0xFFE57373), size: 28),
             const SizedBox(width: 10),
             const Text('Are you leaving?', style: TextStyle(fontSize: 18)),
           ],
@@ -101,12 +105,14 @@ class _AdminHomePageState extends State<AdminHomePage> {
                 if (shouldLogout) {
                   Navigator.pushReplacement(
                     context,
-                    PageRouteBuilder(pageBuilder: (context, animation, secondaryAnimation) => const HomeScreen(),
-                      transitionDuration: Duration.zero, // No transition animation
+                    PageRouteBuilder(
+                      pageBuilder: (context, animation, secondaryAnimation) => const HomeScreen(),
+                      transitionDuration: Duration.zero,
                       reverseTransitionDuration: Duration.zero,
                     ),
                   );
                 }
+                break;
               case 1:
                 Navigator.push(
                   context,
@@ -118,7 +124,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
                       contact: widget.contact,
                       email: widget.email,
                     ),
-                    transitionDuration: Duration.zero, // No transition animation
+                    transitionDuration: Duration.zero,
                     reverseTransitionDuration: Duration.zero,
                   ),
                 );
@@ -134,7 +140,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
                       contact: widget.contact,
                       email: widget.email,
                     ),
-                    transitionDuration: Duration.zero, // No transition animation
+                    transitionDuration: Duration.zero,
                     reverseTransitionDuration: Duration.zero,
                   ),
                 );
@@ -145,7 +151,6 @@ class _AdminHomePageState extends State<AdminHomePage> {
             BottomNavigationBarItem(icon: Icon(Icons.logout), label: 'Logout'),
             BottomNavigationBarItem(icon: Icon(Icons.shopping_basket), label: 'Basket'),
             BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-            // BottomNavigationBarItem(icon: Icon(Icons.schedule), label: 'Schedules'),
             BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
           ],
         ),
@@ -167,7 +172,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
                         children: [
                           const CircleAvatar(
                             radius: 30,
-                            backgroundColor: const Color(0xFF04D26F),
+                            backgroundColor: Color(0xFF04D26F),
                             child: Icon(Icons.person, color: Colors.white, size: 40),
                           ),
                           const SizedBox(height: 12),
@@ -246,7 +251,6 @@ class _AdminHomePageState extends State<AdminHomePage> {
                           )),
                         );
                       }),
-                      // _buildDashboardTile(Icons.bar_chart, 'Analytics', () {}),
                     ],
                   ),
                 ),
@@ -256,14 +260,16 @@ class _AdminHomePageState extends State<AdminHomePage> {
                   child: Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
-                      'Activity Logs:',
+                      'Announcements:',
                       style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                     ),
                   ),
                 ),
                 const SizedBox(height: 8),
-                _buildActivityLog("Sample Admin #1", "made changes in the detergent stock!", "15:00"),
-                _buildActivityLog("Sample Admin #2", "Viewed the customers log.", "14:30"),
+                SizedBox(
+                  height: 250, // fixed box height; only this section scrolls
+                  child: _buildAnnouncementsStream(),
+                ),
                 const SizedBox(height: 24),
               ],
             ),
@@ -272,6 +278,8 @@ class _AdminHomePageState extends State<AdminHomePage> {
       ),
     );
   }
+
+  /* ───────────────────────────────  UI HELPERS  ────────────────────────── */
 
   static Widget _buildDashboardTile(IconData icon, String label, VoidCallback onTap) {
     return GestureDetector(
@@ -290,7 +298,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
               label,
               textAlign: TextAlign.center,
               style: const TextStyle(
-                color: const Color(0xFF04D26F),
+                color: Color(0xFF04D26F),
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -300,7 +308,50 @@ class _AdminHomePageState extends State<AdminHomePage> {
     );
   }
 
-  static Widget _buildActivityLog(String admin, String action, String time) {
+  Widget _buildAnnouncementsStream() {
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection('announcements')
+          .orderBy('timestamp', descending: true)
+          .snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        final docs = snapshot.data?.docs ?? [];
+
+        if (docs.isEmpty) {
+          return const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 4),
+            child: Text(
+              'No announcements yet.',
+              style: TextStyle(color: Colors.grey),
+            ),
+          );
+        }
+
+        return ListView.builder(
+          itemCount: docs.length,
+          itemBuilder: (context, index) {
+            final data = docs[index].data()! as Map<String, dynamic>;
+
+            final String fullName = data['fullName'] ?? 'Unknown';
+            final String firstName = fullName.split(' ').first;
+            final String announcer = 'Staff: $firstName';
+            final String branch      = data['branch'] ?? 'N/A';
+            final String message     = data['announcement'] ?? '';
+            final Timestamp ts       = data['timestamp'] ?? Timestamp.now();
+            final String timeString  = DateFormat('MMM d, yyyy • h:mm a').format(ts.toDate());
+
+            return _buildAnnouncementItem(announcer, branch, message, timeString);
+          },
+        );
+      },
+    );
+  }
+
+  static Widget _buildAnnouncementItem(String admin, String branch, String message, String time) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4),
       child: Container(
@@ -310,18 +361,26 @@ class _AdminHomePageState extends State<AdminHomePage> {
           borderRadius: BorderRadius.circular(16),
         ),
         child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            CircleAvatar(
-              backgroundColor: const Color(0xFF04D26F),
+            const CircleAvatar(
+              backgroundColor: Color(0xFF04D26F),
               radius: 20,
-              child: Text(
-                admin.split(' ').last,
-                style: const TextStyle(color: Colors.white, fontSize: 12),
-              ),
+              child: Icon(Icons.person, color: Colors.white, size: 20),
             ),
             const SizedBox(width: 12),
-            Expanded(child: Text("$admin $action")),
-            Text(time, style: const TextStyle(color: Colors.black54)),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text("$admin ($branch)", style: const TextStyle(fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 4),
+                  Text(message),
+                  const SizedBox(height: 4),
+                  Text(time, style: const TextStyle(color: Colors.black54, fontSize: 12)),
+                ],
+              ),
+            ),
           ],
         ),
       ),
