@@ -3,6 +3,8 @@ import '../AdminDirectoryPage/2_admin_profilePage.dart'; // Redirect to Profile 
 import '../Start,Signup,Login/2_welcome_page.dart'; // For logout redirect to HomeScreen
 import '../AdminDirectoryPage/3_admin_detergent.dart'; // Detergent Feature
 import '../AdminDirectoryPage/4_admin_pricing.dart'; // Pricing Feature
+import '../AdminDirectoryPage/7_admin_logBookPage.dart'; // LogBook Page
+import '../AdminDirectoryPage/8_admin_announcementPage.dart'; // Announcement Page
 import '../AdminDirectoryPage/5_admin_orderManagement.dart'; // Order Management Feature
 import '6_admin_basketPage.dart';
 // Note: All services should not have navigation bottom bar, users can use the appbar back button instead for cleaner UI.
@@ -222,9 +224,29 @@ class _AdminHomePageState extends State<AdminHomePage> {
                           )),
                         );
                       }),
-                      _buildDashboardTile(Icons.library_books, 'Log Book', () {}),
+                      _buildDashboardTile(Icons.library_books, 'Log Book', () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) =>  AdminLogBookPage(
+                            employeeId: widget.employeeId,
+                            fullName: widget.fullName,
+                            branch: widget.branch,
+                            contact: widget.contact,
+                            email: widget.email,
+                          )),
+                        );
+                      }),
+                      _buildDashboardTile(Icons.announcement, 'Announcements', () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) =>  AdminAnnouncementPage(
+                            employeeId: widget.employeeId,
+                            fullName: widget.fullName,
+                            branch: widget.branch,
+                          )),
+                        );
+                      }),
                       // _buildDashboardTile(Icons.bar_chart, 'Analytics', () {}),
-                      _buildDashboardTile(Icons.announcement, 'Announcements', () {}),
                     ],
                   ),
                 ),
