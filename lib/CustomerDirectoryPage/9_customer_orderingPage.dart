@@ -232,27 +232,40 @@ class _OrderingPageState extends State<OrderingPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _infoRow('Service', widget.serviceType ?? ''),
-        _infoRow('Base Price', '₱ ${_singleBase.toStringAsFixed(2)}'),
-        _infoRow('Bulky / Accessory Price',
-            '₱ ${(widget.priceOfBulkyItems ?? 0).toStringAsFixed(2)}'),
+
+        // Show Base Price only if laundry items exist
+        (widget.typeOfLaundry != null && widget.typeOfLaundry!.isNotEmpty)
+            ? _infoRow('Base Price', '₱ ${_singleBase.toStringAsFixed(2)}')
+            : const SizedBox.shrink(),
+
+        // Show Bulky Price only if bulky items exist
+        (widget.priceOfBulkyItems != null &&
+            widget.priceOfBulkyItems! > 0)
+            ? _infoRow('Bulky / Accessory Price',
+            '₱ ${widget.priceOfBulkyItems!.toStringAsFixed(2)}')
+            : const SizedBox.shrink(),
+
         const Divider(),
+
         _infoRow('Total', '₱ ${widget.totalPrice.toStringAsFixed(2)}',
             bold: true),
         const SizedBox(height: 12),
-        _infoRow(
-            'Regular Laundry Items',
-            (widget.typeOfLaundry != null &&
-                widget.typeOfLaundry!.isNotEmpty)
-                ? widget.typeOfLaundry!.join(', ')
-                : 'None'),
-        _infoRow(
-            'Bulky / Accessories',
-            (widget.bulkyItems != null && widget.bulkyItems!.isNotEmpty)
-                ? widget.bulkyItems!.entries
-                .map((e) =>
-            '${e.key} – ${e.value} pc${e.value > 1 ? 's' : ''}')
-                .join(', ')
-                : 'None'),
+        // Show Laundry Items if any
+        (widget.typeOfLaundry != null &&
+            widget.typeOfLaundry!.isNotEmpty)
+            ? _infoRow('Laundry Items', widget.typeOfLaundry!.join(', '))
+            : const SizedBox.shrink(),
+
+        // Show Bulky / Accessories if any
+        (widget.bulkyItems != null && widget.bulkyItems!.isNotEmpty)
+            ? _infoRow(
+          'Bulky / Accessories',
+          widget.bulkyItems!.entries
+              .map((e) =>
+          '${e.key} – ${e.value} pc${e.value > 1 ? 's' : ''}')
+              .join(', '),
+        )
+            : const SizedBox.shrink(),
         const SizedBox(height: 12),
         _infoRow('Personalized Request',
             widget.personalRequest?.isNotEmpty == true
@@ -284,7 +297,9 @@ class _OrderingPageState extends State<OrderingPage> {
     final regItems = (d['typeOfLaundry'] as List?)?.cast<String>() ?? [];
     final bulkyMap =
         (d['numberOfBulkyItems'] as Map?)?.cast<String, dynamic>() ?? {};
-    final base = (d['washBase'] ?? d['dryBase'] ?? 0).toDouble();
+    final double base = regItems.isNotEmpty
+        ? (d['washBase'] ?? d['dryBase'] ?? 0).toDouble()
+        : 0.0;
     final bulkyPrice = (d['priceOfBulkyItems'] ?? 0).toDouble();
     final total = (d['totalPrice'] ?? 0).toDouble();
     final personal = (d['personalRequest'] ?? '').toString();
@@ -311,11 +326,14 @@ class _OrderingPageState extends State<OrderingPage> {
             ],
           ),
           const SizedBox(height: 6),
-          _infoRow('Base Price', '₱ ${base.toStringAsFixed(2)}'),
+          if (base > 0) // To hide if none
+            _infoRow('Base Price', '₱ ${base.toStringAsFixed(2)}'),
+          if (bulkyMap.isNotEmpty) // To hide if none
           _infoRow('Bulky / Accessory Price',
               '₱ ${bulkyPrice.toStringAsFixed(2)}'),
-          _infoRow('Regular Laundry Items',
-              regItems.isNotEmpty ? regItems.join(', ') : 'None'),
+          if (regItems.isNotEmpty) // To hide if none
+            _infoRow('Laundry Items', regItems.join(', ')),
+          if (bulkyMap.isNotEmpty) // To hide if none
           _infoRow('Bulky / Accessories', _fmtBulky(bulkyMap)),
           _infoRow('Personalized Request',
               personal.isNotEmpty ? personal : '—'),
