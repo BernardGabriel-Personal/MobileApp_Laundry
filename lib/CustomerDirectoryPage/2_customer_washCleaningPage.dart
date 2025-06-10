@@ -605,7 +605,6 @@ class _washCleaningPageState extends State<washCleaningPage> {
     // 4. Compute totals.
     final double priceOfBulkyItems = bulkyCounts.entries.fold<double>(
         0, (sum, e) => sum + (e.value * singleQueenUnit));
-    print('Selected regular types: $typeOfLaundry'); // debug
     final double totalPrice =
         priceOfBulkyItems + (typeOfLaundry.isNotEmpty ? washBase : 0);
 

@@ -22,9 +22,19 @@ class washDryPressPage extends StatefulWidget {
 
 class _washDryPressPageState extends State<washDryPressPage> {
 /* ─────────────────────────── DATA SOURCES ─────────────────────────── */
+  // final List<String> itemTypes = [
+  //   'Cotton', 'Linen', 'Polyester', 'Silk', 'Wool', 'Rayon', 'Nylon', 'Spandex', 'Denim', 'Velvet', 'Suits', 'Dress Shirts', 'Gowns / Dresses', 'Uniforms', 'Baby Clothes', 'Delicates / Lingerie', 'Athletic Wear', 'Beddings', 'Curtains', 'Blanket', 'Comforter', 'Fleece', 'Quilt',
+  // ];
   final List<String> itemTypes = [
-    'Cotton', 'Linen', 'Polyester', 'Silk', 'Wool', 'Rayon', 'Nylon', 'Spandex', 'Denim', 'Velvet', 'Suits', 'Dress Shirts', 'Gowns / Dresses', 'Uniforms', 'Baby Clothes', 'Delicates / Lingerie', 'Athletic Wear', 'Beddings', 'Curtains', 'Blanket', 'Comforter', 'Fleece', 'Quilt',
+    'Regular Clothes',
+    'Thick Clothes',
+    'Delicates',
   ];
+  final Map<String, String> laundryTypeDescriptions = {
+    'Regular Clothes': 'Cotton, Linen, Polyester, Rayon, Nylon, Spandex, Uniforms, Athletic Wear, etc',
+    'Thick Clothes': 'Wool, Velvet, Jacket, Denim, Jeans, etc',
+    'Delicates': 'Silk, Lingerie, Baby Clothes, etc',
+  };
 
   late final Map<String, bool> selectedItems;
   bool othersSelected = false;
@@ -209,64 +219,71 @@ class _washDryPressPageState extends State<washDryPressPage> {
     },
   );
 
-  Widget _buildItemSection() => Padding(
-    padding: const EdgeInsets.symmetric(horizontal: 20),
-    child: Container(
-      padding: const EdgeInsets.all(12),
-      decoration: _boxDecoration(),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text('Select Type Of Laundry To Wash, Dry & Press',
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 10),
-          SizedBox(
-            height: 160,
-            child: Scrollbar(
-              child: ListView(
-                children: [
-                  ...itemTypes.map(
-                        (type) => _miniCheckboxTile(
-                      label: type,
-                      value: selectedItems[type],
-                      onChanged: (v) =>
-                          setState(() => selectedItems[type] = v ?? false),
+  Widget _buildItemSection() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: _boxDecoration(),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Select Type Of Laundry',
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 10),
+            SizedBox(
+              height: 200,
+              child: Scrollbar(
+                child: ListView(
+                  children: [
+                    ...itemTypes.map((type) {
+                      return _miniCheckboxTile(
+                        label: type,
+                        value: selectedItems[type],
+                        onChanged: (val) {
+                          setState(() {
+                            selectedItems[type] = val ?? false;
+                          });
+                        },
+                        subNote: laundryTypeDescriptions[type], // shows sub note
+                      );
+                    }).toList(),
+                    _miniCheckboxTile(
+                      label: 'Others',
+                      value: othersSelected,
+                      onChanged: (val) {
+                        setState(() {
+                          othersSelected = val ?? false;
+                          if (!othersSelected) othersText = '';
+                        });
+                      },
                     ),
-                  ),
-                  _miniCheckboxTile(
-                    label: 'Others',
-                    value: othersSelected,
-                    onChanged: (v) {
-                      setState(() {
-                        othersSelected = v ?? false;
-                        if (!othersSelected) othersText = '';
-                      });
-                    },
-                  ),
-                  if (othersSelected)
-                    Padding(
-                      padding: const EdgeInsets.only(
-                          left: 40, top: 4, bottom: 8),
-                      child: TextField(
-                        decoration: const InputDecoration(
-                          hintText: 'Please specify',
-                          border: OutlineInputBorder(),
-                          isDense: true,
-                          contentPadding: EdgeInsets.symmetric(
-                              vertical: 8, horizontal: 12),
+                    if (othersSelected)
+                      Padding(
+                        padding:
+                        const EdgeInsets.only(left: 40, top: 4, bottom: 8),
+                        child: TextField(
+                          decoration: const InputDecoration(
+                            hintText: 'Please specify',
+                            border: OutlineInputBorder(),
+                            isDense: true,
+                            contentPadding:
+                            EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                          ),
+                          onChanged: (val) => setState(() => othersText = val),
                         ),
-                        onChanged: (val) =>
-                            setState(() => othersText = val),
                       ),
-                    ),
-                ],
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
-    ),
-  );
+    );
+  }
 
   Widget _buildPersonalNoteField() => Padding(
     padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -465,17 +482,36 @@ class _washDryPressPageState extends State<washDryPressPage> {
 
   Widget _miniCheckboxTile({
     required String label,
+    String? subNote, // NEW
     required bool? value,
     required ValueChanged<bool?> onChanged,
-  }) =>
-      CheckboxListTile(
-        dense: true,
-        visualDensity: const VisualDensity(horizontal: -4, vertical: -4),
-        contentPadding: EdgeInsets.zero,
-        controlAffinity: ListTileControlAffinity.leading,
-        activeColor: const Color(0xFF04D26F),
-        title: Text(label, style: const TextStyle(fontSize: 14)),
-        value: value,
-        onChanged: onChanged,
-      );
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        CheckboxListTile(
+          dense: true,
+          visualDensity: const VisualDensity(horizontal: -4, vertical: -4),
+          contentPadding: EdgeInsets.zero,
+          controlAffinity: ListTileControlAffinity.leading,
+          activeColor: const Color(0xFF04D26F),
+          title: Text(label, style: const TextStyle(fontSize: 14)),
+          value: value,
+          onChanged: onChanged,
+        ),
+        if (subNote != null)
+          Padding(
+            padding: const EdgeInsets.only(left: 48.0, bottom: 0), // align with checkbox
+            child: Text(
+              subNote,
+              style: const TextStyle(
+                fontSize: 12,
+                color: Colors.black54,
+                height: 1.3,
+              ),
+            ),
+          ),
+      ],
+    );
+  }
 }
