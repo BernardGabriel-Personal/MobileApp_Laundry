@@ -23,8 +23,16 @@ class dryCleaningPage extends StatefulWidget {
 class _dryCleaningPageState extends State<dryCleaningPage> {
   // ────────────────────────────── DATA SOURCES ──────────────────────────────
   final List<String> regularLaundryTypes = [
-    'Cotton', 'Linen', 'Polyester', 'Silk', 'Wool', 'Rayon', 'Nylon', 'Spandex', 'Denim', 'Velvet', 'Suits', 'Dress Shirts', 'Gowns / Dresses', 'Uniforms', 'Baby Clothes', 'Delicates / Lingerie', 'Athletic Wear',
+    'Regular Clothes',
+    'Thick Clothes',
+    'Delicates',
   ];
+  final Map<String, String> laundryTypeDescriptions = {
+    'Regular Clothes': 'Cotton, Linen, Polyester, Rayon, Nylon, Spandex, Uniforms, Athletic Wear, etc',
+    'Thick Clothes': 'Wool, Velvet, Jacket, Denim, Jeans, etc',
+    'Delicates': 'Silk, Lingerie, Baby Clothes, etc',
+  };
+
 
   final List<String> beddingItems = [
     'Beddings',
@@ -33,6 +41,8 @@ class _dryCleaningPageState extends State<dryCleaningPage> {
     'Comforter',
     'Fleece',
     'Quilt',
+    'Gown',
+    'Suit'
   ];
 
   // ────────────────────────────── STATE MAPS ──────────────────────────────
@@ -267,25 +277,27 @@ class _dryCleaningPageState extends State<dryCleaningPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              'Select Type Of Laundry (Regular Clothes)',
+              'Select Type Of Laundry',
               style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 10),
             SizedBox(
-              height: 140,
+              height: 200,
               child: Scrollbar(
                 child: ListView(
                   children: [
-                    ...regularLaundryTypes.map(
-                          (type) => _miniCheckboxTile(
+                    ...regularLaundryTypes.map((type) {
+                      return _miniCheckboxTile(
                         label: type,
                         value: selectedRegularLaundryTypes[type],
-                        onChanged: (val) => setState(
-                              () =>
-                          selectedRegularLaundryTypes[type] = val ?? false,
-                        ),
-                      ),
-                    ),
+                        onChanged: (val) {
+                          setState(() {
+                            selectedRegularLaundryTypes[type] = val ?? false;
+                          });
+                        },
+                        subNote: laundryTypeDescriptions[type], // shows sub note
+                      );
+                    }).toList(),
                     _miniCheckboxTile(
                       label: 'Others',
                       value: othersSelected,
@@ -674,18 +686,36 @@ class _dryCleaningPageState extends State<dryCleaningPage> {
 
   Widget _miniCheckboxTile({
     required String label,
+    String? subNote, // NEW
     required bool? value,
     required ValueChanged<bool?> onChanged,
   }) {
-    return CheckboxListTile(
-      dense: true,
-      visualDensity: const VisualDensity(horizontal: -4, vertical: -4),
-      contentPadding: EdgeInsets.zero,
-      controlAffinity: ListTileControlAffinity.leading,
-      activeColor: const Color(0xFF04D26F),
-      title: Text(label, style: const TextStyle(fontSize: 14)),
-      value: value,
-      onChanged: onChanged,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        CheckboxListTile(
+          dense: true,
+          visualDensity: const VisualDensity(horizontal: -4, vertical: -4),
+          contentPadding: EdgeInsets.zero,
+          controlAffinity: ListTileControlAffinity.leading,
+          activeColor: const Color(0xFF04D26F),
+          title: Text(label, style: const TextStyle(fontSize: 14)),
+          value: value,
+          onChanged: onChanged,
+        ),
+        if (subNote != null)
+          Padding(
+            padding: const EdgeInsets.only(left: 48.0, bottom: 0), // align with checkbox
+            child: Text(
+              subNote,
+              style: const TextStyle(
+                fontSize: 12,
+                color: Colors.black54,
+                height: 1.3,
+              ),
+            ),
+          ),
+      ],
     );
   }
 }
