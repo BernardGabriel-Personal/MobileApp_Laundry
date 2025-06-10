@@ -210,7 +210,7 @@ class _scheduledOrderPageState extends State<scheduledOrderPage> {
                             style: const TextStyle(
                                 fontWeight: FontWeight.bold, fontSize: 15)),
                         const SizedBox(height: 4),
-                        _miniRow('Laundry Items',
+                        _miniRow('Items',
                             laundry.isEmpty ? '—' : laundry),
                         _miniRow('Bulky / Accessory',
                             bulkyList.isEmpty ? '—' : bulkyList),
