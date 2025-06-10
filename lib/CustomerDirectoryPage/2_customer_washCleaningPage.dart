@@ -22,6 +22,7 @@ class washCleaningPage extends StatefulWidget {
 
 class _washCleaningPageState extends State<washCleaningPage> {
   // ────────────────────────────── DATA SOURCES ──────────────────────────────
+  String? delicatesWashMethod;
   final List<String> regularLaundryTypes = [
     'Regular Clothes',
     'Thick Clothes',
@@ -133,9 +134,11 @@ class _washCleaningPageState extends State<washCleaningPage> {
             _buildPricingSection(),
             const SizedBox(height: 25),
             _buildRegularLaundrySection(),
-            const SizedBox(height: 20),
+            const SizedBox(height: 10),
+            _buildDelicatesWashMethodSelector(),
+            const SizedBox(height: 10),
             _buildBeddingSection(),
-            const SizedBox(height: 16),
+            const SizedBox(height: 10),
             _buildCarefulNoteField(),
             const SizedBox(height: 20),
             _buildActionButtons(),
@@ -214,7 +217,13 @@ class _washCleaningPageState extends State<washCleaningPage> {
             (othersSelected && othersText.trim().isNotEmpty);
 
         final double bulkyTotal = _getSelectedBeddingTotal(singleQueenUnit);
-        final double total = bulkyTotal + (hasRegular ? washBase : 0);
+        double adjustedWashBase = hasRegular ? washBase : 0;
+        // If "Delicates" is selected and "Hand-wash" is chosen, double the wash base
+        if (selectedRegularLaundryTypes['Delicates'] == true && delicatesWashMethod == 'Hand-wash') {
+          adjustedWashBase *= 2;
+        }
+        final double total = bulkyTotal + adjustedWashBase;
+
 
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -327,6 +336,85 @@ class _washCleaningPageState extends State<washCleaningPage> {
                 ),
               ),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDelicatesWashMethodSelector() {
+    if (selectedRegularLaundryTypes['Delicates'] == true && delicatesWashMethod == null) {
+      // Auto-select "Machine-wash" when Delicates is first checked
+      delicatesWashMethod = 'Machine-wash';
+    }
+    if (selectedRegularLaundryTypes['Delicates'] != true) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: _boxDecoration(),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Preferred Wash Method for Delicates:',
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Expanded(
+                  child: RadioListTile<String>(
+                    title: const Text('Machine-wash'),
+                    value: 'Machine-wash',
+                    groupValue: delicatesWashMethod,
+                    activeColor: Color(0xFF04D26F),
+                    onChanged: (value) {
+                      setState(() {
+                        delicatesWashMethod = value;
+                      });
+                    },
+                    dense: true,
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+                Expanded(
+                  child: RadioListTile<String>(
+                    title: const Text('Hand-wash'),
+                    value: 'Hand-wash',
+                    groupValue: delicatesWashMethod,
+                    activeColor: Color(0xFF04D26F),
+                    onChanged: (value) {
+                      setState(() {
+                        delicatesWashMethod = value;
+                      });
+                    },
+                    dense: true,
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+              ],
+            ),
+            if (delicatesWashMethod == 'Hand-wash') ...[
+              const SizedBox(height: 10),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: const [
+                  Icon(Icons.info_outline, color: Color(0xFFFFD700), size: 20),
+                  SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Hand-wash is labor intensive and will incur an additional charge (x2 base price).',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.black54,
+                        height: 1.4,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ],
         ),
       ),
@@ -544,8 +632,12 @@ class _washCleaningPageState extends State<washCleaningPage> {
     // 4. Compute totals.
     final double priceOfBulkyItems = bulkyCounts.entries.fold<double>(
         0.0, (sum, e) => sum + (e.value * singleQueenUnit));
-    final double totalPrice =
-        priceOfBulkyItems + (typeOfLaundry.isNotEmpty ? washBase : 0);
+
+    double adjustedWashBase = typeOfLaundry.isNotEmpty ? washBase : 0;
+    if (selectedRegularLaundryTypes['Delicates'] == true && delicatesWashMethod == 'Hand-wash') {
+      adjustedWashBase *= 2;
+    }
+    final double totalPrice = priceOfBulkyItems + adjustedWashBase;
 
     // 5. Navigate to summary page (no DB write).
     if (!mounted) return;
@@ -564,6 +656,7 @@ class _washCleaningPageState extends State<washCleaningPage> {
           priceOfBulkyItems: priceOfBulkyItems,
           totalPrice: totalPrice,
           personalRequest: noteController.text.trim(),
+          delicatesWashMethod: delicatesWashMethod,
         ),
       ),
     );
@@ -605,8 +698,12 @@ class _washCleaningPageState extends State<washCleaningPage> {
     // 4. Compute totals.
     final double priceOfBulkyItems = bulkyCounts.entries.fold<double>(
         0, (sum, e) => sum + (e.value * singleQueenUnit));
-    final double totalPrice =
-        priceOfBulkyItems + (typeOfLaundry.isNotEmpty ? washBase : 0);
+
+    double adjustedWashBase = typeOfLaundry.isNotEmpty ? washBase : 0;
+    if (selectedRegularLaundryTypes['Delicates'] == true && delicatesWashMethod == 'Hand-wash') {
+      adjustedWashBase *= 2;
+    }
+    final double totalPrice = priceOfBulkyItems + adjustedWashBase;
 
     // 5. Write to Firestore.
     try {
@@ -622,6 +719,7 @@ class _washCleaningPageState extends State<washCleaningPage> {
         'personalRequest': noteController.text.trim(),
         'totalPrice': totalPrice,
         'createdAt': FieldValue.serverTimestamp(),
+        'delicatesWashMethod': delicatesWashMethod,
       });
 
       if (mounted) {

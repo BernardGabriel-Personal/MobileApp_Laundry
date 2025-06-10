@@ -17,6 +17,7 @@ class OrderingPage extends StatefulWidget {
   final double? dryBase;
   final double? priceOfBulkyItems;
   final String? personalRequest;
+  final String? delicatesWashMethod; // For hand wash/machine wash delicates
 
   /* ───────── MULTI-SERVICE (cart checkout) ───────── */
   final List<QueryDocumentSnapshot>? selectedItems;
@@ -37,6 +38,7 @@ class OrderingPage extends StatefulWidget {
     this.dryBase,
     this.priceOfBulkyItems,
     this.personalRequest,
+    this.delicatesWashMethod, // For hand wash/machine wash delicates
     /* multi-service params */
     this.selectedItems,
     /* mandatory grand total */
@@ -235,8 +237,15 @@ class _OrderingPageState extends State<OrderingPage> {
 
         // Show Base Price only if laundry items exist
         (widget.typeOfLaundry != null && widget.typeOfLaundry!.isNotEmpty)
-            ? _infoRow('Base Price', '₱ ${_singleBase.toStringAsFixed(2)}')
+            ? _infoRow(
+          'Base Price',
+          (widget.delicatesWashMethod == 'Hand-wash' &&
+              widget.typeOfLaundry!.contains('Delicates'))
+              ? '₱ ${(_singleBase * 2).toStringAsFixed(2)} (Delicates Hand-wash)'
+              : '₱ ${_singleBase.toStringAsFixed(2)}',
+        )
             : const SizedBox.shrink(),
+
 
         // Show Bulky Price only if bulky items exist
         (widget.priceOfBulkyItems != null &&
@@ -253,7 +262,7 @@ class _OrderingPageState extends State<OrderingPage> {
         // Show Laundry Items if any
         (widget.typeOfLaundry != null &&
             widget.typeOfLaundry!.isNotEmpty)
-            ? _infoRow('Laundry Items', widget.typeOfLaundry!.join(', '))
+            ? _infoRow('Items', widget.typeOfLaundry!.join(', '))
             : const SizedBox.shrink(),
 
         // Show Bulky / Accessories if any
@@ -295,6 +304,7 @@ class _OrderingPageState extends State<OrderingPage> {
 
     final svc = d['serviceType'] ?? 'Service';
     final regItems = (d['typeOfLaundry'] as List?)?.cast<String>() ?? [];
+    final delicatesWashMethod = d['delicatesWashMethod'];
     final bulkyMap =
         (d['numberOfBulkyItems'] as Map?)?.cast<String, dynamic>() ?? {};
     final double base = regItems.isNotEmpty
@@ -326,13 +336,19 @@ class _OrderingPageState extends State<OrderingPage> {
             ],
           ),
           const SizedBox(height: 6),
-          if (base > 0) // To hide if none
-            _infoRow('Base Price', '₱ ${base.toStringAsFixed(2)}'),
+          if (base > 0)
+            _infoRow(
+              'Base Price',
+              (delicatesWashMethod == 'Hand-wash' && regItems.contains('Delicates'))
+                  ? '₱ ${(base * 2).toStringAsFixed(2)} (Delicates Hand-wash)'
+                  : '₱ ${base.toStringAsFixed(2)}',
+            ),
+
           if (bulkyMap.isNotEmpty) // To hide if none
           _infoRow('Bulky / Accessory Price',
               '₱ ${bulkyPrice.toStringAsFixed(2)}'),
           if (regItems.isNotEmpty) // To hide if none
-            _infoRow('Laundry Items', regItems.join(', ')),
+            _infoRow('Items', regItems.join(', ')),
           if (bulkyMap.isNotEmpty) // To hide if none
           _infoRow('Bulky / Accessories', _fmtBulky(bulkyMap)),
           _infoRow('Personalized Request',
