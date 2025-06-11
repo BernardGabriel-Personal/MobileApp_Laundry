@@ -140,7 +140,11 @@ class _OrderingPageState extends State<OrderingPage> {
       'orderMethod': _selectedOrderMethod,
       'paymentMethod': _modeOfPayment,
       'preferredDetergents': _selectedDetergents,
-      'grandTotal': widget.totalPrice,
+      'deliveryFee': {
+        'amount': _computedFee,
+        'note': _deliveryFeeLabel,
+      },
+      'grandTotal': _grandTotalWithFee, //widget.totalPrice,
       'items': items,
       'status': 'pending',
       'timestamp': FieldValue.serverTimestamp(),
@@ -151,6 +155,63 @@ class _OrderingPageState extends State<OrderingPage> {
         .add(orderData);
 
     return orderId;
+  }
+
+/* ───────── DELIVERY FEE LOGIC ───────── */
+  double? _deliveryPickupFee; // Fetched from Firestore
+  double get _computedFee {
+    if (_deliveryPickupFee == null || _selectedOrderMethod == null) return 0;
+    if (_selectedOrderMethod == 'Home Pickup & Shop Delivery') {
+      return _deliveryPickupFee!;
+    } else {
+      return _deliveryPickupFee! / 2;
+    }
+  }
+
+  double get _grandTotalWithFee {
+    return widget.totalPrice + _computedFee;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchDeliveryFee();
+  }
+
+  Future<void> _fetchDeliveryFee() async {
+    final snapshot = await FirebaseFirestore.instance
+        .collection('pricing_management')
+        .limit(1)
+        .get();
+    if (snapshot.docs.isNotEmpty) {
+      final data = snapshot.docs.first.data();
+      setState(() {
+        _deliveryPickupFee = (data['deliveryPickupFee'] ?? 0).toDouble();
+      });
+    }
+  }
+
+  String get _deliveryFeeLabel {
+    if (_selectedOrderMethod == null || _computedFee == 0) {
+      return '₱ 0.00';
+    }
+
+    final fee = _computedFee.toStringAsFixed(2);
+    String explanation;
+    switch (_selectedOrderMethod) {
+      case 'Home Pickup & Shop Delivery':
+        explanation = 'Delivery & Pickup';
+        break;
+      case 'Self Drop-off & Shop Delivery':
+        explanation = 'Delivery Only';
+        break;
+      case 'Home Pickup & Self-Pickup':
+        explanation = 'Pickup Only';
+        break;
+      default:
+        explanation = '';
+    }
+    return '₱ $fee ($explanation)';
   }
 
   /* ───────── BUILD ───────── */
@@ -234,47 +295,35 @@ class _OrderingPageState extends State<OrderingPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _infoRow('Service', widget.serviceType ?? ''),
-
-        // Show Base Price only if laundry items exist
-        (widget.typeOfLaundry != null && widget.typeOfLaundry!.isNotEmpty)
-            ? _infoRow(
-          'Base Price',
-          (widget.delicatesWashMethod == 'Hand-wash' &&
-              widget.typeOfLaundry!.contains('Delicates'))
-              ? '₱ ${(_singleBase * 2).toStringAsFixed(2)} (Delicates Hand-wash)'
-              : '₱ ${_singleBase.toStringAsFixed(2)}',
-        )
-            : const SizedBox.shrink(),
-
-
-        // Show Bulky Price only if bulky items exist
-        (widget.priceOfBulkyItems != null &&
-            widget.priceOfBulkyItems! > 0)
-            ? _infoRow('Bulky / Accessory Price',
-            '₱ ${widget.priceOfBulkyItems!.toStringAsFixed(2)}')
-            : const SizedBox.shrink(),
-
+        if (widget.typeOfLaundry != null && widget.typeOfLaundry!.isNotEmpty)
+          _infoRow(
+            'Base Price',
+            (widget.delicatesWashMethod == 'Hand-wash' &&
+                widget.typeOfLaundry!.contains('Delicates'))
+                ? '₱ ${(_singleBase * 2).toStringAsFixed(2)} (Delicates Hand-wash)'
+                : '₱ ${_singleBase.toStringAsFixed(2)}',
+          ),
+        if (widget.priceOfBulkyItems != null && widget.priceOfBulkyItems! > 0)
+          _infoRow('Bulky / Accessory Price',
+              '₱ ${widget.priceOfBulkyItems!.toStringAsFixed(2)}'),
         const Divider(),
-
-        _infoRow('Total', '₱ ${widget.totalPrice.toStringAsFixed(2)}',
+        _infoRow('Service Total', '₱ ${widget.totalPrice.toStringAsFixed(2)}'),
+        if (_selectedOrderMethod != null)
+          _infoRow('Delivery/Pickup Fee', _deliveryFeeLabel),
+        const SizedBox(height: 8),
+        _infoRow('Grand Total', '₱ ${_grandTotalWithFee.toStringAsFixed(2)}',
             bold: true),
         const SizedBox(height: 12),
-        // Show Laundry Items if any
-        (widget.typeOfLaundry != null &&
-            widget.typeOfLaundry!.isNotEmpty)
-            ? _infoRow('Items', widget.typeOfLaundry!.join(', '))
-            : const SizedBox.shrink(),
-
-        // Show Bulky / Accessories if any
-        (widget.bulkyItems != null && widget.bulkyItems!.isNotEmpty)
-            ? _infoRow(
-          'Bulky / Accessories',
-          widget.bulkyItems!.entries
-              .map((e) =>
-          '${e.key} – ${e.value} pc${e.value > 1 ? 's' : ''}')
-              .join(', '),
-        )
-            : const SizedBox.shrink(),
+        if (widget.typeOfLaundry != null && widget.typeOfLaundry!.isNotEmpty)
+          _infoRow('Items', widget.typeOfLaundry!.join(', ')),
+        if (widget.bulkyItems != null && widget.bulkyItems!.isNotEmpty)
+          _infoRow(
+            'Bulky / Accessories',
+            widget.bulkyItems!.entries
+                .map((e) =>
+            '${e.key} – ${e.value} pc${e.value > 1 ? 's' : ''}')
+                .join(', '),
+          ),
         const SizedBox(height: 12),
         _infoRow('Personalized Request',
             widget.personalRequest?.isNotEmpty == true
@@ -284,6 +333,7 @@ class _OrderingPageState extends State<OrderingPage> {
     ),
   );
 
+
   /* ─────────  MULTI-SERVICE CARD ───────── */
   Widget _multiServiceCard() => _sectionCard(
     title: 'Selected Services',
@@ -292,11 +342,16 @@ class _OrderingPageState extends State<OrderingPage> {
       children: [
         ...widget.selectedItems!.map(_buildServiceDetail).toList(),
         const Divider(height: 32),
-        _infoRow('Grand Total', '₱ ${widget.totalPrice.toStringAsFixed(2)}',
+        _infoRow('Service Total', '₱ ${widget.totalPrice.toStringAsFixed(2)}'),
+        if (_selectedOrderMethod != null)
+          _infoRow('Delivery/Pickup Fee', _deliveryFeeLabel),
+        const SizedBox(height: 8),
+        _infoRow('Grand Total', '₱ ${_grandTotalWithFee.toStringAsFixed(2)}',
             bold: true),
       ],
     ),
   );
+
 
   /* Builds the full detail for *one* service */
   Widget _buildServiceDetail(QueryDocumentSnapshot doc) {
@@ -777,6 +832,48 @@ class _OrderingPageState extends State<OrderingPage> {
         ),
         onPressed: canPlace
             ? () async {
+          final confirm = await showDialog<bool>(
+            context: context,
+            builder: (context) => AlertDialog(
+              backgroundColor: const Color(0xFFD9D9D9),
+              title: Row(
+                children: const [
+                  Icon(Icons.check_circle_outline, color: Color(0xFF04D26F), size: 28),
+                  SizedBox(width: 10),
+                  Text('Confirm Order', style: TextStyle(fontSize: 18)),
+                ],
+              ),
+              content: const Text(
+                'Are you sure all the order details are correct?',
+                style: TextStyle(fontSize: 14),
+              ),
+              actions: [
+                TextButton(
+                  style: TextButton.styleFrom(
+                    foregroundColor: Colors.white,
+                    backgroundColor: Colors.grey,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(8)),
+                    ),
+                  ),
+                  onPressed: () => Navigator.pop(context, false),
+                  child: const Text('Cancel'),
+                ),
+                TextButton(
+                  style: TextButton.styleFrom(
+                    foregroundColor: Colors.white,
+                    backgroundColor: Color(0xFF04D26F),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(8)),
+                    ),
+                  ),
+                  onPressed: () => Navigator.pop(context, true),
+                  child: const Text('Yes, Place Order'),
+                ),
+              ],
+            ),
+          );
+          if (confirm != true) return;
           setState(() => _saving = true);
           try {
             final orderId = await _saveOrder();
