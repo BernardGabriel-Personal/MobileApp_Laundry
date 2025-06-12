@@ -218,6 +218,19 @@ class _OrderingPageState extends State<OrderingPage> {
   /* ─────────RUSH SERVICE LOGIC ───────── */
   bool _isRushOrder = false;
 
+  /* ─────────PREFERRED DETERGENT LOGIC ───────── */
+  bool _requiresDetergent() {
+    // Single booking
+    if (widget.selectedItems == null) {
+      return widget.serviceType == 'Wash Cleaning' || widget.serviceType == 'Wash, Dry & Press';
+    }
+
+    // Cart booking: check if any selected service requires detergent
+    final List<String> detergentServices = ['Wash Cleaning', 'Wash, Dry & Press'];
+    return widget.selectedItems!.any((doc) =>
+        detergentServices.contains(doc['serviceType']));
+  }
+
   /* ───────── BUILD ───────── */
   @override
   Widget build(BuildContext context) {
@@ -519,6 +532,10 @@ class _OrderingPageState extends State<OrderingPage> {
   }
 
   Widget _detergentSelection() {
+    // Only show the section for these service types
+    final bool showDetergents = _requiresDetergent();
+    if (!showDetergents) return const SizedBox.shrink(); // Hide the section
+
     if (_availableDetergents.isEmpty) {
       return _sectionCard(
         title: 'Preferred Detergents / Softeners / Cleaning Agents',
@@ -550,11 +567,18 @@ class _OrderingPageState extends State<OrderingPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: _availableDetergents.map((item) {
                 final label = item['detergentSoftener'] ?? 'Unnamed';
+                final price = item['pricingPerLoad'];
+                final formattedPrice = price != null
+                    ? '₱${(price % 1 == 0) ? price.toInt() : price.toStringAsFixed(2)} | Per-Load'
+                    : '₱0';
                 final isChecked = _selectedDetergents.contains(label);
                 return CheckboxListTile(
                   value: isChecked,
                   activeColor: const Color(0xFF04D26F),
-                  title: Text(label, style: const TextStyle(fontSize: 14)),
+                  title: Text(
+                    '$label - $formattedPrice',
+                    style: const TextStyle(fontSize: 14),
+                  ),
                   controlAffinity: ListTileControlAffinity.leading,
                   dense: true,
                   visualDensity: const VisualDensity(vertical: -4),
@@ -822,17 +846,23 @@ class _OrderingPageState extends State<OrderingPage> {
 
   /* ─────────  PLACE ORDER BUTTON ───────── */
   Widget _placeOrderButton(BuildContext context) {
-    final bool noDetergents        = _availableDetergents.isEmpty;
+    final bool showDetergents = _requiresDetergent();
+    final bool noDetergents =  showDetergents && _availableDetergents.isEmpty;
+
     final bool servicesUnavailable = !_allRequestedServicesAvailable();
     final bool methodNotChosen     = _selectedOrderMethod == null;
-    final bool canPlace            = !noDetergents &&
+
+    final bool detergentsRequiredButNotSelected = showDetergents && _availableDetergents.isNotEmpty && _selectedDetergents.isEmpty;
+    final bool canPlace = !noDetergents &&
         !servicesUnavailable &&
         !methodNotChosen &&
+        !detergentsRequiredButNotSelected &&
         !_saving;
 
     String _disabledMsg() {
       if (_selectedBranch == null)  return 'Please select a laundry branch.';
       if (methodNotChosen)          return 'Please select an order method.';
+      if (detergentsRequiredButNotSelected) return 'Please select your preferred detergent/softener.';
       if (noDetergents)             return 'No detergents/softeners are in stock for this branch.';
       return 'Selected service(s) not available for this branch.';
     }

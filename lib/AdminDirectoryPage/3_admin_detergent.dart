@@ -16,8 +16,9 @@ class AdminDetergentPage extends StatefulWidget {
 }
 
 class _AdminDetergentPageState extends State<AdminDetergentPage> {
-  /* ────────────────────────────  DETERGENT FORM  ────────────────────────── */
+  /* ────────────────────────────  DETERGENT / PRICING FORM  ────────────────────────── */
   final TextEditingController _typeController = TextEditingController();
+  final TextEditingController _pricingController = TextEditingController();
   String? _selectedAvailability;
   final List<String> _availabilityOptions = ['Yes', 'No'];
 
@@ -28,9 +29,16 @@ class _AdminDetergentPageState extends State<AdminDetergentPage> {
   Future<void> _submitForm() async {
     final String type = _typeController.text.trim();
     final String? availability = _selectedAvailability;
+    final String pricingText = _pricingController.text.trim();
 
-    if (type.isEmpty || availability == null) {
+    if (type.isEmpty || availability == null || pricingText.isEmpty) {
       _showCustomSnackBar('Please fill all fields!', isError: true);
+      return;
+    }
+
+    double? pricing = double.tryParse(pricingText);
+    if (pricing == null || pricing < 0) {
+      _showCustomSnackBar('Invalid pricing. Enter a positive number.', isError: true);
       return;
     }
 
@@ -50,12 +58,14 @@ class _AdminDetergentPageState extends State<AdminDetergentPage> {
       'detergentSoftener': type,
       'availability': availability,
       'branch': widget.branch,
+      'pricingPerLoad': pricing,
       'timestamp': FieldValue.serverTimestamp(),
     });
 
     _showCustomSnackBar('Item added successfully!', isError: false);
 
     _typeController.clear();
+    _pricingController.clear();
     setState(() => _selectedAvailability = null);
   }
 
@@ -141,6 +151,44 @@ class _AdminDetergentPageState extends State<AdminDetergentPage> {
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
 
+  /* ─────────────────────────────  EDIT PRICE PER LOAD METHOD/FUNCTION  ─────────────────────────────── */
+  void _showEditPriceDialog(BuildContext context, String docId, String currentPrice) {
+    final TextEditingController priceController = TextEditingController(text: currentPrice);
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Edit Pricing Per Load'),
+        content: TextField(
+          controller: priceController,
+          keyboardType: TextInputType.numberWithOptions(decimal: true),
+          decoration: const InputDecoration(labelText: 'Enter new price'),
+        ),
+        actions: [
+          TextButton(
+            child: const Text('Cancel'),
+            onPressed: () => Navigator.pop(context),
+          ),
+          ElevatedButton(
+            child: const Text('Save'),
+            onPressed: () async {
+              final newPrice = double.tryParse(priceController.text.trim());
+              if (newPrice != null) {
+                await FirebaseFirestore.instance
+                    .collection('detergent_management')
+                    .doc(docId)
+                    .update({'pricingPerLoad': newPrice});
+                Navigator.pop(context);
+              } else {
+                // Optionally show error
+              }
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
   /* ───────────────────────────────  BUILD  ──────────────────────────────── */
   @override
   Widget build(BuildContext context) {
@@ -200,6 +248,23 @@ class _AdminDetergentPageState extends State<AdminDetergentPage> {
                     ),
                   ),
                 ),
+
+                const SizedBox(height: 15),
+                TextField(
+                  controller: _pricingController,
+                  keyboardType: TextInputType.numberWithOptions(decimal: true),
+                  decoration: InputDecoration(
+                    labelText: 'Pricing Per Load (₱)',
+                    filled: true,
+                    fillColor: Colors.white,
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: highlightColor, width: 2),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+
                 const SizedBox(height: 15),
                 DropdownButtonFormField<String>(
                   value: _selectedAvailability,
@@ -350,6 +415,10 @@ class _AdminDetergentPageState extends State<AdminDetergentPage> {
                         docs[index].data() as Map<String, dynamic>;
                         final docId = docs[index].id;
                         final detergentName = data['detergentSoftener'] ?? '';
+                        final rawPricing = data['pricingPerLoad'];
+                        final pricingPerLoad = (rawPricing is num)
+                            ? (rawPricing % 1 == 0 ? rawPricing.toInt().toString() : rawPricing.toString())
+                            : '';
                         final branchName = data['branch'] ?? '';
                         final addedBy      = data['employeeId'] ?? '';
                         final rawAvailability = data['availability'];
@@ -359,12 +428,43 @@ class _AdminDetergentPageState extends State<AdminDetergentPage> {
                             : 'No';
 
                         return Card(
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12)),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                           elevation: 3,
                           margin: const EdgeInsets.symmetric(vertical: 8),
                           child: ListTile(
-                            title: Text(detergentName),
+                            title: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    '$detergentName - ₱$pricingPerLoad',
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                TextButton(
+                                  style: TextButton.styleFrom(
+                                    backgroundColor: const Color(0xFF170CFE),
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                    minimumSize: Size.zero,
+                                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                  ),
+                                  onPressed: () {
+                                    _showEditPriceDialog(context, docId, pricingPerLoad);
+                                  },
+                                  child: const Text(
+                                    'Edit',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 12, // smaller font size
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                )
+                              ],
+                            ),
                             subtitle: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -372,17 +472,12 @@ class _AdminDetergentPageState extends State<AdminDetergentPage> {
                                 Text('Added by ID: $addedBy', style: const TextStyle(fontSize: 12)),
                               ],
                             ),
-
                             trailing: GestureDetector(
-                              onTap: () =>
-                                  _updateAvailability(docId, availability),
+                              onTap: () => _updateAvailability(docId, availability),
                               child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 12, vertical: 8),
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                                 decoration: BoxDecoration(
-                                  color: availability == 'Yes'
-                                      ? const Color(0xFF04D26F)
-                                      : const Color(0xFFE57373),
+                                  color: availability == 'Yes' ? const Color(0xFF04D26F) : const Color(0xFFE57373),
                                   borderRadius: BorderRadius.circular(8),
                                   boxShadow: [
                                     BoxShadow(
@@ -394,9 +489,7 @@ class _AdminDetergentPageState extends State<AdminDetergentPage> {
                                 ),
                                 child: Text(
                                   availability,
-                                  style: const TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold),
+                                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                                 ),
                               ),
                             ),
