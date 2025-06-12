@@ -138,6 +138,7 @@ class _OrderingPageState extends State<OrderingPage> {
       'contact': widget.contact,
       'branch': _selectedBranch,
       'orderMethod': _selectedOrderMethod,
+      'rushOrder': _isRushOrder,
       'paymentMethod': _modeOfPayment,
       'preferredDetergents': _selectedDetergents,
       'deliveryFee': {
@@ -213,6 +214,9 @@ class _OrderingPageState extends State<OrderingPage> {
     }
     return '₱ $fee ($explanation)';
   }
+
+  /* ─────────RUSH SERVICE LOGIC ───────── */
+  bool _isRushOrder = false;
 
   /* ───────── BUILD ───────── */
   @override
@@ -309,7 +313,9 @@ class _OrderingPageState extends State<OrderingPage> {
         const Divider(),
         _infoRow('Service Total', '₱ ${widget.totalPrice.toStringAsFixed(2)}'),
         if (_selectedOrderMethod != null)
-          _infoRow('Delivery/Pickup Fee', _deliveryFeeLabel),
+          _infoRow('Delivery/Pickup Fee', _deliveryFeeLabel), // Delivery Fee Detail
+        if (_isRushOrder)
+          _infoRow('Rush Order', 'Yes (Complete Today)', bold: true), // Rush Feature Detail
         const SizedBox(height: 8),
         _infoRow('Grand Total', '₱ ${_grandTotalWithFee.toStringAsFixed(2)}',
             bold: true),
@@ -344,7 +350,9 @@ class _OrderingPageState extends State<OrderingPage> {
         const Divider(height: 32),
         _infoRow('Service Total', '₱ ${widget.totalPrice.toStringAsFixed(2)}'),
         if (_selectedOrderMethod != null)
-          _infoRow('Delivery/Pickup Fee', _deliveryFeeLabel),
+          _infoRow('Delivery/Pickup Fee', _deliveryFeeLabel), // Delivery Fee Detail
+        if (_isRushOrder)
+          _infoRow('Rush Order', 'Yes (Complete Today)', bold: true), // Rush Feature Detail
         const SizedBox(height: 8),
         _infoRow('Grand Total', '₱ ${_grandTotalWithFee.toStringAsFixed(2)}',
             bold: true),
@@ -646,12 +654,8 @@ class _OrderingPageState extends State<OrderingPage> {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(
-                Icons.info_outline,
-                color: Color(0xFFFFD700),
-                size: 18,
-              ),
-              SizedBox(width: 6),
+              const Icon(Icons.info_outline, color: Color(0xFFFFD700), size: 18),
+              const SizedBox(width: 6),
               Expanded(
                 child: Text(
                   _orderMethodNotes[_selectedOrderMethod!]!,
@@ -663,7 +667,42 @@ class _OrderingPageState extends State<OrderingPage> {
                 ),
               ),
             ],
-          )
+          ),
+          const SizedBox(height: 10),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Rush Order (Complete today)',
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+              ),
+              Switch(
+                value: _isRushOrder,
+                activeColor: const Color(0xFF04D26F),
+                onChanged: (val) => setState(() => _isRushOrder = val),
+              ),
+            ],
+          ),
+          if (_isRushOrder) ...[
+            const SizedBox(height: 6),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: const [
+                Icon(Icons.info_outline, color: Color(0xFFFFD700), size: 18),
+                SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    'Rush orders ensure all laundry services are completed within the same day.',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontStyle: FontStyle.italic,
+                      color: Colors.grey,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
         ],
       ],
     ),
