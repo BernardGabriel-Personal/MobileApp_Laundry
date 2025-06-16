@@ -130,10 +130,26 @@ class _OrderingPageState extends State<OrderingPage> {
       }
     ];
 
-    // Merge selected and custom detergents
-    final allSelectedDetergents = List<String>.from(_selectedDetergents);
+    // Merge selected and custom detergents with prices
+    final List<Map<String, dynamic>> allSelectedDetergents = [];
+
+    for (var label in _selectedDetergents) {
+      final matched = _availableDetergents.firstWhere(
+            (d) => d['detergentSoftener'] == label,
+        orElse: () => {},
+      );
+      final price = matched['pricingPerLoad'] ?? 0;
+      allSelectedDetergents.add({
+        'label': label,
+        'price': price,
+      });
+    }
+    // If "Own Detergent" is selected, add custom input
     if (othersDetergentSelected && customDetergentText.trim().isNotEmpty) {
-      allSelectedDetergents.add(customDetergentText.trim());
+      allSelectedDetergents.add({
+        'label': customDetergentText.trim(),
+        'price': 0,
+      });
     }
 
     final orderData = {
@@ -151,7 +167,8 @@ class _OrderingPageState extends State<OrderingPage> {
         'amount': _computedFee,
         'note': _deliveryFeeLabel,
       },
-      'grandTotal': _grandTotalWithFee, //widget.totalPrice,
+      'grandTotal': widget.totalPrice + _computedFee + _totalDetergentCost,  //widget.totalPrice,
+      'detergentTotal': _totalDetergentCost,
       'items': items,
       'status': 'pending',
       'timestamp': FieldValue.serverTimestamp(),
@@ -224,7 +241,7 @@ class _OrderingPageState extends State<OrderingPage> {
   /* ─────────RUSH SERVICE LOGIC ───────── */
   bool _isRushOrder = false;
 
-  /* ─────────PREFERRED DETERGENT LOGIC ───────── */
+  /* ─────────PREFERRED DETERGENT LOGIC & PRICE ───────── */
   bool _requiresDetergent() {
     // Single booking
     if (widget.selectedItems == null) {
@@ -236,6 +253,26 @@ class _OrderingPageState extends State<OrderingPage> {
     return widget.selectedItems!.any((doc) =>
         detergentServices.contains(doc['serviceType']));
   }
+
+  // PRICE LOGIC FOR SINGLE SERVICE ORDERS
+  double get _totalDetergentCost {
+    double total = 0;
+    for (var label in _selectedDetergents) {
+      final matched = _availableDetergents.firstWhere(
+            (d) => d['detergentSoftener'] == label,
+        orElse: () => {},
+      );
+      final price = matched['pricingPerLoad'] ?? 0;
+      total += (price is num) ? price.toDouble() : 0;
+    }
+
+    if (othersDetergentSelected && customDetergentText.trim().isNotEmpty) {
+      total += 0; // Custom detergent has no price
+    }
+
+    return total;
+  }
+
 
   /* ───────── BUILD ───────── */
   @override
@@ -333,10 +370,11 @@ class _OrderingPageState extends State<OrderingPage> {
         _infoRow('Service Total', '₱ ${widget.totalPrice.toStringAsFixed(2)}'),
         if (_selectedOrderMethod != null)
           _infoRow('Delivery/Pickup Fee', _deliveryFeeLabel), // Delivery Fee Detail
+        _infoRow('Detergent/Softener Cost', '₱ ${_totalDetergentCost.toStringAsFixed(2)}'), // Detergent Cost Detail
+        const SizedBox(height: 8),
         if (_isRushOrder)
           _infoRow('Rush Order', 'Yes (Complete Today)', bold: true), // Rush Feature Detail
-        const SizedBox(height: 8),
-        _infoRow('Grand Total', '₱ ${_grandTotalWithFee.toStringAsFixed(2)}',
+        _infoRow('Grand Total', '₱ ${(widget.totalPrice + _computedFee + _totalDetergentCost).toStringAsFixed(2)}', // Total + Delivery Fee + Detergent Price
             bold: true),
         const SizedBox(height: 12),
         if (widget.typeOfLaundry != null && widget.typeOfLaundry!.isNotEmpty)
@@ -354,6 +392,28 @@ class _OrderingPageState extends State<OrderingPage> {
             widget.personalRequest?.isNotEmpty == true
                 ? widget.personalRequest!
                 : '—'),
+        if (_selectedDetergents.isNotEmpty || (othersDetergentSelected && customDetergentText.isNotEmpty))
+          ...[
+            const Divider(),
+            const Text('Preferred Detergents / Softeners:',
+                style: TextStyle(fontWeight: FontWeight.bold)),
+            ..._selectedDetergents.map((label) {
+              final matched = _availableDetergents.firstWhere(
+                    (d) => d['detergentSoftener'] == label,
+                orElse: () => {},
+              );
+              final price = matched['pricingPerLoad'] ?? 0;
+              return Padding(
+                padding: const EdgeInsets.only(left: 8.0, top: 2),
+                child: Text('- $label: ₱${(price % 1 == 0) ? price.toInt() : price.toStringAsFixed(2)} Per-Load'),
+              );
+            }).toList(),
+            if (othersDetergentSelected && customDetergentText.trim().isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(left: 8.0, top: 2),
+                child: const Text('- Own Detergent: ₱0 | No Fee'),
+              ),
+          ],
       ],
     ),
   );
