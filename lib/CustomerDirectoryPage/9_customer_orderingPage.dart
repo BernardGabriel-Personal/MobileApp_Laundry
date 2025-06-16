@@ -130,6 +130,12 @@ class _OrderingPageState extends State<OrderingPage> {
       }
     ];
 
+    // Merge selected and custom detergents
+    final allSelectedDetergents = List<String>.from(_selectedDetergents);
+    if (othersDetergentSelected && customDetergentText.trim().isNotEmpty) {
+      allSelectedDetergents.add(customDetergentText.trim());
+    }
+
     final orderData = {
       'orderId': orderId,
       'fullName': widget.fullName,
@@ -140,7 +146,7 @@ class _OrderingPageState extends State<OrderingPage> {
       'orderMethod': _selectedOrderMethod,
       'rushOrder': _isRushOrder,
       'paymentMethod': _modeOfPayment,
-      'preferredDetergents': _selectedDetergents,
+      'preferredDetergents': allSelectedDetergents,
       'deliveryFee': {
         'amount': _computedFee,
         'note': _deliveryFeeLabel,
@@ -531,6 +537,9 @@ class _OrderingPageState extends State<OrderingPage> {
     });
   }
 
+  bool othersDetergentSelected = false;
+  String customDetergentText = '';
+
   Widget _detergentSelection() {
     // Only show the section for these service types
     final bool showDetergents = _requiresDetergent();
@@ -558,45 +567,100 @@ class _OrderingPageState extends State<OrderingPage> {
 
     return _sectionCard(
       title: 'Preferred Detergents / Softeners / Cleaning Agents',
-      child: SizedBox(
-        height: 135,
-        child: Scrollbar(
-          thumbVisibility: true,
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: _availableDetergents.map((item) {
-                final label = item['detergentSoftener'] ?? 'Unnamed';
-                final price = item['pricingPerLoad'];
-                final formattedPrice = price != null
-                    ? '₱${(price % 1 == 0) ? price.toInt() : price.toStringAsFixed(2)} | Per-Load'
-                    : '₱0';
-                final isChecked = _selectedDetergents.contains(label);
-                return CheckboxListTile(
-                  value: isChecked,
-                  activeColor: const Color(0xFF04D26F),
-                  title: Text(
-                    '$label - $formattedPrice',
-                    style: const TextStyle(fontSize: 14),
-                  ),
-                  controlAffinity: ListTileControlAffinity.leading,
-                  dense: true,
-                  visualDensity: const VisualDensity(vertical: -4),
-                  contentPadding: EdgeInsets.zero,
-                  onChanged: (selected) {
-                    setState(() {
-                      if (selected == true) {
-                        _selectedDetergents.add(label);
-                      } else {
-                        _selectedDetergents.remove(label);
-                      }
-                    });
-                  },
-                );
-              }).toList(),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            height: 135,
+            child: Scrollbar(
+              thumbVisibility: true,
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    // "Own Detergent" at the top
+                    CheckboxListTile(
+                      value: othersDetergentSelected,
+                      activeColor: const Color(0xFF04D26F),
+                      title: const Text(
+                        'Own Detergent / Softener',
+                        style: TextStyle(fontSize: 14),
+                      ),
+                      controlAffinity: ListTileControlAffinity.leading,
+                      dense: true,
+                      visualDensity: const VisualDensity(vertical: -4),
+                      contentPadding: EdgeInsets.zero,
+                      onChanged: (val) {
+                        setState(() {
+                          othersDetergentSelected = val ?? false;
+                          if (othersDetergentSelected) {
+                            // Clear selected detergents when own detergent is checked
+                            _selectedDetergents.clear();
+                          } else {
+                            customDetergentText = '';
+                          }
+                        });
+                      },
+                    ),
+
+                    if (othersDetergentSelected)
+                      Padding(
+                        padding: const EdgeInsets.only(left: 40, top: 4, bottom: 8),
+                        child: TextField(
+                          decoration: const InputDecoration(
+                            hintText: 'Please specify',
+                            border: OutlineInputBorder(),
+                            isDense: true,
+                            contentPadding: EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                          ),
+                          onChanged: (val) {
+                            setState(() => customDetergentText = val);
+                          },
+                        ),
+                      ),
+
+                    // Available detergent list
+                    ..._availableDetergents.map((item) {
+                      final label = item['detergentSoftener'] ?? 'Unnamed';
+                      final price = item['pricingPerLoad'];
+                      final formattedPrice = price != null
+                          ? '₱${(price % 1 == 0) ? price.toInt() : price.toStringAsFixed(2)} | Per-Load'
+                          : '₱0';
+                      final isChecked = _selectedDetergents.contains(label);
+                      final isDisabled = othersDetergentSelected;
+
+                      return CheckboxListTile(
+                        value: isChecked,
+                        activeColor: const Color(0xFF04D26F),
+                        title: Text(
+                          '$label - $formattedPrice',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: isDisabled ? Colors.grey : Colors.black,
+                          ),
+                        ),
+                        controlAffinity: ListTileControlAffinity.leading,
+                        dense: true,
+                        visualDensity: const VisualDensity(vertical: -4),
+                        contentPadding: EdgeInsets.zero,
+                        onChanged: isDisabled
+                            ? null
+                            : (selected) {
+                          setState(() {
+                            if (selected == true) {
+                              _selectedDetergents.add(label);
+                            } else {
+                              _selectedDetergents.remove(label);
+                            }
+                          });
+                        },
+                      );
+                    }).toList(),
+                  ],
+                ),
+              ),
             ),
           ),
-        ),
+        ],
       ),
     );
   }
@@ -852,7 +916,7 @@ class _OrderingPageState extends State<OrderingPage> {
     final bool servicesUnavailable = !_allRequestedServicesAvailable();
     final bool methodNotChosen     = _selectedOrderMethod == null;
 
-    final bool detergentsRequiredButNotSelected = showDetergents && _availableDetergents.isNotEmpty && _selectedDetergents.isEmpty;
+    final bool detergentsRequiredButNotSelected = showDetergents && _availableDetergents.isNotEmpty && _selectedDetergents.isEmpty && !othersDetergentSelected;
     final bool canPlace = !noDetergents &&
         !servicesUnavailable &&
         !methodNotChosen &&
