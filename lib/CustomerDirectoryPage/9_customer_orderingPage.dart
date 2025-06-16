@@ -55,6 +55,8 @@ class OrderingPage extends StatefulWidget {
 }
 
 class _OrderingPageState extends State<OrderingPage> {
+
+
   /* ───────── Laundry Branches ───────── */
   final List<String> _branches = [
     'Santa Fe (Blk 2 Lot 1, Brgy. Santa Fe, Dasmariñas, Cavite)',
@@ -130,7 +132,7 @@ class _OrderingPageState extends State<OrderingPage> {
       }
     ];
 
-    // Merge selected and custom detergents with prices
+    // Merge selected and custom detergents with prices for Single-Card
     final List<Map<String, dynamic>> allSelectedDetergents = [];
 
     for (var label in _selectedDetergents) {
@@ -152,6 +154,43 @@ class _OrderingPageState extends State<OrderingPage> {
       });
     }
 
+    // Merge selected and custom detergents with prices for Multi-Card
+    final List<Map<String, dynamic>> preferredDetergentsList = [];
+
+    if (_isMultiOrder) {
+      final int count = widget.selectedItems!
+          .where((doc) {
+        final data = doc.data() as Map<String, dynamic>;
+        final svc = data['serviceType'];
+        return svc == 'Wash Cleaning' || svc == 'Wash, Dry & Press';
+      })
+          .length;
+
+      for (final label in _selectedDetergents) {
+        final matched = _availableDetergents.firstWhere(
+              (d) => d['detergentSoftener'] == label,
+          orElse: () => {},
+        );
+        final basePrice = (matched['pricingPerLoad'] ?? 0).toDouble();
+
+        preferredDetergentsList.add({
+          'label': label,
+          'pricingPerLoad': basePrice,
+          'loadCount': count,
+          'total': basePrice * count,
+        });
+      }
+
+      if (othersDetergentSelected && customDetergentText.trim().isNotEmpty) {
+        preferredDetergentsList.add({
+          'label': 'Own Detergent',
+          'pricingPerLoad': 0,
+          'loadCount': 0,
+          'total': 0,
+        });
+      }
+    }
+
     final orderData = {
       'orderId': orderId,
       'fullName': widget.fullName,
@@ -162,13 +201,23 @@ class _OrderingPageState extends State<OrderingPage> {
       'orderMethod': _selectedOrderMethod,
       'rushOrder': _isRushOrder,
       'paymentMethod': _modeOfPayment,
-      'preferredDetergents': allSelectedDetergents,
+      // Preferred Detergents
+      'preferredDetergents': _isMultiOrder ? preferredDetergentsList : allSelectedDetergents,
+
+      // Delivery Fee Info
       'deliveryFee': {
         'amount': _computedFee,
         'note': _deliveryFeeLabel,
       },
-      'grandTotal': widget.totalPrice + _computedFee + _totalDetergentCost,  //widget.totalPrice,
-      'detergentTotal': _totalDetergentCost,
+
+      // Costs
+      'grandTotal': _isMultiOrder
+          ? _grandTotalWithFee
+          : widget.totalPrice + _computedFee + _totalDetergentCost,
+
+      'detergentTotal': _isMultiOrder
+          ? _adjustedDetergentCost
+          : _totalDetergentCost,
       'items': items,
       'status': 'pending',
       'timestamp': FieldValue.serverTimestamp(),
@@ -192,8 +241,31 @@ class _OrderingPageState extends State<OrderingPage> {
     }
   }
 
+  /* ───────── DYNAMIC DETERGENT COST ───────── */
+  double get _adjustedDetergentCost {
+    final count = widget.selectedItems!
+        .where((doc) {
+      final data = doc.data() as Map<String, dynamic>;
+      final svc = data['serviceType'];
+      return svc == 'Wash Cleaning' || svc == 'Wash, Dry & Press';
+    })
+        .length;
+
+    double total = 0;
+    for (var label in _selectedDetergents) {
+      final matched = _availableDetergents.firstWhere(
+            (d) => d['detergentSoftener'] == label,
+        orElse: () => {},
+      );
+      final base = (matched['pricingPerLoad'] ?? 0).toDouble();
+      total += base * count;
+    }
+
+    return total;
+  }
+
   double get _grandTotalWithFee {
-    return widget.totalPrice + _computedFee;
+    return widget.totalPrice + _computedFee + _adjustedDetergentCost;
   }
 
   @override
@@ -241,7 +313,7 @@ class _OrderingPageState extends State<OrderingPage> {
   /* ─────────RUSH SERVICE LOGIC ───────── */
   bool _isRushOrder = false;
 
-  /* ─────────PREFERRED DETERGENT LOGIC & PRICE ───────── */
+  /* ─────────PREFERRED DETERGENT LOGIC & PRICE SINGLE-CARD ───────── */
   bool _requiresDetergent() {
     // Single booking
     if (widget.selectedItems == null) {
@@ -429,12 +501,53 @@ class _OrderingPageState extends State<OrderingPage> {
         const Divider(height: 32),
         _infoRow('Service Total', '₱ ${widget.totalPrice.toStringAsFixed(2)}'),
         if (_selectedOrderMethod != null)
-          _infoRow('Delivery/Pickup Fee', _deliveryFeeLabel), // Delivery Fee Detail
-        if (_isRushOrder)
-          _infoRow('Rush Order', 'Yes (Complete Today)', bold: true), // Rush Feature Detail
+          _infoRow('Delivery/Pickup Fee', _deliveryFeeLabel),
+        _infoRow('Detergent/Softener Cost', '₱ ${_adjustedDetergentCost.toStringAsFixed(2)}'),
         const SizedBox(height: 8),
-        _infoRow('Grand Total', '₱ ${_grandTotalWithFee.toStringAsFixed(2)}',
-            bold: true),
+        if (_isRushOrder)
+          _infoRow('Rush Order', 'Yes (Complete Today)', bold: true),
+        _infoRow('Grand Total', '₱ ${_grandTotalWithFee.toStringAsFixed(2)}', bold: true),
+
+        // Only show preferred detergent section if any service needs it
+        if (_requiresDetergent() &&
+            (_selectedDetergents.isNotEmpty || (othersDetergentSelected && customDetergentText.isNotEmpty)))
+          ...[
+            const Divider(),
+            const Text('Preferred Detergents / Softeners:',
+                style: TextStyle(fontWeight: FontWeight.bold)),
+
+            ..._selectedDetergents.map((label) {
+              final matched = _availableDetergents.firstWhere(
+                    (d) => d['detergentSoftener'] == label,
+                orElse: () => {},
+              );
+              final basePrice = (matched['pricingPerLoad'] ?? 0).toDouble();
+
+              // Count relevant services
+              final int count = widget.selectedItems!
+                  .where((doc) {
+                final data = doc.data() as Map<String, dynamic>;
+                final svc = data['serviceType'];
+                return svc == 'Wash Cleaning' || svc == 'Wash, Dry & Press';
+              })
+                  .length;
+
+              final totalPrice = basePrice * count;
+
+              return Padding(
+                padding: const EdgeInsets.only(left: 8.0, top: 2),
+                child: Text(
+                  '- $label: ₱${basePrice.toStringAsFixed(2)} per load × $count = ₱${totalPrice.toStringAsFixed(2)}',
+                ),
+              );
+            }).toList(),
+
+            if (othersDetergentSelected && customDetergentText.trim().isNotEmpty)
+              const Padding(
+                padding: EdgeInsets.only(left: 8.0, top: 2),
+                child: Text('- Own Detergent: ₱0 | No Fee'),
+              ),
+          ],
       ],
     ),
   );
