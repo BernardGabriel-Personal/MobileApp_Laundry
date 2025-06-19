@@ -262,55 +262,24 @@ class _AdminBasketPageState extends State<AdminBasketPage> {
     return res == true;
   }
 
-/* ───────── Reusable detail helpers ───────── */
-  Widget _detailRow(String l, dynamic v) => Padding(
-    padding: const EdgeInsets.symmetric(vertical: 2),
-    child: Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('$l: ',
-            style:
-            const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-        Expanded(child: Text('$v')),
-      ],
-    ),
-  );
-
-  Widget _miniRow(String l, String v) => Padding(
-    padding: const EdgeInsets.symmetric(vertical: 1),
-    child: Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('$l: ', style: const TextStyle(fontWeight: FontWeight.w600)),
-        Expanded(child: Text(v)),
-      ],
-    ),
-  );
-
 /* ───────── AUDIT helpers ───────── */
   void _promptAudit(DocumentSnapshot docSnap) {
     final data = docSnap.data() as Map<String, dynamic>;
-    final TextEditingController controller =
-    TextEditingController(text: (data['grandTotal'] ?? '').toString());
 
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (_) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Enter Final Grand Total'),
-        content: TextField(
-          controller: controller,
-          keyboardType:
-          const TextInputType.numberWithOptions(decimal: true),
-          decoration:
-          const InputDecoration(prefixText: '₱ ', hintText: '0.00'),
+        title: const Text('Ready to Release'),
+        content: const Text(
+          'Mark this order as reviewed and ready for delivery or pick-up?',
+          style: TextStyle(fontSize: 14),
         ),
         actions: [
           TextButton(
             style: TextButton.styleFrom(
-                backgroundColor: Colors.grey,
-                foregroundColor: Colors.white),
+                backgroundColor: Colors.grey, foregroundColor: Colors.white),
             child: const Text('Cancel'),
             onPressed: () => Navigator.pop(context),
           ),
@@ -318,59 +287,27 @@ class _AdminBasketPageState extends State<AdminBasketPage> {
             style: TextButton.styleFrom(
                 backgroundColor: const Color(0xFF170CFE),
                 foregroundColor: Colors.white),
-            child: const Text('Save'),
+            child: const Text('For Release Order'),
             onPressed: () async {
-              final newTotal = double.tryParse(
-                  controller.text.replaceAll(',', '').trim());
-              if (newTotal == null) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    behavior: SnackBarBehavior.floating,
-                    backgroundColor: const Color(0xFFE57373),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    duration: const Duration(seconds: 4),
-                    content: Row(
-                      children: const [
-                        Icon(Icons.error_outline, color: Colors.white),
-                        SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            'Please enter a valid number',
-                            style: TextStyle(
-                                color: Colors.white, fontSize: 16),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-                return;
-              }
-
-              // Mark order as audited and ready for delivery / pick-up
               await docSnap.reference.update({
-                'grandTotal': newTotal,
                 'isAudited': true,
                 'status': 'For delivery/pick-up',
               });
 
-              // Save or update the invoice in customer_invoice collection
               final invoiceRef = FirebaseFirestore.instance
                   .collection('customer_invoice')
                   .doc(docSnap.id);
 
               await invoiceRef.set({
                 ...data,
-                'grandTotal': newTotal,
                 'isAudited': true,
                 'status': 'For delivery/pick-up',
                 'invoiceTimestamp': FieldValue.serverTimestamp(),
               }, SetOptions(merge: true));
 
-              if (mounted) Navigator.pop(context); // close input dialog
+              if (mounted) Navigator.pop(context); // close confirmation dialog
               if (mounted) Navigator.pop(context); // close order details
+
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   behavior: SnackBarBehavior.floating,
@@ -385,9 +322,8 @@ class _AdminBasketPageState extends State<AdminBasketPage> {
                       SizedBox(width: 12),
                       Expanded(
                         child: Text(
-                          'Grand Total successfully updated!',
-                          style:
-                          TextStyle(color: Colors.white, fontSize: 16),
+                          'Order marked as ready for delivery/pick-up!',
+                          style: TextStyle(color: Colors.white, fontSize: 16),
                         ),
                       ),
                     ],
@@ -401,14 +337,22 @@ class _AdminBasketPageState extends State<AdminBasketPage> {
     );
   }
 
+
 /* ───────── Order details dialog ───────── */
-  void _showOrderDetails(DocumentSnapshot docSnap) {
+  void _showOrderDetails(DocumentSnapshot docSnap) async {
     final data = docSnap.data() as Map<String, dynamic>;
     final isCompleted =
         (data['status'] ?? '').toString().toLowerCase() == 'completed';
     final _showDownload =
         _isCompletedStatus(data['status'] ?? '') ||
             _isReadyStatus(data['status'] ?? '');
+
+    final pricingSnapshot = await FirebaseFirestore.instance
+        .collection('pricing_management')
+        .doc('pricing')
+        .get();
+    final Map<String, dynamic> pricingData = pricingSnapshot.data() ?? {};
+
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
@@ -425,105 +369,181 @@ class _AdminBasketPageState extends State<AdminBasketPage> {
             ),
           ],
         ),
+
         content: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _detailRow('Branch', data['branch']),
               _detailRow('Status', data['status']),
-              _detailRow('Staff', data['staffName']),
-              _detailRow('Staff Contact', data['staffContact']),
+              if (data['rushOrder'] == true)
+                _detailRow('Rush Order', 'Yes (Complete Today)'),
+              const SizedBox(height: 10),
+              _detailRow('Staff', (data['staffName'] ?? '').toString().isEmpty ? '—' : data['staffName']),
+              _detailRow('Staff Contact', (data['staffContact'] ?? '').toString().isEmpty ? '—' : data['staffContact']),
+              const Divider(),
+              _detailRow('Assigned Rider', '—'),
+              _detailRow('Rider Contact', '—'),
+              const SizedBox(height: 10),
               _detailRow('Customer', data['fullName']),
               _detailRow('Customer Address', data['address']),
               _detailRow('Contact', data['contact']),
               const Divider(),
               _detailRow('Order Method', data['orderMethod']),
               _detailRow('Payment', data['paymentMethod']),
-              _detailRow(
-                  'Preferred Detergents',
-                  (data['preferredDetergents'] as List<dynamic>?)
-                      ?.join(', ') ??
-                      '—'),
               const Divider(),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text('Grand Total',
-                      style: TextStyle(
-                          fontWeight: FontWeight.bold, fontSize: 16)),
-                  Text('₱ ${data['grandTotal']}',
-                      style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 18,
-                          color: Color(0xFF04D26F))),
-                ],
-              ),
+              ...(data['items'] as List<dynamic>).map((item) {
+                final m = Map<String, dynamic>.from(item);
+                final serviceType = (m['serviceType'] ?? '').toString();
+                final Map<String, dynamic> bulkyMap = Map<String, dynamic>.from(
+                    m['numberOfBulkyItems'] ?? m['bulkyItems'] ?? {});
+                final bulkyList = bulkyMap.entries.isEmpty
+                    ? '—'
+                    : bulkyMap.entries.map((e) => '${e.key} – ${e.value}').join(', ');
+                final laundryList = (m['typeOfLaundry'] as List<dynamic>?)?.join(', ') ?? '—';
+
+                final double computedBasePrice;
+                String baseLabel;
+
+                switch (serviceType) {
+                  case 'Iron Pressing':
+                    computedBasePrice = (m['pressOnlyPrice'] ?? 0).toDouble();
+                    baseLabel = '₱ ${computedBasePrice.toStringAsFixed(2)}';
+                    break;
+                  case 'Wash, Dry & Press':
+                    computedBasePrice = (m['washDryPressPrice'] ?? 0).toDouble();
+                    baseLabel = '₱ ${computedBasePrice.toStringAsFixed(2)}';
+                    break;
+                  case 'Wash Cleaning':
+                    final washBase = (m['washBase'] ?? 0).toDouble();
+                    final typeOfLaundry = (m['typeOfLaundry'] ?? []) as List<dynamic>;
+                    final hasDelicates = typeOfLaundry.contains('Delicates');
+                    computedBasePrice = hasDelicates ? washBase * 2 : washBase;
+                    baseLabel = hasDelicates
+                        ? '₱ ${washBase.toStringAsFixed(2)} x2 (Delicates | Hand-Wash)'
+                        : '₱ ${washBase.toStringAsFixed(2)}';
+                    break;
+                  case 'Accessory Cleaning':
+                    computedBasePrice = (pricingData['shoesBagHelmet'] ?? 0).toDouble();
+                    baseLabel = '₱ ${computedBasePrice.toStringAsFixed(2)}';
+                    break;
+                  case 'Dry Cleaning':
+                    computedBasePrice = (pricingData['dry'] ?? 0).toDouble();
+                    baseLabel = '₱ ${computedBasePrice.toStringAsFixed(2)}';
+                    break;
+                  default:
+                    computedBasePrice = 0.0;
+                    baseLabel = '₱ 0.00';
+                }
+
+                final bulkyPrice = () {
+                  if (serviceType == 'Wash Cleaning' || serviceType == 'Dry Cleaning') {
+                    return m['priceOfBulkyItems'] ?? 0;
+                  }
+                  return 0;
+                }();
+
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[200],
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(serviceType, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                      const SizedBox(height: 6),
+                      _miniRow('Base Price', baseLabel),
+                      if (bulkyPrice > 0)
+                        _miniRow('Bulky Items Price', '₱ ${bulkyPrice.toStringAsFixed(2)}'),
+                      if ((m['bulkyPrice'] ?? 0) > 0)
+                        _miniRow('Bulky / Accessory Price', '₱ ${(m['bulkyPrice'] ?? 0).toStringAsFixed(2)}'),
+                      const Divider(),
+                      _miniRow('Service Total', '₱ ${(m['totalPrice'] ?? 0).toStringAsFixed(2)}'),
+                      _miniRow('Items', laundryList),
+                      _miniRow('Bulky / Accessories', bulkyList),
+                      _miniRow('Personalized Request',
+                          (m['personalRequest'] ?? '').toString().trim().isNotEmpty
+                              ? m['personalRequest']
+                              : '—'),
+                    ],
+                  ),
+                );
+              }),
+              const Divider(),
+              if ((data['deliveryFee']?['note'] ?? '').toString().trim().isNotEmpty)
+                _detailRow('Delivery/Pickup Fee', data['deliveryFee']['note']),
+              if ((data['detergentTotal'] ?? 0) > 0)
+                _detailRow('Detergent/Softener Cost', '₱ ${data['detergentTotal'].toStringAsFixed(2)}'),
+              _detailRow('Grand Total', '₱ ${data['grandTotal'].toStringAsFixed(2)}',
+                  bold: true, color: const Color(0xFF04D26F), fontSize: 18),
+              if ((data['preferredDetergents'] ?? []).isNotEmpty) ...[
+                const SizedBox(height: 8),
+                const Text('Preferred Detergents / Softeners:',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                const SizedBox(height: 4),
+                ...data['preferredDetergents'].map<Widget>((d) {
+                  if (d is Map<String, dynamic>) {
+                    final name = d['label'] ?? d['price'] ?? 'Unnamed';
+                    final rawPrice = d['pricingPerLoad'] ?? d['price'] ?? 0;
+                    final price = rawPrice is int ? rawPrice.toDouble() : rawPrice;
+
+                    int multiplier = 1;
+                    if ((data['items'] as List).isNotEmpty) {
+                      multiplier = (data['items'] as List)
+                          .where((item) {
+                        final type = (item['serviceType'] ?? '').toString().toLowerCase();
+                        return type == 'wash cleaning' || type == 'wash, dry & press';
+                      })
+                          .length;
+                    }
+
+                    final bool isMulti = (data['items'] as List).length > 1 && multiplier > 1;
+                    final totalCost = price * multiplier;
+
+                    final priceText = isMulti
+                        ? '₱${price.toStringAsFixed(2)} per load x$multiplier = ₱${totalCost.toStringAsFixed(2)}'
+                        : '₱${(price % 1 == 0) ? price.toInt() : price.toStringAsFixed(2)} Per-Load';
+
+                    return Padding(
+                      padding: const EdgeInsets.only(left: 8.0, bottom: 2),
+                      child: Text('- $name: $priceText'),
+                    );
+                  } else {
+                    return Padding(
+                      padding: const EdgeInsets.only(left: 8.0, bottom: 2),
+                      child: Text('- $d'),
+                    );
+                  }
+                }),
+                const SizedBox(height: 4),
+                const Text(
+                  'Note: Detergent/Softener multiplier applies based on the number of '
+                      'Wash Cleaning or Wash, Dry & Press services in this order.',
+                  style: TextStyle(fontSize: 13, color: Colors.black54),
+                ),
+              ],
+              const SizedBox(height: 4),
               if (data['isAudited'] != true)
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: const [
-                    Icon(Icons.info_outline,
-                        color: Color(0xFFFFD700), size: 20),
+                    Icon(Icons.info_outline, color: Color(0xFFFFD700), size: 20),
                     SizedBox(width: 6),
                     Expanded(
                       child: Text(
-                        'Please audit the final price to confirm the accurate weight of customer items and include any applicable delivery or pick-up fees.',
-                        style:
-                        TextStyle(fontSize: 13, color: Colors.black54),
+                        'Please review the final weight to confirm the accurate weight and final price of customer items.',
+                        style: TextStyle(fontSize: 13, color: Colors.black54),
                       ),
                     ),
                   ],
                 ),
-              const SizedBox(height: 10),
-              const Text('Items:',
-                  style: TextStyle(
-                      fontWeight: FontWeight.bold, color: Colors.black)),
-              const SizedBox(height: 6),
-              ...(data['items'] as List<dynamic>).map((item) {
-                final m = Map<String, dynamic>.from(item);
-                final laundry =
-                    (m['typeOfLaundry'] as List<dynamic>?)?.join(', ') ??
-                        '—';
-                final bulkyMap =
-                Map<String, dynamic>.from(m['numberOfBulkyItems'] ?? {});
-                final bulky = bulkyMap.isEmpty
-                    ? '—'
-                    : bulkyMap.entries
-                    .map((e) => '${e.key} – ${e.value}')
-                    .join(', ');
-                return Container(
-                  margin: const EdgeInsets.only(bottom: 10),
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                      color: Colors.grey[200],
-                      borderRadius: BorderRadius.circular(8)),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(m['serviceType'] ?? '',
-                          style: const TextStyle(
-                              fontWeight: FontWeight.bold, fontSize: 15)),
-                      const SizedBox(height: 4),
-                      _miniRow('Regular Items',
-                          laundry.isEmpty ? '—' : laundry),
-                      _miniRow('Bulky / Accessory',
-                          bulky.isEmpty ? '—' : bulky),
-                      _miniRow(
-                          'Personal Request',
-                          (m['personalRequest'] ?? '')
-                              .toString()
-                              .isEmpty
-                              ? '—'
-                              : m['personalRequest']),
-                      _miniRow('Item Total',
-                          '₱ ${m['totalPrice'] ?? 0}'),
-                    ],
-                  ),
-                );
-              }).toList(),
             ],
           ),
         ),
+
         actions: [
           Padding(
             padding: const EdgeInsets.all(8.0),
@@ -545,7 +565,7 @@ class _AdminBasketPageState extends State<AdminBasketPage> {
                               borderRadius: BorderRadius.circular(8)),
                         ),
                         child: Text(
-                          data['isAudited'] == true ? 'Audited' : 'Audit',
+                          data['isAudited'] == true ? 'Reviewed' : 'Review',
                           overflow: TextOverflow.ellipsis,
                         ),
                         onPressed:
@@ -657,6 +677,40 @@ class _AdminBasketPageState extends State<AdminBasketPage> {
       ),
     );
   }
+
+  Widget _detailRow(String label, String value, {bool bold = false, Color? color, double fontSize = 14}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: const TextStyle(fontWeight: FontWeight.w500)),
+          Flexible(
+            child: Text(
+              value,
+              textAlign: TextAlign.right,
+              style: TextStyle(
+                fontWeight: bold ? FontWeight.bold : FontWeight.normal,
+                fontSize: fontSize,
+                color: color ?? Colors.black,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _miniRow(String label, String value) => Padding(
+    padding: const EdgeInsets.symmetric(vertical: 1),
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('$label: '),
+        Expanded(child: Text(value)),
+      ],
+    ),
+  );
 
 /* ───────── Helpers to categorize orders ───────── */
   bool _isReadyStatus(String status) {

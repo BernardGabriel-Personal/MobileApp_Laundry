@@ -212,8 +212,11 @@ class _scheduledOrderPageState extends State<scheduledOrderPage> {
                       _miniRow('Bulky / Accessory Price', '₱ ${(m['bulkyPrice'] ?? 0).toStringAsFixed(2)}'),
                     const Divider(),
                     _miniRow('Service Total', '₱ ${(m['totalPrice'] ?? 0).toStringAsFixed(2)}'),
-                    _miniRow('Items', laundryList),
-                    _miniRow('Bulky / Accessories', bulkyList),
+                    if (serviceType.toLowerCase() != 'accessory cleaning')
+                      _miniRow('Items', laundryList),
+                    if (serviceType.toLowerCase() != 'iron pressing' &&
+                        serviceType.toLowerCase() != 'wash, dry & press')
+                      _miniRow('Bulky / Accessories', bulkyList),
                     _miniRow('Personalized Request',
                         (m['personalRequest'] ?? '').toString().trim().isNotEmpty ? m['personalRequest'] : '—'),
                   ]),
