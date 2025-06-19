@@ -94,9 +94,8 @@ class AdminOrderManagementPage extends StatelessWidget {
               _detailRow('Staff Contact', (data['staffContact'] ?? '').toString().isEmpty ? '—' : data['staffContact']),
               const Divider(),
 
-              // Temporary Assigned Rider Info (placeholder)
-              _detailRow('Assigned Rider', '—'),
-              _detailRow('Rider Contact', '—'),
+              _detailRow('Assigned Rider', data['assignedRider'] ?? '—'),
+              _detailRow('Rider Contact', data['riderContact'] ?? '—'),
               const SizedBox(height: 10),
 
 

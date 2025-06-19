@@ -263,80 +263,136 @@ class _AdminBasketPageState extends State<AdminBasketPage> {
   }
 
 /* ───────── AUDIT helpers ───────── */
-  void _promptAudit(DocumentSnapshot docSnap) {
+  void _promptAudit(DocumentSnapshot docSnap) async {
     final data = docSnap.data() as Map<String, dynamic>;
+    List<QueryDocumentSnapshot> riderDocs = [];
+
+    String? selectedRiderId;
+    String? selectedRiderName;
+    String? selectedRiderContact;
+
+    // Fetch rider list
+    try {
+      final snapshot = await FirebaseFirestore.instance.collection('rider').get();
+      riderDocs = snapshot.docs;
+    } catch (e) {
+      print("Failed to fetch riders: $e");
+    }
 
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (_) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Ready to Release'),
-        content: const Text(
-          'Mark this order as reviewed and ready for delivery or pick-up?',
-          style: TextStyle(fontSize: 14),
-        ),
-        actions: [
-          TextButton(
-            style: TextButton.styleFrom(
-                backgroundColor: Colors.grey, foregroundColor: Colors.white),
-            child: const Text('Cancel'),
-            onPressed: () => Navigator.pop(context),
-          ),
-          TextButton(
-            style: TextButton.styleFrom(
-                backgroundColor: const Color(0xFF170CFE),
-                foregroundColor: Colors.white),
-            child: const Text('For Release Order'),
-            onPressed: () async {
-              await docSnap.reference.update({
-                'isAudited': true,
-                'status': 'For delivery/pick-up',
-              });
-
-              final invoiceRef = FirebaseFirestore.instance
-                  .collection('customer_invoice')
-                  .doc(docSnap.id);
-
-              await invoiceRef.set({
-                ...data,
-                'isAudited': true,
-                'status': 'For delivery/pick-up',
-                'invoiceTimestamp': FieldValue.serverTimestamp(),
-              }, SetOptions(merge: true));
-
-              if (mounted) Navigator.pop(context); // close confirmation dialog
-              if (mounted) Navigator.pop(context); // close order details
-
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  behavior: SnackBarBehavior.floating,
-                  backgroundColor: const Color(0xFF04D26F),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  duration: const Duration(seconds: 4),
-                  content: Row(
-                    children: const [
-                      Icon(Icons.check_circle_outline, color: Colors.white),
-                      SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          'Order marked as ready for delivery/pick-up!',
-                          style: TextStyle(color: Colors.white, fontSize: 16),
-                        ),
-                      ),
-                    ],
-                  ),
+      builder: (_) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: const Text('Assign Rider & Release'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'Select a rider to assign before marking this order as ready for delivery/pick-up.',
+                style: TextStyle(fontSize: 14),
+              ),
+              const SizedBox(height: 12),
+              DropdownButtonFormField<String>(
+                isExpanded: true,
+                decoration: InputDecoration(
+                  labelText: 'Select Rider',
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                 ),
-              );
-            },
+                value: selectedRiderId,
+                items: riderDocs.map((riderDoc) {
+                  final rData = riderDoc.data() as Map<String, dynamic>;
+                  final fullName = rData['fullName'] ?? '';
+                  final contact = rData['contactNumber'] ?? '';
+                  return DropdownMenuItem<String>(
+                    value: riderDoc.id,
+                    child: Text('$fullName ($contact)'),
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  final riderData = riderDocs.firstWhere((doc) => doc.id == value).data() as Map<String, dynamic>;
+                  setState(() {
+                    selectedRiderId = value;
+                    selectedRiderName = riderData['fullName'];
+                    selectedRiderContact = riderData['contactNumber'];
+                  });
+                },
+              ),
+            ],
           ),
-        ],
+          actions: [
+            TextButton(
+              style: TextButton.styleFrom(backgroundColor: Colors.grey, foregroundColor: Colors.white),
+              child: const Text('Cancel'),
+              onPressed: () => Navigator.pop(context),
+            ),
+            TextButton(
+              style: TextButton.styleFrom(backgroundColor: Color(0xFF170CFE), foregroundColor: Colors.white),
+              child: const Text(
+                'For Release Order',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              onPressed: selectedRiderId == null
+                  ? null
+                  : () async {
+                // Update order document
+                await docSnap.reference.update({
+                  'isAudited': true,
+                  'status': 'For delivery/pick-up',
+                  'assignedRider': selectedRiderName,
+                  'riderContact': selectedRiderContact,
+                });
+
+                // Update customer_invoice
+                final invoiceRef = FirebaseFirestore.instance
+                    .collection('customer_invoice')
+                    .doc(docSnap.id);
+
+                await invoiceRef.set({
+                  ...data,
+                  'isAudited': true,
+                  'status': 'For delivery/pick-up',
+                  'assignedRider': selectedRiderName,
+                  'riderContact': selectedRiderContact,
+                  'invoiceTimestamp': FieldValue.serverTimestamp(),
+                }, SetOptions(merge: true));
+
+                if (mounted) Navigator.pop(context); // close dialog
+                if (mounted) Navigator.pop(context); // close order details
+
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    behavior: SnackBarBehavior.floating,
+                    backgroundColor: const Color(0xFF04D26F),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    duration: const Duration(seconds: 4),
+                    content: Row(
+                      children: const [
+                        Icon(Icons.check_circle_outline, color: Colors.white),
+                        SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            'Order marked as ready and rider assigned!',
+                            style: TextStyle(color: Colors.white, fontSize: 16),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
       ),
     );
   }
-
 
 /* ───────── Order details dialog ───────── */
   void _showOrderDetails(DocumentSnapshot docSnap) async {
@@ -382,8 +438,9 @@ class _AdminBasketPageState extends State<AdminBasketPage> {
               _detailRow('Staff', (data['staffName'] ?? '').toString().isEmpty ? '—' : data['staffName']),
               _detailRow('Staff Contact', (data['staffContact'] ?? '').toString().isEmpty ? '—' : data['staffContact']),
               const Divider(),
-              _detailRow('Assigned Rider', '—'),
-              _detailRow('Rider Contact', '—'),
+              _detailRow('Assigned Rider', data['assignedRider'] ?? '—'),
+              _detailRow('Rider Contact', data['riderContact'] ?? '—'),
+
               const SizedBox(height: 10),
               _detailRow('Customer', data['fullName']),
               _detailRow('Customer Address', data['address']),
