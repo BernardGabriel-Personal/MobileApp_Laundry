@@ -32,7 +32,10 @@ class _AdminBasketPageState extends State<AdminBasketPage> {
 /* ───────── PDF DOWNLOAD (no path_provider) ───────── */
   Future<void> _downloadInvoicePDF(Map<String, dynamic> data) async {
     try {
-      /* 1. Build the PDF */
+      final List<dynamic> preferredDetergents = data['preferredDetergents'] ?? [];
+      final List<dynamic> items = data['items'] ?? [];
+      final Map<String, dynamic> pricingData = data['pricing'] ?? {};
+
       final pdf = pw.Document();
 
       pdf.addPage(
@@ -42,40 +45,70 @@ class _AdminBasketPageState extends State<AdminBasketPage> {
               crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: [
                 pw.Text('Five-Stars Laundry | Staff Invoice',
-                    style: pw.TextStyle(
-                        fontSize: 24, fontWeight: pw.FontWeight.bold)),
+                    style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold)),
                 pw.SizedBox(height: 12),
-                pw.Text(
-                  'Order #: ${data['orderId']}',
-                  style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-                ),
-                pw.Text(
-                  'Status: ${data['status']}',
-                  style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-                ),
-                pw.SizedBox(height: 8),
-                pw.Text('Assigned Staff Name: ${data['staffName']}'),
-                pw.Text('Assigned Staff Contact: ${data['staffContact']}'),
-                pw.SizedBox(height: 8),
+                pw.Text('Order #: ${data['orderId']}', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                pw.Text('Status: ${data['status']}', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                if (data['rushOrder'] == true)
+                  pw.Text('Rush Order: Yes (Complete Today)'),
+                pw.Divider(),
+                pw.Text('Assigned Staff: ${data['staffName']}'),
+                pw.Text('Staff Contact: ${data['staffContact']}'),
+                pw.Divider(),
+                pw.Text('Assigned Rider: ${data['assignedRider'] ?? "—"}'),
+                pw.Text('Rider Contact: ${data['riderContact'] ?? "—"}'),
+                pw.Divider(),
                 pw.Text('Customer: ${data['fullName']}'),
-                pw.Text('Address: ${data['address']}'),
+                pw.Text('Customer Address: ${data['address']}'),
                 pw.Text('Contact: ${data['contact']}'),
                 pw.SizedBox(height: 8),
                 pw.Text('Branch: ${data['branch']}'),
                 pw.Text('Order Method: ${data['orderMethod']}'),
                 pw.Text('Payment: ${data['paymentMethod']}'),
                 pw.SizedBox(height: 10),
-                pw.Text('Items:',
-                    style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                pw.Text('Items:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
                 pw.SizedBox(height: 4),
-                ...((data['items'] as List<dynamic>).map<pw.Widget>((item) {
+                ...items.map<pw.Widget>((item) {
                   final m = Map<String, dynamic>.from(item);
-                  final laundry =
-                      (m['typeOfLaundry'] as List?)?.join(', ') ?? '-';
+                  final laundry = (m['typeOfLaundry'] as List?)?.join(', ') ?? '-';
 
-                  /* bulky items handling */
-                  Map<String, dynamic> bulkyMap =
-                  Map<String, dynamic>.from(m['numberOfBulkyItems'] ?? {});
+                  final serviceType = (m['serviceType'] ?? '').toString();
+                  final typeOfLaundry = (m['typeOfLaundry'] ?? []) as List<dynamic>;
+
+                  double computedBasePrice;
+                  String baseLabel;
+
+                  switch (serviceType) {
+                    case 'Iron Pressing':
+                      computedBasePrice = (m['pressOnlyPrice'] ?? 0).toDouble();
+                      baseLabel = '₱ ${computedBasePrice.toStringAsFixed(2)}';
+                      break;
+                    case 'Wash, Dry & Press':
+                      computedBasePrice = (m['washDryPressPrice'] ?? 0).toDouble();
+                      baseLabel = '₱ ${computedBasePrice.toStringAsFixed(2)}';
+                      break;
+                    case 'Wash Cleaning':
+                      final washBase = (m['washBase'] ?? 0).toDouble();
+                      final hasDelicates = typeOfLaundry.contains('Delicates');
+                      computedBasePrice = hasDelicates ? washBase * 2 : washBase;
+                      baseLabel = hasDelicates
+                          ? '₱ ${washBase.toStringAsFixed(2)} x2 (Delicates | Hand-Wash)'
+                          : '₱ ${washBase.toStringAsFixed(2)}';
+                      break;
+                    case 'Accessory Cleaning':
+                      computedBasePrice = (pricingData['shoesBagHelmet'] ?? 0).toDouble();
+                      baseLabel = '₱ ${computedBasePrice.toStringAsFixed(2)}';
+                      break;
+                    case 'Dry Cleaning':
+                      computedBasePrice = (pricingData['dry'] ?? 0).toDouble();
+                      baseLabel = '₱ ${computedBasePrice.toStringAsFixed(2)}';
+                      break;
+                    default:
+                      computedBasePrice = 0.0;
+                      baseLabel = '₱ 0.00';
+                  }
+
+                  Map<String, dynamic> bulkyMap = Map<String, dynamic>.from(m['numberOfBulkyItems'] ?? {});
                   if (bulkyMap.isEmpty) {
                     if (m['bulkyItems'] is Map) {
                       bulkyMap = Map<String, dynamic>.from(m['bulkyItems']);
@@ -84,29 +117,59 @@ class _AdminBasketPageState extends State<AdminBasketPage> {
                       bulkyMap = {for (var e in lst) e.toString(): 1};
                     }
                   }
-                  final bulkyItems = bulkyMap.entries
-                      .map((e) => '${e.key} - ${e.value}')
-                      .join(', ');
+                  final bulkyItems = bulkyMap.entries.map((e) => '${e.key} - ${e.value}').join(', ');
 
                   return pw.Column(
                     crossAxisAlignment: pw.CrossAxisAlignment.start,
                     children: [
-                      pw.Text('${m['serviceType'] ?? ''}',
-                          style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-                      pw.Text('Regular Items: $laundry'),
-                      pw.Text(
-                          'Bulky Items: ${bulkyItems.isEmpty ? '-' : bulkyItems}'),
-                      pw.Text(
-                          'Personal Request: ${m['personalRequest']?.toString().isEmpty ?? true ? '-' : m['personalRequest']}'),
-                      pw.Text('Item Total: ${m['totalPrice'] ?? 0} Pesos'),
+                      pw.Text(serviceType, style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                      pw.Text('Base Price: $baseLabel'),
+                      if ((m['priceOfBulkyItems'] ?? 0) > 0)
+                        pw.Text('Bulky Items Price: ${m['priceOfBulkyItems']}'),
+                      if ((m['bulkyPrice'] ?? 0) > 0)
+                        pw.Text('Bulky / Accessory Price: ${m['bulkyPrice']}'),
+                      pw.Text('Items: $laundry'),
+                      pw.Text('Bulky / Accessories: ${bulkyItems.isEmpty ? "—" : bulkyItems}'),
+                      pw.Text('Personal Request: ${m['personalRequest']?.toString().isEmpty ?? true ? '-' : m['personalRequest']}'),
+                      pw.Text('Item Total: ${m['totalPrice'] ?? 0}'),
                       pw.SizedBox(height: 8),
                     ],
                   );
-                })),
+                }),
                 pw.Divider(),
+                if ((data['deliveryFee']?['note'] ?? '').toString().trim().isNotEmpty)
+                  pw.Text('Delivery/Pickup Fee: ${data['deliveryFee']['note']}'),
+                if ((data['detergentTotal'] ?? 0) > 0)
+                  pw.Text('Detergent/Softener Cost: ${data['detergentTotal']}'),
                 pw.Text('Grand Total: ${data['grandTotal']} Pesos',
-                    style: pw.TextStyle(
-                        fontSize: 16, fontWeight: pw.FontWeight.bold)),
+                    style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold)),
+                if (preferredDetergents.isNotEmpty) ...[
+                  pw.SizedBox(height: 10),
+                  pw.Text('Preferred Detergents / Softeners:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                  ...preferredDetergents.map((d) {
+                    if (d is Map<String, dynamic>) {
+                      final name = d['label'] ?? d['price'] ?? 'Unnamed';
+                      final rawPrice = d['pricingPerLoad'] ?? d['price'] ?? 0;
+                      final price = rawPrice is int ? rawPrice.toDouble() : rawPrice;
+
+                      int multiplier = items.where((item) {
+                        final type = (item['serviceType'] ?? '').toString().toLowerCase();
+                        return type == 'wash cleaning' || type == 'wash, dry & press';
+                      }).length;
+
+                      final bool isMulti = items.length > 1 && multiplier > 1;
+                      final totalCost = price * multiplier;
+
+                      final priceText = isMulti
+                          ? '${price.toStringAsFixed(2)} per load x$multiplier = ${totalCost.toStringAsFixed(2)}'
+                          : '${(price % 1 == 0) ? price.toInt() : price.toStringAsFixed(2)} Per-Load';
+
+                      return pw.Text('- $name: $priceText');
+                    } else {
+                      return pw.Text('- $d');
+                    }
+                  }),
+                ]
               ],
             );
           },
