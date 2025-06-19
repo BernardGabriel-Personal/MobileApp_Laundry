@@ -119,6 +119,8 @@ class _scheduledOrderPageState extends State<scheduledOrderPage> {
             children: [
               _detailRow('Branch', data['branch']),
               _detailRow('Status', data['status']),
+              if (data['rushOrder'] == true)
+                _detailRow('Rush Order', 'Yes (Complete Today)'),
               const SizedBox(height: 10),
 
               _detailRow('Staff', (data['staffName'] ?? '').toString().isEmpty ? '—' : data['staffName']),
@@ -169,7 +171,7 @@ class _scheduledOrderPageState extends State<scheduledOrderPage> {
                     final hasDelicates = typeOfLaundry.contains('Delicates');
                     computedBasePrice = hasDelicates ? washBase * 2 : washBase;
                     baseLabel = hasDelicates
-                        ? '₱ ${washBase.toStringAsFixed(2)} x2 (Delicates)'
+                        ? '₱ ${washBase.toStringAsFixed(2)} x2 (Delicates | Hand-Wash)'
                         : '₱ ${washBase.toStringAsFixed(2)}';
                     break;
                   case 'Accessory Cleaning':
@@ -224,9 +226,6 @@ class _scheduledOrderPageState extends State<scheduledOrderPage> {
 
               if ((data['detergentTotal'] ?? 0) > 0)
                 _detailRow('Detergent/Softener Cost', '₱ ${data['detergentTotal'].toStringAsFixed(2)}'),
-
-              if (data['rushOrder'] == true)
-                _detailRow('Rush Order', 'Yes (Complete Today)'),
 
               _detailRow(
                 'Grand Total',
