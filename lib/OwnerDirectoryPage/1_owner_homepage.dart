@@ -4,6 +4,7 @@ import 'dart:async';
 import '2_employee_management.dart';
 import '3_customer_management.dart';
 import '4_owner_profilePage.dart';
+import '5_rider_managementPage.dart';
 import 'package:intl/intl.dart';
 import '../Start,Signup,Login/2_welcome_page.dart';
 // ignore_for_file: deprecated_member_use
@@ -273,6 +274,50 @@ class _OwnerHomePageState extends State<OwnerHomePage> {
                             ),
                           ),
                         ),
+
+                        // Rider Management
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => const RiderManagementPage()),
+                            );
+                          },
+                          child: Container(
+                            margin: const EdgeInsets.all(12),
+                            width: 310,
+                            height: 200,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFD9D9D9),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Stack(
+                              children: [
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(20),
+                                  child: Image.asset(
+                                    'assets/RiderManagementIcon.png',
+                                    width: 400,
+                                    height: 150,
+                                  ),
+                                ),
+                                Center(
+                                  child: Text(
+                                    'Rider Management',
+                                    style: TextStyle(
+                                      color: const Color(0xFFEE7600), // Orange for distinction
+                                      fontSize: 26,
+                                      fontWeight: FontWeight.bold,
+                                      height: 14,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+
                       ],
                     ),
                   ),
