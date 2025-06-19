@@ -275,7 +275,7 @@ class _OwnerHomePageState extends State<OwnerHomePage> {
                           ),
                         ),
 
-                        // Rider Management
+                        // Rider Management (icon instead of image)
                         GestureDetector(
                           onTap: () {
                             Navigator.push(
@@ -288,36 +288,32 @@ class _OwnerHomePageState extends State<OwnerHomePage> {
                             width: 310,
                             height: 200,
                             decoration: BoxDecoration(
-                              color: const Color(0xFFD9D9D9),
+                              color: Color(0xFFD9D9D9),
                               borderRadius: BorderRadius.circular(20),
                             ),
                             child: Stack(
-                              children: [
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(20),
-                                  child: Image.asset(
-                                    'assets/RiderManagementIcon.png',
-                                    width: 400,
-                                    height: 150,
-                                  ),
+                              alignment: Alignment.center,
+                              children: const [
+                                Icon(
+                                  Icons.delivery_dining,
+                                  size: 140,
+                                  color: Color(0xFFEE7600),
                                 ),
-                                Center(
+                                Positioned(
+                                  bottom: 20,
                                   child: Text(
                                     'Rider Management',
                                     style: TextStyle(
-                                      color: const Color(0xFFEE7600), // Orange for distinction
-                                      fontSize: 26,
+                                      color: Color(0xFFEE7600),
+                                      fontSize: 24,
                                       fontWeight: FontWeight.bold,
-                                      height: 14,
                                     ),
-                                    textAlign: TextAlign.center,
                                   ),
                                 ),
                               ],
                             ),
                           ),
                         ),
-
                       ],
                     ),
                   ),
