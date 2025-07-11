@@ -141,6 +141,10 @@ class _AdminBasketPageState extends State<AdminBasketPage> {
                   pw.Text('Delivery/Pickup Fee: ${data['deliveryFee']['note']}'),
                 if ((data['detergentTotal'] ?? 0) > 0)
                   pw.Text('Detergent/Softener Cost: ${data['detergentTotal']}'),
+                if ((data['excessKilo'] ?? 0) > 0)
+                  pw.Text('Excess Kilos: ${data['excessKilo']} Kg'),
+                if ((data['excessCost'] ?? 0) > 0)
+                  pw.Text('Excess Cost: ₱ ${data['excessCost'].toStringAsFixed(2)}'),
                 pw.Text('Grand Total: ${data['grandTotal']} Pesos',
                     style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold)),
                 if (preferredDetergents.isNotEmpty) ...[
@@ -334,6 +338,15 @@ class _AdminBasketPageState extends State<AdminBasketPage> {
     String? selectedRiderName;
     String? selectedRiderContact;
 
+    final TextEditingController excessKiloController = TextEditingController();
+
+    final double currentGrandTotal = (data['grandTotal'] ?? 0).toDouble();
+    const double excessRatePerKilo = 20.0;
+
+    final bool hasWashCleaning = (data['items'] as List)
+        .where((item) => (item['serviceType'] ?? '').toString().toLowerCase() == 'wash cleaning')
+        .isNotEmpty;
+
     // Fetch rider list
     try {
       final snapshot = await FirebaseFirestore.instance.collection('rider').get();
@@ -353,7 +366,7 @@ class _AdminBasketPageState extends State<AdminBasketPage> {
             mainAxisSize: MainAxisSize.min,
             children: [
               const Text(
-                'Select a rider to assign before marking this order as ready for delivery/pick-up.',
+                'Select a rider to assign and add excess kilos (if any) before marking this order as ready for delivery/pick-up.',
                 style: TextStyle(fontSize: 14),
               ),
               const SizedBox(height: 12),
@@ -382,6 +395,17 @@ class _AdminBasketPageState extends State<AdminBasketPage> {
                   });
                 },
               ),
+              if (hasWashCleaning) ...[
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: excessKiloController,
+                  keyboardType: TextInputType.numberWithOptions(decimal: true),
+                  decoration: InputDecoration(
+                    labelText: 'Excess Kilos (if any)',
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                ),
+              ],
             ],
           ),
           actions: [
@@ -402,12 +426,25 @@ class _AdminBasketPageState extends State<AdminBasketPage> {
               onPressed: selectedRiderId == null
                   ? null
                   : () async {
+                double excessKilo = 0.0;
+                double excessCost = 0.0;
+
+                if (hasWashCleaning) {
+                  excessKilo = double.tryParse(excessKiloController.text.trim()) ?? 0.0;
+                  excessCost = excessRatePerKilo * excessKilo;
+                }
+
+                double newGrandTotal = currentGrandTotal + excessCost;
+
                 // Update order document
                 await docSnap.reference.update({
                   'isAudited': true,
                   'status': 'For delivery/pick-up',
                   'assignedRider': selectedRiderName,
                   'riderContact': selectedRiderContact,
+                  if (hasWashCleaning) 'excessKilo': excessKilo,
+                  if (hasWashCleaning) 'excessCost': excessCost,
+                  'grandTotal': newGrandTotal,
                 });
 
                 // Update customer_invoice
@@ -421,6 +458,9 @@ class _AdminBasketPageState extends State<AdminBasketPage> {
                   'status': 'For delivery/pick-up',
                   'assignedRider': selectedRiderName,
                   'riderContact': selectedRiderContact,
+                  if (hasWashCleaning) 'excessKilo': excessKilo,
+                  if (hasWashCleaning) 'excessCost': excessCost,
+                  'grandTotal': newGrandTotal,
                   'invoiceTimestamp': FieldValue.serverTimestamp(),
                 }, SetOptions(merge: true));
 
@@ -456,6 +496,7 @@ class _AdminBasketPageState extends State<AdminBasketPage> {
       ),
     );
   }
+
 
 /* ───────── Order details dialog ───────── */
   void _showOrderDetails(DocumentSnapshot docSnap) async {
@@ -597,6 +638,12 @@ class _AdminBasketPageState extends State<AdminBasketPage> {
                 _detailRow('Delivery/Pickup Fee', data['deliveryFee']['note']),
               if ((data['detergentTotal'] ?? 0) > 0)
                 _detailRow('Detergent/Softener Cost', '₱ ${data['detergentTotal'].toStringAsFixed(2)}'),
+
+              if ((data['excessKilo'] ?? 0) > 0)
+                _detailRow('Excess Kilos', '${data['excessKilo']} Kg'),
+              if ((data['excessCost'] ?? 0) > 0)
+                _detailRow('Excess Cost', '₱ ${data['excessCost'].toStringAsFixed(2)}'),
+
               _detailRow('Grand Total', '₱ ${data['grandTotal'].toStringAsFixed(2)}',
                   bold: true, color: const Color(0xFF04D26F), fontSize: 18),
               if ((data['preferredDetergents'] ?? []).isNotEmpty) ...[

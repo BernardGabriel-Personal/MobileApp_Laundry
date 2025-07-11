@@ -141,6 +141,10 @@ class _customerInvoicePageState extends State<customerInvoicePage> {
                   pw.Text('Delivery/Pickup Fee: ${data['deliveryFee']['note']}'),
                 if ((data['detergentTotal'] ?? 0) > 0)
                   pw.Text('Detergent/Softener Cost: ${data['detergentTotal']}'),
+                if ((data['excessKilo'] ?? 0) > 0)
+                  pw.Text('Excess Kilos: ${data['excessKilo']} Kg'),
+                if ((data['excessCost'] ?? 0) > 0)
+                  pw.Text('Excess Cost: ₱ ${data['excessCost'].toStringAsFixed(2)}'),
                 pw.Text('Grand Total: ${data['grandTotal']} Pesos',
                     style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold)),
                 if (preferredDetergents.isNotEmpty) ...[
@@ -435,6 +439,11 @@ class _customerInvoicePageState extends State<customerInvoicePage> {
 
               if ((data['detergentTotal'] ?? 0) > 0)
                 _detailRow('Detergent/Softener Cost', '₱ ${data['detergentTotal'].toStringAsFixed(2)}'),
+
+              if ((data['excessKilo'] ?? 0) > 0)
+                _detailRow('Excess Kilos', '${data['excessKilo']} Kg'),
+              if ((data['excessCost'] ?? 0) > 0)
+                _detailRow('Excess Cost', '₱ ${data['excessCost'].toStringAsFixed(2)}'),
 
               _detailRow(
                 'Grand Total',
